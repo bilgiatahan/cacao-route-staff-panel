@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { EmptyState, RuledList } from "@/components/ui/Section";
+import { ACCENT_EDGE, Card } from "@/components/ui/Card";
 import { employeeDisplayName } from "@/lib/employee";
 import { fromIsoDate } from "@/lib/date";
 import { formatDateRange, formatShiftSpan } from "@/lib/format";
@@ -70,36 +70,35 @@ export function PendingActions({
 
   if (rows.length === 0) {
     return (
-      <RuledList>
-        <EmptyState>{dict.summary.needsActionEmpty}</EmptyState>
-      </RuledList>
+      <Card className="px-4 py-4">
+        <p className="text-sm text-muted-soft">{dict.summary.needsActionEmpty}</p>
+      </Card>
     );
   }
 
   return (
-    <RuledList>
-      <ul>
-        {rows.map((row) => (
-          <li
-            key={row.key}
+    <ul className="flex flex-col gap-2">
+      {rows.map((row) => (
+        <li key={row.key}>
+          <Card
             className={cn(
-              "flex items-center gap-3 px-4 py-3",
-              row.warn ? "bg-warn-soft" : "bg-surface",
+              "flex items-center gap-3 border-l-[3px] py-2.5 pl-3 pr-2.5",
+              row.warn ? ACCENT_EDGE.amber : ACCENT_EDGE.blue,
             )}
           >
             <div className="min-w-0 flex-1">
-              <div className="text-base font-semibold">{row.title}</div>
-              <div className="text-xs text-muted">{row.subtitle}</div>
+              <div className="truncate text-md font-semibold">{row.title}</div>
+              <div className="truncate text-xs text-muted">{row.subtitle}</div>
             </div>
             <Link
               href={panelHref(ROUTES.leave, { week: weekStart })}
-              className="flex-none border border-line-strong bg-surface px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-hover"
+              className="flex-none rounded-md border border-line-strong bg-surface px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-hover"
             >
               {dict.common.view}
             </Link>
-          </li>
-        ))}
-      </ul>
-    </RuledList>
+          </Card>
+        </li>
+      ))}
+    </ul>
   );
 }

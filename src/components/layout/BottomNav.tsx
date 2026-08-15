@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { NavIcon, type NavIconName } from "@/components/ui/NavIcon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
   key: string;
   href: string;
   label: string;
-  icon: NavIconName;
+  icon: IconName;
   badge: number;
 }
 
@@ -24,7 +24,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
   const week = searchParams.get("week");
 
   return (
-    <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t-2 border-brand bg-brand rounded-t-[20px]">
+    <nav className="sticky bottom-0 z-10 grid grid-cols-4 border-t-2 border-brand bg-brand rounded-t-[20px]">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const href = week ? `${item.href}?week=${week}` : item.href;
@@ -36,7 +36,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
             aria-current={active ? "page" : undefined}
             className="relative flex min-h-14 flex-col items-center justify-center gap-1 px-0.5 pb-2.5 pt-2"
           >
-            <NavIcon name={item.icon} className={active ? "text-white" : "text-white/60"} />
+            <Icon name={item.icon} className={active ? "text-white" : "text-white/60"} />
             <span
               className={cn(
                 "text-2xs font-bold uppercase tracking-[0.06em]",

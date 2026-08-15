@@ -49,17 +49,17 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
   }));
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <PageHeader title={dict.leave.title} subtitle={subtitle} />
 
-      {!isAdmin ? (
+      {!isAdmin && (
         <LeaveRequestForm
           dict={dict}
           balanceLabel={`${dict.leave.balance}: ${board.leaveBalance} ${dict.units.days}`}
           defaultStart={addIsoDays(today, 7)}
           defaultEnd={addIsoDays(today, 8)}
         />
-      ) : null}
+      )}
 
       <SectionHeading
         title={dict.leave.requests}
@@ -70,13 +70,13 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
       <SectionHeading title={dict.leave.swaps} />
       <SwapList rows={board.swapRows} dict={dict} locale={locale} />
 
-      {!isAdmin ? (
+      {!isAdmin && (
         <SwapRequestForm
           dict={dict}
           shiftOptions={shiftOptions}
           colleagueOptions={colleagueOptions}
         />
-      ) : null}
+      )}
     </section>
   );
 }

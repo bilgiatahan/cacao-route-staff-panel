@@ -22,7 +22,7 @@ export default async function NewEmployeePage({ searchParams }: NewEmployeePageP
   const weekStart = resolveWeekStart(query.week);
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <div className="flex items-center gap-3 border-y-2 border-ink bg-surface-alt px-4 py-3.5">
         <Avatar initials="+" size="lg" solid />
         <div className="min-w-0 flex-1">

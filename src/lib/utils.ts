@@ -1,6 +1,6 @@
-export type ClassValue = string | false | null | undefined;
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-/** Minimal class joiner — the design has no conflicting-variant problem to solve. */
-export function cn(...values: ClassValue[]): string {
-  return values.filter(Boolean).join(" ");
+export function cn(...values: ClassValue[]) {
+  return twMerge(clsx(values));
 }

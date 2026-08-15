@@ -131,8 +131,25 @@ Hepsi saf fonksiyonlarda, tek yerde. UI'da yeniden hesaplama:
 ## Görsel dil
 
 Tailwind v4, config dosyası yok — tokenlar `src/app/globals.css` içinde `@theme`.
-`--radius-*: initial` bilinçli: köşeler keskin. Yeni bir primitive yazmadan önce
-`src/components/ui/` içine bak.
+Yeni bir primitive yazmadan önce `src/components/ui/` içine bak.
+
+İki ailesi var, karıştırma:
+
+- **Ruled** (program, izin, ekip, bildirim): keskin köşe, 2px ink çizgi,
+  uçtan uca satır, beyaz zemin. `RuledList`, `SectionHeading`, `PageHeader`
+  varsayılan (`variant="rule"`).
+- **Card** (şimdilik yalnız özet): `bg-fill` zemin üstünde `Card` yüzeyleri —
+  hairline `border-line`, `rounded-lg`, aksan renkli kenar/çip.
+  `SegmentedControl variant="pill"`, `SectionHeading variant="plain"`.
+
+`--radius-*: initial` hâlâ geçerli; geri konan tek şey `sm/md/lg/full` merdiveni,
+kart yüzeyleri için. Aradaki değerler yok.
+
+Zemin sorumluluğu sayfada: `(panel)/layout.tsx` içindeki `<main>` `bg-fill`,
+ruled sayfalar kök `<section>`'da kendi `bg-surface`'ini boyar.
+
+Aksan paleti (`--color-accent-*`) satır ayırt etmek için; kişi → renk eşlemesi
+`accentForId()` ile deterministik, elle renk seçme.
 
 ## Komutlar
 

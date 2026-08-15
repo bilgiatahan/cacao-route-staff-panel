@@ -1,3 +1,9 @@
+import {
+  TABLE_ROW,
+  TableCard,
+  TableHead,
+  TableTotal,
+} from "@/components/ui/TableCard";
 import { employeeDisplayName, employeePosition } from "@/lib/employee";
 import { formatHours, formatHoursValue, formatMoney } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
@@ -5,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { PayrollReport } from "@/server/services/payroll.service";
 import type { Locale } from "@/types/domain";
 
-const COLUMNS = "grid grid-cols-[1fr_52px_56px_78px] gap-1.5 px-4";
+const COLUMNS = "grid grid-cols-[1fr_52px_56px_78px] gap-1.5 px-3.5";
 
 export interface PayrollTableProps {
   report: PayrollReport;
@@ -18,18 +24,13 @@ export function PayrollTable({ report, dict, locale }: PayrollTableProps) {
     report.period === "month" ? dict.team.costMonthly : dict.team.costWeekly;
 
   return (
-    <div>
-      <div
-        className={cn(
-          COLUMNS,
-          "border-b border-line border-t-2 border-t-ink py-2 text-2xs font-bold uppercase tracking-[0.06em] text-muted",
-        )}
-      >
+    <TableCard>
+      <TableHead columns={COLUMNS}>
         <span>{dict.team.colStaff}</span>
         <span className="text-right">{dict.team.colHours}</span>
         <span className="text-right">{dict.team.colRate}</span>
         <span className="text-right">{dict.team.colTotal}</span>
-      </div>
+      </TableHead>
 
       <ul>
         {report.lines.map((line) => {
@@ -40,7 +41,8 @@ export function PayrollTable({ report, dict, locale }: PayrollTableProps) {
               key={line.employee.id}
               className={cn(
                 COLUMNS,
-                "items-center border-b border-line py-2.5",
+                TABLE_ROW,
+                "py-2.5",
                 hasOvertime ? "bg-surface-warn" : "bg-surface",
               )}
             >
@@ -71,10 +73,7 @@ export function PayrollTable({ report, dict, locale }: PayrollTableProps) {
         })}
       </ul>
 
-      <div className="flex items-center justify-between border-b-2 border-ink bg-brand px-4 py-3.5 text-white">
-        <span className="text-xs font-bold uppercase tracking-[0.1em]">{totalLabel}</span>
-        <span className="tabular text-2xl font-extrabold">{formatMoney(report.totalCost)}</span>
-      </div>
-    </div>
+      <TableTotal label={totalLabel} value={formatMoney(report.totalCost)} />
+    </TableCard>
   );
 }

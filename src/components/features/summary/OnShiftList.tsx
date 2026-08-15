@@ -1,5 +1,6 @@
-import { EmptyState, RuledList } from "@/components/ui/Section";
-import { employeeDisplayName, employeePosition } from "@/lib/employee";
+import { Avatar } from "@/components/ui/Avatar";
+import { accentForId, Card, ACCENT_EDGE } from "@/components/ui/Card";
+import { employeeDisplayName, employeeInitials, employeePosition } from "@/lib/employee";
 import { formatHours, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -17,40 +18,50 @@ export interface OnShiftListProps {
 export function OnShiftList({ rows, dict, locale, highlightEmployeeId }: OnShiftListProps) {
   if (rows.length === 0) {
     return (
-      <RuledList>
-        <EmptyState>{dict.summary.todayEmpty}</EmptyState>
-      </RuledList>
+      <Card className="px-4 py-4">
+        <p className="text-sm text-muted-soft">{dict.summary.todayEmpty}</p>
+      </Card>
     );
   }
 
   return (
-    <RuledList>
-      <ul>
-        {rows.map(({ employee, shift }) => {
-          const mine = employee.id === highlightEmployeeId;
+    <ul className="flex flex-col gap-2">
+      {rows.map(({ employee, shift }) => {
+        const mine = employee.id === highlightEmployeeId;
+        const accent = accentForId(employee.id);
 
-          return (
-            <li key={employee.id} className="flex items-center gap-3 px-4 py-3.5">
-              <span
-                aria-hidden
-                className={cn("h-[34px] w-1.5 flex-none", mine ? "bg-warn" : "bg-brand")}
+        return (
+          <li key={employee.id}>
+            <Card
+              className={cn(
+                "flex items-center gap-2.5 border-l-[3px] py-2.5 pl-2.5 pr-3",
+                ACCENT_EDGE[accent],
+                mine && "bg-brand-faint",
+              )}
+            >
+              <Avatar
+                initials={employeeInitials(employee, locale)}
+                tone={accent}
+                className="rounded-md"
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-md font-semibold">
                   {employeeDisplayName(employee, locale)}
                 </div>
-                <div className="text-xs text-muted">{employeePosition(employee, locale)}</div>
-              </div>
-              <div className="flex-none text-right">
-                <div className="tabular text-sm font-bold">{formatShiftSpan(shift, dict)}</div>
-                <div className="tabular text-xs text-muted">
-                  {formatHours((shift.endMinutes - shift.startMinutes) / 60, dict)}
+                <div className="truncate text-xs text-muted">
+                  {employeePosition(employee, locale)}
                 </div>
               </div>
-            </li>
-          );
-        })}
-      </ul>
-    </RuledList>
+              <div className="tabular flex-none text-sm font-semibold">
+                {formatShiftSpan(shift, dict)}
+              </div>
+              <div className="tabular w-9 flex-none text-right text-sm text-muted">
+                {formatHours((shift.endMinutes - shift.startMinutes) / 60, dict)}
+              </div>
+            </Card>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

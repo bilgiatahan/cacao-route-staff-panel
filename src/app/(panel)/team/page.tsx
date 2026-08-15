@@ -27,8 +27,9 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     if (!detail) return null;
 
     return (
-      <section className="flex flex-col">
-        <PageHeader title={dict.team.titleStaff} subtitle={dict.team.subStaff} />
+      // The staff view is card family: tinted ground, cards gutter to gutter.
+      <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6">
+        <PageHeader variant="plain" title={dict.team.titleStaff} />
         <StaffPayrollCard detail={detail} dict={dict} locale={locale} />
       </section>
     );
@@ -37,7 +38,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const overview = await getTeamOverview(weekStart);
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <PageHeader
         title={dict.team.titleAdmin}
         subtitle={`${overview.members.length} ${dict.summary.staffSuffix} · ${dict.team.subAdmin}`}

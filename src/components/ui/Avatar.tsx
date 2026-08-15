@@ -1,12 +1,14 @@
+import { ACCENT_CHIP, type Accent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
-export type AvatarTone = "brand" | "warn" | "muted";
+export type AvatarTone = "brand" | "warn" | "muted" | Accent;
 export type AvatarSize = "sm" | "md" | "lg";
 
 const TONES: Record<AvatarTone, string> = {
   brand: "bg-brand-soft text-brand-dark",
   warn: "bg-warn-soft text-warn-dark",
   muted: "bg-fill-strong text-muted",
+  ...ACCENT_CHIP,
 };
 
 const SIZES: Record<AvatarSize, string> = {

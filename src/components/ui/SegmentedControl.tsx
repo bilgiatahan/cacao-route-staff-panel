@@ -22,6 +22,11 @@ export interface SegmentedControlProps {
   tone?: SegmentTone;
   /** Draws the hairline frame; the roster tab strip sits flush instead. */
   bordered?: boolean;
+  /**
+   * `flush` is the squared strip the ruled views use. `pill` is the soft track
+   * with a raised active segment, for the card views.
+   */
+  variant?: "flush" | "pill";
   className?: string;
   ariaLabel: string;
 }
@@ -32,15 +37,20 @@ export interface SegmentedControlProps {
  */
 export function SegmentedControl({
   options,
-  tone = "ink",
-  bordered = true,
+  tone = "brand",
+  variant = "flush",
   className,
   ariaLabel,
 }: SegmentedControlProps) {
+  const pill = variant === "pill";
+
   return (
     <nav
       aria-label={ariaLabel}
-      className={cn("flex", bordered && "border border-line-strong", className)}
+      className={cn(
+        "flex rounded-md border border-line bg-surface",
+        className,
+      )}
     >
       {options.map((option) => (
         <Link
@@ -48,9 +58,10 @@ export function SegmentedControl({
           href={option.href}
           aria-current={option.active ? "page" : undefined}
           className={cn(
-            "flex-1 px-1.5 py-2.5 text-center text-xs font-bold uppercase tracking-[0.08em] transition-colors",
-            "border-r border-line last:border-r-0",
-            option.active ? ACTIVE_TONES[tone] : "bg-surface text-ink hover:bg-hover",
+            "flex-1 text-center transition-colors rounded-md rounded-md px-2 py-2 text-md font-bold",
+            option.active
+              ?  "bg-brand text-white"
+              :  "text-muted hover:text-ink bg-surface"
           )}
         >
           {option.label}

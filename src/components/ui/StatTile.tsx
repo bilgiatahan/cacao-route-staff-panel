@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 export type StatTone = "neutral" | "brand" | "warn";
 
-const VALUE_TONES: Record<StatTone, string> = {
+/** Ink for a stat's number — shared with the card-family tiles. */
+export const STAT_TONES: Record<StatTone, string> = {
   neutral: "text-ink",
   brand: "text-brand",
   warn: "text-warn-dark",
@@ -37,22 +38,10 @@ export function StatTile({
       )}
     >
       <div className="label-eyebrow">{label}</div>
-      <div className={cn("tabular mt-1.5 text-5xl font-extrabold -tracking-[0.03em]", VALUE_TONES[tone])}>
+      <div className={cn("tabular mt-1.5 text-5xl font-extrabold -tracking-[0.03em]", STAT_TONES[tone])}>
         {value}
       </div>
       {hint ? <div className="mt-0.5 text-xs text-muted">{hint}</div> : null}
-    </div>
-  );
-}
-
-/** Compact variant used inside the employee card grid. */
-export function MiniStatTile({ label, value, tone = "neutral", className }: StatTileProps) {
-  return (
-    <div className={cn("px-4 py-3.5", className)}>
-      <div className="label-eyebrow">{label}</div>
-      <div className={cn("tabular mt-1 text-3xl font-extrabold -tracking-[0.02em]", VALUE_TONES[tone])}>
-        {value}
-      </div>
     </div>
   );
 }

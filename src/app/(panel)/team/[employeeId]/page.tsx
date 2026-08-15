@@ -44,7 +44,7 @@ export default async function EmployeeDetailPage({
   const canArchive = employee.id !== admin.employeeId && !employee.isTaskRow;
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <div className="flex items-center gap-3 border-y-2 border-ink bg-surface-alt px-4 py-3.5">
         <Avatar initials={employeeInitials(employee, locale)} size="lg" solid />
         <div className="min-w-0 flex-1">

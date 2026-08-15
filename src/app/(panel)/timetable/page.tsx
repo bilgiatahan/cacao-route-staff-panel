@@ -9,7 +9,6 @@ import { Legend } from "@/components/ui/Legend";
 import { PageHeader } from "@/components/ui/Section";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { todayIso, weekdayIndex } from "@/lib/date";
-import { formatWeekLabel } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
 import { resolveDayIndex, resolveRosterView, resolveWeekStart } from "@/lib/week-params";
@@ -61,21 +60,15 @@ export default async function TimetablePage({ searchParams }: TimetablePageProps
   );
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <PageHeader
         title={dict.timetable.title}
-        subtitle={
-          canEdit
-            ? dict.timetable.adminSub
-            : `${dict.timetable.staffSub} · ${formatWeekLabel(weekStart, dict)}`
-        }
       />
 
       <SegmentedControl
         ariaLabel={dict.timetable.title}
         options={viewOptions}
-        bordered={false}
-        className="border-t-2 border-ink"
+        className="m-2"
       />
 
       <RosterBoard

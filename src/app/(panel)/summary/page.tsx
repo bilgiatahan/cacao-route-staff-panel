@@ -1,10 +1,14 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
 import { OnShiftList } from "@/components/features/summary/OnShiftList";
 import { PendingActions } from "@/components/features/summary/PendingActions";
 import { WeekShiftList } from "@/components/features/summary/WeekShiftList";
 import { PayrollTable } from "@/components/features/payroll/PayrollTable";
+import { Card, IconTile, StatCard } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PageHeader, SectionHeading } from "@/components/ui/Section";
-import { StatTile } from "@/components/ui/StatTile";
 import { fromIsoDate } from "@/lib/date";
 import {
   formatDayMonth,
@@ -25,6 +29,9 @@ import type { IsoDate } from "@/types/domain";
 interface SummaryPageProps {
   searchParams: Promise<{ week?: string; period?: string }>;
 }
+
+/** The page is a stack of cards on the shell's tint, gutter to gutter. */
+const PAGE = "flex flex-1 flex-col gap-3.5 px-4 pb-6";
 
 function periodOptions(
   dict: Dictionary,
@@ -47,10 +54,28 @@ function periodOptions(
   ];
 }
 
-function todayLabel(date: IsoDate, dict: Dictionary): string {
+function dayLabel(date: IsoDate, dict: Dictionary): string {
   const index = fromIsoDate(date).getDay();
   const dayName = dict.calendar.daysLong[index === 0 ? 6 : index - 1];
-  return `${dayName} ${formatDayMonth(date, dict)}`;
+  return `${dayName} · ${formatDayMonth(date, dict)}`;
+}
+
+/** Heading plus the block it introduces, kept together as one rhythm unit. */
+function Block({
+  title,
+  meta,
+  children,
+}: {
+  title: string;
+  meta?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <SectionHeading variant="plain" title={title} meta={meta} />
+      {children}
+    </div>
+  );
 }
 
 export default async function SummaryPage({ searchParams }: SummaryPageProps) {
@@ -71,23 +96,26 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     <SegmentedControl
       ariaLabel={dict.calendar.thisWeek}
       options={periodOptions(dict, weekStart, period)}
-      className="mx-4 mb-3.5"
     />
   );
 
   if (user.role === "admin") {
     const summary = await getAdminSummary(weekStart, period);
+    const pendingCount = summary.pendingLeave.length + summary.pendingSwaps.length;
 
     return (
-      <section className="flex flex-col">
+      <section className={PAGE}>
         <PageHeader
+          variant="plain"
           title={dict.summary.title}
-          subtitle={`${dict.brand.branch} · ${formatWeekLabel(weekStart, dict)}`}
+          subtitle={`${formatWeekLabel(weekStart, dict)}`}
         />
         {segments}
 
-        <div className="grid grid-cols-2 border-t-2 border-ink">
-          <StatTile
+        <div className="grid grid-cols-2 gap-2">
+          <StatCard
+            icon="clock"
+            accent="blue"
             label={isMonth ? dict.summary.statMonthlyHours : dict.summary.statTotalHours}
             value={formatHours(summary.payroll.totalHours, dict)}
             hint={
@@ -96,49 +124,53 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                 : `${summary.headcount} ${dict.summary.staffSuffix}`
             }
           />
-          <StatTile
+          <StatCard
+            icon="pay"
+            accent="green"
             label={dict.summary.statCost}
             value={formatMoney(summary.payroll.totalCost)}
             hint={periodLabel}
-            tone="brand"
           />
-          <StatTile
+          <StatCard
+            icon="calendarCheck"
+            accent="amber"
             label={dict.summary.statGaps}
             value={String(summary.gapDays)}
             hint={summary.gapDays > 0 ? dict.summary.gapDays : dict.summary.noGap}
-            tone={summary.gapDays > 0 ? "warn" : "neutral"}
             highlight={summary.gapDays > 0}
           />
-          <StatTile
+          <StatCard
+            icon="inbox"
+            accent="violet"
             label={dict.summary.statPending}
-            value={String(summary.pendingLeave.length + summary.pendingSwaps.length)}
+            value={String(pendingCount)}
             hint={dict.summary.pendingSuffix}
-            tone={summary.pendingLeave.length > 0 ? "warn" : "neutral"}
-            highlight={summary.pendingLeave.length > 0}
+            highlight={pendingCount > 0}
           />
         </div>
 
-        <SectionHeading
+        <Block
           title={dict.summary.todayTitle}
-          meta={summary.today ? todayLabel(summary.today, dict) : dict.common.dash}
-        />
-        <OnShiftList rows={summary.onShiftToday} dict={dict} locale={locale} />
+          meta={summary.today ? dayLabel(summary.today, dict) : dict.common.dash}
+        >
+          <OnShiftList rows={summary.onShiftToday} dict={dict} locale={locale} />
+        </Block>
 
-        <SectionHeading title={dict.summary.needsAction} />
-        <PendingActions
-          leaveRequests={summary.pendingLeave}
-          swapRequests={summary.pendingSwaps}
-          employees={summary.roster.employees}
-          shifts={summary.roster.shifts}
-          dict={dict}
-          locale={locale}
-          weekStart={weekStart}
-        />
+        <Block title={dict.summary.needsAction}>
+          <PendingActions
+            leaveRequests={summary.pendingLeave}
+            swapRequests={summary.pendingSwaps}
+            employees={summary.roster.employees}
+            shifts={summary.roster.shifts}
+            dict={dict}
+            locale={locale}
+            weekStart={weekStart}
+          />
+        </Block>
 
-        <SectionHeading
-          title={isMonth ? dict.team.payrollMonthly : dict.team.payrollWeekly}
-        />
-        <PayrollTable report={summary.payroll} dict={dict} locale={locale} />
+        <Block title={isMonth ? dict.team.payrollMonthly : dict.team.payrollWeekly}>
+          <PayrollTable report={summary.payroll} dict={dict} locale={locale} />
+        </Block>
       </section>
     );
   }
@@ -146,24 +178,32 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const summary = await getStaffSummary(user.employeeId, weekStart, period);
   if (!summary) {
     return (
-      <section className="flex flex-col">
-        <PageHeader title={dict.summary.title} subtitle={dict.summary.todayEmpty} />
+      <section className={PAGE}>
+        <PageHeader
+          variant="plain"
+          title={dict.summary.title}
+          subtitle={dict.summary.todayEmpty}
+        />
       </section>
     );
   }
 
   const shiftDays = summary.myRow?.cells.filter((cell) => cell.shift).length ?? 0;
+  const nextShift = summary.nextShift;
 
   return (
-    <section className="flex flex-col">
+    <section className={PAGE}>
       <PageHeader
+        variant="plain"
         title={dict.summary.title}
-        subtitle={`${user.fullName} · ${formatWeekLabel(weekStart, dict)}`}
+        subtitle={`${formatWeekLabel(weekStart, dict)}`}
       />
       {segments}
 
-      <div className="grid grid-cols-2 border-t-2 border-ink">
-        <StatTile
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard
+          icon="clock"
+          accent="blue"
           label={isMonth ? dict.summary.statMonthlyHours : dict.summary.statMyHours}
           value={formatHours(summary.myHours, dict)}
           hint={
@@ -172,47 +212,67 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               : `${shiftDays} ${dict.summary.shiftsSuffix}`
           }
         />
-        <StatTile
+        <StatCard
+          icon="pay"
+          accent="green"
           label={isMonth ? dict.summary.statMonthlyPay : dict.summary.statMyPay}
           value={formatMoney(summary.myPay)}
-          hint={isMonth ? periodLabel : `${summary.employee.hourlyRate} ${dict.units.perHour}`}
-          tone="brand"
-        />
-        <StatTile
-          label={dict.summary.statNext}
-          value={formatShiftSpan(summary.nextShift?.shift ?? null, dict)}
           hint={
-            summary.nextShift
-              ? dict.calendar.daysLong[
-                  (fromIsoDate(summary.nextShift.date).getDay() + 6) % 7
-                ]
-              : ""
+            isMonth ? periodLabel : `${summary.employee.hourlyRate} ${dict.units.perHour}`
           }
         />
-        <StatTile
+        <StatCard
+          icon="calendarCheck"
+          accent="amber"
           label={dict.summary.statLeave}
           value={String(summary.leaveBalance)}
           hint={dict.leave.types.annual}
         />
       </div>
 
-      <SectionHeading
-        title={dict.summary.todayTitle}
-        meta={summary.today ? todayLabel(summary.today, dict) : dict.common.dash}
-      />
-      <OnShiftList
-        rows={summary.onShiftToday}
-        dict={dict}
-        locale={locale}
-        highlightEmployeeId={user.employeeId}
-      />
+      {/* The next shift is the one number a barista opens the panel for. */}
+      <Card
+        href={nextShift ? panelHref(ROUTES.timetable, { week: weekStart }) : undefined}
+        className="flex items-center gap-3 px-3 py-3"
+      >
+        <IconTile name="calendarClock" accent="green" className="size-10" />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-md font-bold">{dict.summary.statNext}</div>
+          <div className="truncate text-xs text-muted">
+            {nextShift ? dayLabel(nextShift.date, dict) : dict.common.dash}
+          </div>
+          <div className="tabular mt-0.5 text-3xl font-extrabold -tracking-[0.02em]">
+            {formatShiftSpan(nextShift?.shift ?? null, dict)}
+          </div>
+        </div>
+        {nextShift ? (
+          <Icon name="chevronRight" className="h-4 w-4 text-muted-soft" />
+        ) : null}
+      </Card>
 
-      <SectionHeading title={dict.summary.myWeek} />
-      <WeekShiftList
-        cells={summary.myRow?.cells ?? []}
-        dict={dict}
-        today={summary.today}
-      />
+      <Block
+        title={dict.summary.todayTitle}
+        meta={summary.today ? dayLabel(summary.today, dict) : dict.common.dash}
+      >
+        <OnShiftList
+          rows={summary.onShiftToday}
+          dict={dict}
+          locale={locale}
+          highlightEmployeeId={user.employeeId}
+        />
+      </Block>
+
+      <Card className="overflow-hidden">
+        <Link
+          href={panelHref(ROUTES.timetable, { week: weekStart })}
+          className="flex items-center gap-2.5 border-b border-line px-3 py-3 text-ink hover:bg-hover"
+        >
+          <IconTile name="timetable" accent="blue" />
+          <span className="flex-1 truncate text-md font-bold">{dict.summary.myWeek}</span>
+          <Icon name="chevronRight" className="h-4 w-4 text-muted-soft" />
+        </Link>
+        <WeekShiftList bare cells={summary.myRow?.cells ?? []} dict={dict} today={summary.today} />
+      </Card>
     </section>
   );
 }

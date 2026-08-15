@@ -86,7 +86,7 @@ export function RosterBoard({
   return (
     <>
       {view === "grid" ? (
-        <GridView rows={rows} columns={columns} canEdit={canEdit} labels={labels} onOpen={openCell} />
+        <GridView rows={rows} columns={columns} canEdit={canEdit} onOpen={openCell} />
       ) : null}
 
       {view === "person" ? (
@@ -127,27 +127,24 @@ function GridView({
   rows,
   columns,
   canEdit,
-  labels,
   onOpen,
 }: {
   rows: RosterRowView[];
   columns: DayColumnView[];
   canEdit: boolean;
-  labels: RosterBoardProps["labels"];
   onOpen: OpenCell;
 }) {
   return (
-    <div className="overflow-x-auto border-b-2 border-ink">
-      <div className="min-w-[470px]">
-        <div className={cn(GRID_TEMPLATE, "border-b-2 border-ink")}>
-          <div className="sticky left-0 z-[2] border-r-2 border-ink bg-surface px-2.5 py-2 text-2xs font-bold tracking-[0.1em] text-muted">
-            {labels.staffColumn}
+    <div className="overflow-x-auto border-b border-line">
+      <div className="min-w-117.5">
+        <div className={cn(GRID_TEMPLATE, "border-b border-line")}>
+          <div className="sticky left-0 z-2 border-r border-line bg-surface px-2.5 py-2 text-2xs font-bold tracking-[0.1em] text-muted">
           </div>
           {columns.map((column) => (
             <div
               key={column.date}
               className={cn(
-                "border-r border-line px-1 py-[7px] text-center",
+                "border-r border-line px-1 py-1.75 text-center",
                 column.isToday ? "bg-brand-soft" : "bg-surface",
               )}
             >
@@ -170,7 +167,7 @@ function GridView({
           >
             <div
               className={cn(
-                "sticky left-0 z-[1] min-w-0 border-r-2 border-ink px-2.5 py-1.5",
+                "sticky left-0 z-1 min-w-0 border-r border-line px-2.5 py-1.5",
                 row.isTaskRow ? "bg-surface-alt" : "bg-surface",
               )}
             >
@@ -195,12 +192,10 @@ function GridView({
             {row.cells.map((cell) => {
               const content = (
                 <>
-                  <span className="text-xs font-bold leading-[1.1]">{cell.primary}</span>
-                  {cell.secondary ? (
-                    <span className="text-2xs font-medium leading-[1.1] opacity-85">
+                  <span className="text-xs font-medium leading-[1.1] mb-1">{cell.primary}</span>
+                    <span className="text-xs font-medium leading-[1.1]">
                       {cell.secondary}
                     </span>
-                  ) : null}
                 </>
               );
 
@@ -243,7 +238,7 @@ function PersonView({
   onOpen: OpenCell;
 }) {
   return (
-    <div className="border-b-2 border-ink">
+    <div className="border-b border-line">
       {rows.map((row) => (
         <div
           key={row.employeeId}
@@ -358,7 +353,7 @@ function DayView({
         ))}
       </div>
 
-      <div className="border-b-2 border-ink">
+      <div className="border-b border-line">
         {rows.length === 0 ? (
           <p className="px-4 py-4.5 text-sm text-muted-soft">{labels.emptyDay}</p>
         ) : (

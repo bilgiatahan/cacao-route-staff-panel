@@ -11,13 +11,20 @@ export interface WeekShiftListProps {
   dict: Dictionary;
   /** Marks the current day when the visible week contains it. */
   today: IsoDate | null;
+  /**
+   * Drops the ink rule and hands the rows to whatever encloses them — the
+   * summary drops this list inside a card, the employee page keeps the rule.
+   */
+  bare?: boolean;
 }
 
 /** One row per weekday — the staff view of their own week. */
-export function WeekShiftList({ cells, dict, today }: WeekShiftListProps) {
+export function WeekShiftList({ cells, dict, today, bare = false }: WeekShiftListProps) {
+  const Frame = bare ? "div" : RuledList;
+
   return (
-    <RuledList>
-      <ul>
+    <Frame>
+      <ul className={cn(bare && "divide-y divide-line")}>
         {cells.map((cell) => {
           const date = fromIsoDate(cell.date);
           const dayIndex = (date.getDay() + 6) % 7;
@@ -29,7 +36,8 @@ export function WeekShiftList({ cells, dict, today }: WeekShiftListProps) {
             <li
               key={cell.date}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5",
+                "flex items-center gap-3 py-2.5",
+                bare ? "px-3" : "px-4",
                 cell.date === today ? "bg-surface-tint" : "bg-surface",
               )}
             >
@@ -53,6 +61,6 @@ export function WeekShiftList({ cells, dict, today }: WeekShiftListProps) {
           );
         })}
       </ul>
-    </RuledList>
+    </Frame>
   );
 }

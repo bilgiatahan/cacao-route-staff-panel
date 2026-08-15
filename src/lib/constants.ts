@@ -18,6 +18,9 @@ export const OVERTIME_MULTIPLIER = 1.5;
 
 export const CURRENCY_SYMBOL = "₺";
 
+/** Shown at the foot of the side menu. Bump it with package.json. */
+export const APP_VERSION = "1.2.0";
+
 /** Cookie holding the UI language. */
 export const LOCALE_COOKIE = "cr_locale";
 

@@ -1,82 +1,97 @@
-import { Suspense } from "react";
+import Link from "next/link";
 
-import { Avatar } from "@/components/ui/Avatar";
+import { Icon } from "@/components/ui/Icon";
+import { APP_VERSION } from "@/lib/constants";
 import { employeeInitials } from "@/lib/employee";
-import { formatWeekLabel } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
-import { signOutAction } from "@/server/actions/auth.actions";
-import { toggleLocaleAction } from "@/server/actions/locale.actions";
-import type { Employee, IsoDate, SessionUser } from "@/types/domain";
+import { ROUTES } from "@/lib/routes";
+import type { Employee, SessionUser } from "@/types/domain";
 
-import { WeekSwitcher } from "./WeekSwitcher";
+import { AppMenu, type MenuEntry } from "./AppMenu";
 
 export interface AppHeaderProps {
   dict: Dictionary;
   user: SessionUser;
   employee: Employee;
   locale: "tr" | "en";
-  /** Week resolved on the server; the switcher re-derives it after navigation. */
-  weekStart: IsoDate;
+  unreadCount: number;
 }
 
-export function AppHeader({ dict, user, employee, locale, weekStart }: AppHeaderProps) {
+export function AppHeader({
+  dict,
+  user,
+  employee,
+  locale,
+  unreadCount,
+}: AppHeaderProps) {
   const roleTitle =
     user.role === "admin" ? dict.brand.managerTitle : employee.position[locale];
 
+  // Only the manager can open an employee record; staff see their own numbers
+  // on the pay tab. Everything else in the menu is still to be built, and says
+  // so rather than linking nowhere.
+  const profileHref = user.role === "admin" ? ROUTES.teamMember(user.employeeId) : ROUTES.team;
+
+  const menuGroups: MenuEntry[][] = [
+    [
+      { key: "profile", label: dict.menu.profile, icon: "user", href: profileHref },
+      { key: "work", label: dict.menu.workDetails, icon: "briefcase" },
+      { key: "settings", label: dict.menu.settings, icon: "settings" },
+      {
+        key: "notificationPrefs",
+        label: dict.menu.notificationPrefs,
+        icon: "notifications",
+      },
+      { key: "support", label: dict.menu.support, icon: "support" },
+    ],
+    [{ key: "privacy", label: dict.menu.privacy, icon: "shield" }],
+  ];
+
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-ink bg-surface">
-      <div className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-lg font-extrabold leading-none tracking-[0.14em]">
+    <header className="sticky top-0 z-20">
+      <div className="grid grid-cols-[36px_1fr_36px] items-center gap-2 px-3 pb-2.5 pt-2.5">
+        <AppMenu
+          labels={{
+            open: dict.menu.open,
+            close: dict.menu.close,
+            language: dict.menu.language,
+            signOut: dict.menu.signOut,
+            version: dict.menu.version,
+            soon: dict.menu.soon,
+          }}
+          groups={menuGroups}
+          profile={{
+            name: user.fullName,
+            role: roleTitle,
+            email: user.email,
+            initials: employeeInitials(employee, locale),
+          }}
+          appVersion={APP_VERSION}
+        />
+
+        <div className="flex min-w-0 flex-col items-center gap-0.5">
+          <span className="truncate text-lg text-brand font-extrabold leading-none tracking-[0.14em]">
             {dict.brand.name}
           </span>
-          <span className="text-2xs font-semibold uppercase tracking-[0.18em] text-muted">
+          <span className="truncate text-2xs font-semibold uppercase tracking-[0.18em] text-muted">
             {dict.brand.panel}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <form action={toggleLocaleAction}>
-            <button
-              type="submit"
-              className="border border-line-strong bg-surface px-2.5 py-[7px] text-xs font-bold tracking-[0.08em] text-ink hover:bg-hover"
-            >
-              {dict.common.languageToggle}
-            </button>
-          </form>
-
-          <span className="border border-brand bg-brand px-2.5 py-[7px] text-xs font-bold tracking-[0.08em] text-white">
-            {user.role === "admin" ? dict.roles.admin : dict.roles.staff}
-          </span>
-
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="border border-line-strong bg-surface px-2.5 py-[7px] text-xs font-bold tracking-[0.08em] text-muted hover:bg-hover hover:text-ink"
-            >
-              {dict.auth.signOut}
-            </button>
-          </form>
-        </div>
+        <Link
+          href={ROUTES.notifications}
+          aria-label={dict.nav.notifications}
+          className="relative flex size-9 flex-none items-center justify-center text-ink hover:bg-hover"
+        >
+          <Icon name="notifications" className="h-5 w-5" />
+          {unreadCount > 0 ? (
+            <span className="tabular absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center bg-warn px-[3px] text-nano font-extrabold text-ink">
+              {unreadCount}
+            </span>
+          ) : null}
+        </Link>
       </div>
 
-      <div className="flex items-center justify-between gap-2 px-4 pb-2.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <Avatar initials={employeeInitials(employee, locale)} size="sm" solid />
-          <span className="truncate text-sm font-semibold">
-            {user.fullName} · {roleTitle}
-          </span>
-        </div>
-
-        <Suspense fallback={null}>
-          <WeekSwitcher
-            previousLabel={dict.calendar.previousWeek}
-            nextLabel={dict.calendar.nextWeek}
-            fallbackLabel={formatWeekLabel(weekStart, dict)}
-            monthNames={dict.calendar.months}
-          />
-        </Suspense>
-      </div>
     </header>
   );
 }

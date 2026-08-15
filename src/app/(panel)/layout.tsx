@@ -14,7 +14,11 @@ import { swapRepository } from "@/server/repositories/swap.repository";
  * The app shell: a single 560px column with a sticky header and tab bar, which
  * is the frame every panel tab renders inside.
  */
-export default async function PanelLayout({ children }: { children: ReactNode }) {
+export default async function PanelLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [{ locale, dict }, { user, employee }] = await Promise.all([
     getTranslations(),
     requireCurrentEmployee(),
@@ -29,7 +33,6 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   ]);
 
   const navItems: NavItem[] = [
-    { key: "summary", href: ROUTES.summary, label: dict.nav.summary, icon: "summary", badge: 0 },
     {
       key: "timetable",
       href: ROUTES.timetable,
@@ -37,6 +40,14 @@ export default async function PanelLayout({ children }: { children: ReactNode })
       icon: "timetable",
       badge: 0,
     },
+    {
+      key: "summary",
+      href: ROUTES.summary,
+      label: dict.nav.summary,
+      icon: "summary",
+      badge: 0,
+    },
+
     {
       key: "leave",
       href: ROUTES.leave,
@@ -51,32 +62,26 @@ export default async function PanelLayout({ children }: { children: ReactNode })
       icon: isAdmin ? "team" : "pay",
       badge: 0,
     },
-    {
-      key: "notifications",
-      href: ROUTES.notifications,
-      label: dict.nav.notifications,
-      icon: "notifications",
-      badge: unreadCount,
-    },
   ];
 
   return (
     <div className="flex min-h-dvh justify-center bg-canvas">
-      <div className="relative flex min-h-dvh w-full max-w-[560px] flex-col bg-surface shadow-[0_0_0_1px_var(--color-line)]">
+      <div className="relative flex min-h-dvh w-full max-w-140 flex-col  shadow-[0_0_0_1px_var(--color-line)]">
         <AppHeader
           dict={dict}
           user={user}
           employee={employee}
           locale={locale}
-          weekStart={currentWeekStartIso()}
+          unreadCount={unreadCount}
         />
-
-        <main className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col ">
           {children}
           <div className="h-7" />
         </main>
 
-        <Suspense fallback={<div className="h-14 border-t-2 border-ink bg-surface" />}>
+        <Suspense
+          fallback={<div className="h-14 border-t-2 border-ink bg-surface" />}
+        >
           <BottomNav items={navItems} />
         </Suspense>
       </div>

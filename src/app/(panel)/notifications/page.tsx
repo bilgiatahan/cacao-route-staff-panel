@@ -24,7 +24,7 @@ export default async function NotificationsPage() {
   const unread = items.filter((item) => !item.read).length;
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-1 flex-col">
       <PageHeader
         title={dict.notifications.title}
         action={<MarkAllReadButton label={dict.notifications.markAll} disabled={unread === 0} />}

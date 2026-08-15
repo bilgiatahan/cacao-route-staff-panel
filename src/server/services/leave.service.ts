@@ -1,0 +1,105 @@
+import "server-only";
+
+import { employeeRepository } from "@/server/repositories/employee.repository";
+import { leaveRepository } from "@/server/repositories/leave.repository";
+import { swapRepository } from "@/server/repositories/swap.repository";
+import type {
+  Employee,
+  IsoDate,
+  LeaveRequest,
+  SessionUser,
+  Shift,
+  SwapRequest,
+} from "@/types/domain";
+
+import { getRosterWeek } from "./roster.service";
+
+export interface LeaveRow {
+  request: LeaveRequest;
+  employee: Employee | null;
+  /** Only an admin can act, and only while the request is still pending. */
+  actionable: boolean;
+}
+
+export interface SwapRow {
+  request: SwapRequest;
+  requester: Employee | null;
+  target: Employee | null;
+  /** The shift being handed over, when it still exists. */
+  shift: Shift | null;
+  actionable: boolean;
+}
+
+export interface SwapOption {
+  date: IsoDate;
+  shift: Shift;
+}
+
+export interface LeaveBoard {
+  viewerRole: SessionUser["role"];
+  leaveRows: LeaveRow[];
+  swapRows: SwapRow[];
+  pendingLeaveCount: number;
+  /** Staff only: this week's own shifts, offered as swap candidates. */
+  mySwapOptions: SwapOption[];
+  /** Staff only: colleagues who can be asked to take a shift. */
+  colleagues: Employee[];
+  leaveBalance: number;
+}
+
+/**
+ * Admins see the whole board; staff see only their own requests and the swaps
+ * they are part of. The filtering lives here rather than in the page so the
+ * rule is enforced in one place.
+ */
+export async function getLeaveBoard(
+  viewer: SessionUser,
+  weekStart: IsoDate,
+): Promise<LeaveBoard> {
+  const isAdmin = viewer.role === "admin";
+
+  const [employees, allLeave, allSwaps, roster] = await Promise.all([
+    employeeRepository.listStaff(),
+    isAdmin ? leaveRepository.list() : leaveRepository.listByEmployee(viewer.employeeId),
+    isAdmin ? swapRepository.list() : swapRepository.listForEmployee(viewer.employeeId),
+    getRosterWeek(weekStart),
+  ]);
+
+  const byId = new Map(employees.map((employee) => [employee.id, employee]));
+
+  const leaveRows: LeaveRow[] = allLeave.map((request) => ({
+    request,
+    employee: byId.get(request.employeeId) ?? null,
+    actionable: isAdmin && request.status === "pending",
+  }));
+
+  const swapRows: SwapRow[] = allSwaps.map((request) => ({
+    request,
+    requester: byId.get(request.requesterId) ?? null,
+    target: byId.get(request.targetId) ?? null,
+    shift:
+      roster.shifts.find(
+        (shift) => shift.employeeId === request.requesterId && shift.date === request.date,
+      ) ?? null,
+    actionable: isAdmin && request.status === "pending",
+  }));
+
+  const myRow = roster.staffRows.find((row) => row.employee.id === viewer.employeeId);
+  const mySwapOptions: SwapOption[] = (myRow?.cells ?? []).flatMap((cell) =>
+    cell.shift ? [{ date: cell.date, shift: cell.shift }] : [],
+  );
+
+  const pendingLeaveCount = leaveRows.filter(
+    (row) => row.request.status === "pending",
+  ).length;
+
+  return {
+    viewerRole: viewer.role,
+    leaveRows,
+    swapRows,
+    pendingLeaveCount,
+    mySwapOptions,
+    colleagues: employees.filter((employee) => employee.id !== viewer.employeeId),
+    leaveBalance: myRow?.employee.leaveBalance ?? 0,
+  };
+}

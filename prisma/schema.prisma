@@ -1,0 +1,226 @@
+// Cacao Route · shift panel schema.
+//
+// `src/types/domain.ts` is the contract the whole UI is written against; this
+// file exists to serve it, not the other way round. Three deliberate mapping
+// decisions follow from that:
+//
+//  1. `IsoDate` (`YYYY-MM-DD`) stays a string, not a Postgres `date`.
+//     `src/lib/date.ts` is built entirely on local-midnight string arithmetic;
+//     converting would reintroduce the timezone drift it exists to avoid. For
+//     `YYYY-MM-DD` lexicographic order equals chronological order, so range
+//     filters and `orderBy` behave exactly as the in-memory version did.
+//  2. `IsoDateTime` fields are real `DateTime` (timestamptz) — they are
+//     instants, and the repositories hand them back as `.toISOString()`.
+//  3. `Localized` becomes two scalar columns per field rather than JSON, so the
+//     columns stay typed, indexable and readable in the Supabase table editor.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+// Prisma 7 no longer accepts `url` here: Migrate reads its connection string
+// from `prisma.config.ts`, and the runtime gets one from the driver adapter in
+// `src/server/db/client.ts`.
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  staff
+}
+
+enum ContractType {
+  full
+  part
+}
+
+enum LeaveType {
+  annual
+  sick
+  excuse
+}
+
+enum RequestStatus {
+  pending
+  approved
+  rejected
+}
+
+/// Flattened discriminant of the `NotificationAudience` union.
+enum AudienceKind {
+  all
+  admins
+  employee
+}
+
+model Employee {
+  id        String @id
+  firstName String @map("first_name")
+  lastName  String @map("last_name")
+
+  /// Set only for task rows such as "Cleaning", which need a translated label
+  /// instead of a person's name.
+  displayNameTr String? @map("display_name_tr")
+  displayNameEn String? @map("display_name_en")
+
+  /// Job title, translated.
+  positionTr String @map("position_tr")
+  positionEn String @map("position_en")
+
+  /// Hourly wage in TRY. Money, so numeric rather than float.
+  hourlyRate Decimal      @map("hourly_rate") @db.Decimal(10, 2)
+  contract   ContractType
+
+  birthDate String? @map("birth_date") @db.VarChar(10)
+  hiredAt   String? @map("hired_at") @db.VarChar(10)
+
+  /// Remaining annual leave, in days.
+  leaveBalance Int    @map("leave_balance")
+  phone        String
+  email        String
+  address      String
+  role         UserRole
+
+  /// Pseudo-employees such as "Cleaning" occupy a roster row and can be
+  /// scheduled, but are excluded from headcount, payroll and leave.
+  isTaskRow Boolean @map("is_task_row")
+
+  /// Roster order. The in-memory store relied on array position; Postgres has no
+  /// implicit order, so it is explicit here. Listings sort by
+  /// `[isTaskRow, sortOrder]`, which keeps task rows last without having to
+  /// renumber anything when a new person is added.
+  sortOrder Int @map("sort_order")
+
+  /// Soft delete: history (shifts, payroll, leave) survives and the person
+  /// simply drops off every active listing.
+  archivedAt DateTime? @map("archived_at")
+
+  user              User?
+  shifts            Shift[]
+  leaveRequests     LeaveRequest[]     @relation("LeaveEmployee")
+  leaveDecisions    LeaveRequest[]     @relation("LeaveDecidedBy")
+  swapsRequested    SwapRequest[]      @relation("SwapRequester")
+  swapsTargeted     SwapRequest[]      @relation("SwapTarget")
+  notifications     Notification[]     @relation("NotificationAudience")
+  notificationReads NotificationRead[]
+
+  @@index([archivedAt, isTaskRow, sortOrder])
+  @@index([email])
+  @@map("employees")
+}
+
+model User {
+  id           String @id
+  email        String @unique
+  passwordHash String @map("password_hash")
+  employeeId   String @unique @map("employee_id")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Shift {
+  id         String @id
+  employeeId String @map("employee_id")
+  date       String @db.VarChar(10)
+
+  /// Minutes from midnight, e.g. 480 for 08:00.
+  startMinutes Int @map("start_minutes")
+  endMinutes   Int @map("end_minutes")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  /// One shift per employee per day. The rule previously lived only in
+  /// `shiftRepository.upsert`; now the database enforces it.
+  @@unique([employeeId, date])
+  @@index([date])
+  @@map("shifts")
+}
+
+model LeaveRequest {
+  id         String        @id
+  employeeId String        @map("employee_id")
+  type       LeaveType
+  startDate  String        @map("start_date") @db.VarChar(10)
+  endDate    String        @map("end_date") @db.VarChar(10)
+  note       String        @default("")
+  status     RequestStatus
+  createdAt  DateTime      @map("created_at")
+  decidedAt  DateTime?     @map("decided_at")
+
+  decidedByEmployeeId String? @map("decided_by_employee_id")
+
+  employee  Employee  @relation("LeaveEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  decidedBy Employee? @relation("LeaveDecidedBy", fields: [decidedByEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@index([createdAt])
+  @@map("leave_requests")
+}
+
+model SwapRequest {
+  id String @id
+
+  /// Employee giving up the shift.
+  requesterId String @map("requester_id")
+
+  /// Employee asked to take it.
+  targetId String @map("target_id")
+
+  date      String        @db.VarChar(10)
+  status    RequestStatus
+  createdAt DateTime      @map("created_at")
+  decidedAt DateTime?     @map("decided_at")
+
+  requester Employee @relation("SwapRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target    Employee @relation("SwapTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([targetId])
+  @@index([createdAt])
+  @@map("swap_requests")
+}
+
+model Notification {
+  id        String   @id
+  titleTr   String   @map("title_tr")
+  titleEn   String   @map("title_en")
+  bodyTr    String   @map("body_tr")
+  bodyEn    String   @map("body_en")
+  createdAt DateTime @map("created_at")
+
+  /// `NotificationAudience` flattened: `audienceEmployeeId` is set only when
+  /// `audienceKind` is `employee`.
+  audienceKind       AudienceKind @map("audience_kind")
+  audienceEmployeeId String?      @map("audience_employee_id")
+
+  audienceEmployee Employee? @relation("NotificationAudience", fields: [audienceEmployeeId], references: [id], onDelete: Cascade)
+
+  /// Replaces the `readBy: string[]` array, so unread counts are one `count()`
+  /// with a `reads: { none: … }` filter instead of a JS scan.
+  reads NotificationRead[]
+
+  @@index([createdAt])
+  @@index([audienceKind])
+  @@map("notifications")
+}
+
+model NotificationRead {
+  notificationId String   @map("notification_id")
+  employeeId     String   @map("employee_id")
+  readAt         DateTime @default(now()) @map("read_at")
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([notificationId, employeeId])
+  @@index([employeeId])
+  @@map("notification_reads")
+}

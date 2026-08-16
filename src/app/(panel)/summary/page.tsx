@@ -271,7 +271,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           <span className="flex-1 truncate text-md font-bold">{dict.summary.myWeek}</span>
           <Icon name="chevronRight" className="h-4 w-4 text-muted-soft" />
         </Link>
-        <WeekShiftList bare cells={summary.myRow?.cells ?? []} dict={dict} today={summary.today} />
+        <WeekShiftList cells={summary.myRow?.cells ?? []} dict={dict} today={summary.today} />
       </Card>
     </section>
   );

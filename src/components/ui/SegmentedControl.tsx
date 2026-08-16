@@ -12,11 +12,6 @@ export interface SegmentOption {
 
 export type SegmentTone = "ink" | "brand";
 
-const ACTIVE_TONES: Record<SegmentTone, string> = {
-  ink: "bg-ink text-white",
-  brand: "bg-brand text-white",
-};
-
 export interface SegmentedControlProps {
   options: SegmentOption[];
   tone?: SegmentTone;
@@ -37,12 +32,9 @@ export interface SegmentedControlProps {
  */
 export function SegmentedControl({
   options,
-  tone = "brand",
-  variant = "flush",
   className,
   ariaLabel,
 }: SegmentedControlProps) {
-  const pill = variant === "pill";
 
   return (
     <nav

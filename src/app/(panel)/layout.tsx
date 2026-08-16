@@ -2,7 +2,6 @@ import { Suspense, type ReactNode } from "react";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav, type NavItem } from "@/components/layout/BottomNav";
-import { currentWeekStartIso } from "@/lib/date";
 import { getTranslations } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import { requireCurrentEmployee } from "@/server/auth/session";

@@ -151,6 +151,21 @@ ruled sayfalar kök `<section>`'da kendi `bg-surface`'ini boyar.
 Aksan paleti (`--color-accent-*`) satır ayırt etmek için; kişi → renk eşlemesi
 `accentForId()` ile deterministik, elle renk seçme.
 
+### İkonlar
+
+Elle SVG çizme, `src/components/ui/Icon.tsx` içindeki `ICONS` haritasına bir
+satır ekle. İsimler **anlamsal** (`pay`, `timetable`, `leave`), Lucide'ın adı
+değil — çizim değişse de çağrı yerleri sabit kalır.
+
+Paket **`lucide`**, `lucide-react` değil: v1'den beri her `lucide-react` bileşeni
+`"use client"` taşıyor, yani her glif kendi client boundary'si olurdu. `lucide`
+düz `[tag, attrs]` dizileri veriyor; `Icon` böylece server component kalıyor,
+tarayıcıya ikon kodu gitmiyor. `sideEffects: false` olduğu için kullanılmayan
+2000 ikon bundle'a girmiyor (doğrulandı).
+
+Lucide 2px yuvarlak uçla çiziyor; `Icon` tüm seti 1.75px + `square` uç +
+`miter` birleşimle yeniden stillendiriyor — panelin geri kalanıyla aynı geometri.
+
 ## Komutlar
 
 ```bash

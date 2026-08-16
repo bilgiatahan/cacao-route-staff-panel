@@ -33,6 +33,7 @@ export const en: Dictionary = {
   },
 
   menu: {
+    summary: "Summary",
     open: "Menu",
     close: "Close menu",
     profile: "My Profile",
@@ -238,6 +239,25 @@ export const en: Dictionary = {
       full: "Full-time",
       part: "Part-time",
     },
+  },
+
+  profile: {
+    title: "My Profile",
+    subtitle: "Update your details",
+    personal: "Personal Information",
+    changePassword: "Change Password",
+    employment: "My Work Details",
+    employmentHint: "Only the manager can change these.",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    currentPasswordPlaceholder: "Enter current password",
+    newPasswordPlaceholder: "Enter new password",
+    passwordHint: "Leave both blank to keep your current password.",
+    saveChanges: "Save Changes",
+    saved: "Your details have been saved.",
+    emailRequired: "An email address is required — it is how you sign in.",
+    currentPasswordRequired: "Enter your current password to change it.",
+    wrongPassword: "Your current password is wrong.",
   },
 
   notifications: {

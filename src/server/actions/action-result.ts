@@ -15,6 +15,9 @@ export type ActionErrorKey =
   | "passwordTooShort"
   | "accountNeedsEmail"
   | "emailTaken"
+  | "emailRequired"
+  | "currentPasswordRequired"
+  | "wrongPassword"
   | "unexpected";
 
 export type ActionResult =
@@ -52,6 +55,12 @@ export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): str
       return dict.team.accountNeedsEmail;
     case "emailTaken":
       return dict.team.emailTaken;
+    case "emailRequired":
+      return dict.profile.emailRequired;
+    case "currentPasswordRequired":
+      return dict.profile.currentPasswordRequired;
+    case "wrongPassword":
+      return dict.profile.wrongPassword;
     case "unauthenticated":
     case "forbidden":
     case "notFound":

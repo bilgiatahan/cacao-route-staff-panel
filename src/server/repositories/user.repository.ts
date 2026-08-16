@@ -18,6 +18,20 @@ export const userRepository = {
   },
 
   /**
+   * Moves an existing login to a new address, leaving the password alone. The
+   * employee's email doubles as the sign-in identifier, so the two have to move
+   * together when someone edits their own contact details.
+   */
+  async updateEmail(employeeId: string, email: string): Promise<User | null> {
+    const { count } = await prisma.user.updateMany({
+      where: { employeeId },
+      data: { email: email.trim().toLowerCase() },
+    });
+    if (count === 0) return null;
+    return prisma.user.findUnique({ where: { employeeId } });
+  },
+
+  /**
    * Gives an employee a login, or replaces the one they have. Hashing happens in
    * the caller — this layer only stores what it is handed.
    */

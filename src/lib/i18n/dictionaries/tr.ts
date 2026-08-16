@@ -35,6 +35,7 @@ export const tr = {
   },
 
   menu: {
+    summary: "Özet",
     open: "Menü",
     close: "Menüyü kapat",
     profile: "Profilim",
@@ -240,6 +241,25 @@ export const tr = {
       full: "Tam zamanlı",
       part: "Yarı zamanlı",
     },
+  },
+
+  profile: {
+    title: "Profilim",
+    subtitle: "Bilgilerini güncelle",
+    personal: "Kişisel Bilgiler",
+    changePassword: "Şifre Değiştir",
+    employment: "Çalışma Bilgilerim",
+    employmentHint: "Bu alanları yalnızca işletme müdürü değiştirebilir.",
+    currentPassword: "Mevcut Şifre",
+    newPassword: "Yeni Şifre",
+    currentPasswordPlaceholder: "Mevcut şifreni gir",
+    newPasswordPlaceholder: "Yeni şifreni gir",
+    passwordHint: "Şifreni değiştirmek istemiyorsan bu iki alanı boş bırak.",
+    saveChanges: "Değişiklikleri Kaydet",
+    saved: "Bilgilerin kaydedildi.",
+    emailRequired: "E-posta adresi zorunlu — panele bu adresle giriş yapıyorsun.",
+    currentPasswordRequired: "Şifreni değiştirmek için mevcut şifreni gir.",
+    wrongPassword: "Mevcut şifren hatalı.",
   },
 
   notifications: {

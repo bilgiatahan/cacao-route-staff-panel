@@ -9,6 +9,7 @@ export const ROUTES = {
   teamMember: (employeeId: string) => `/team/${employeeId}`,
   teamNew: "/team/new",
   notifications: "/notifications",
+  profile: "/profile",
 } as const;
 
 /** Every path that requires an authenticated session. */
@@ -18,6 +19,7 @@ export const PROTECTED_PREFIXES = [
   ROUTES.leave,
   ROUTES.team,
   ROUTES.notifications,
+  ROUTES.profile,
 ];
 
 export type PanelSearchParams = {

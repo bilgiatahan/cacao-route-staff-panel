@@ -27,14 +27,13 @@ export function AppHeader({
   const roleTitle =
     user.role === "admin" ? dict.brand.managerTitle : employee.position[locale];
 
-  // Only the manager can open an employee record; staff see their own numbers
-  // on the pay tab. Everything else in the menu is still to be built, and says
-  // so rather than linking nowhere.
-  const profileHref = user.role === "admin" ? ROUTES.teamMember(user.employeeId) : ROUTES.team;
-
+  // Everyone edits their own record on `/profile`; the manager's read-only pay
+  // fields there link nowhere else. The rest of the menu is still to be built,
+  // and says so rather than linking nowhere.
   const menuGroups: MenuEntry[][] = [
     [
-      { key: "profile", label: dict.menu.profile, icon: "user", href: profileHref },
+      { key: "summary", label: dict.menu.summary, icon: "home", href: ROUTES.summary },
+      { key: "profile", label: dict.menu.profile, icon: "user", href: ROUTES.profile },
       { key: "work", label: dict.menu.workDetails, icon: "briefcase" },
       { key: "settings", label: dict.menu.settings, icon: "settings" },
       {

@@ -47,10 +47,3 @@ export async function getPayrollReport(
   const roster = await getRosterWeek(weekStart);
   return buildPayrollReport(roster, period);
 }
-
-export function findPayrollLine(
-  report: PayrollReport,
-  employeeId: string,
-): PayrollLine | undefined {
-  return report.lines.find((line) => line.employee.id === employeeId);
-}

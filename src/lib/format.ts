@@ -20,10 +20,6 @@ export function timeToMinutes(value: string): number | null {
   return hours * 60 + mins;
 }
 
-export function minutesToHours(minutes: number): number {
-  return minutes / 60;
-}
-
 /** Rounds to one decimal and drops a trailing `.0`. */
 export function formatHoursValue(hours: number): string {
   const rounded = Math.round(hours * 10) / 10;

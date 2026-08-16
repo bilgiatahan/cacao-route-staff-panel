@@ -1,5 +1,5 @@
 import { RuledList } from "@/components/ui/Section";
-import { fromIsoDate } from "@/lib/date";
+import { fromIsoDate, weekdayIndex } from "@/lib/date";
 import { formatHours, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,7 @@ export function WeekShiftList({ cells, dict, today, bare = false }: WeekShiftLis
       <ul className={cn(bare && "divide-y divide-line")}>
         {cells.map((cell) => {
           const date = fromIsoDate(cell.date);
-          const dayIndex = (date.getDay() + 6) % 7;
+          const dayIndex = weekdayIndex(cell.date);
           const hours = cell.shift
             ? (cell.shift.endMinutes - cell.shift.startMinutes) / 60
             : null;

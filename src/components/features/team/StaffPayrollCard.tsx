@@ -8,7 +8,7 @@ import {
   TableHead,
   TableTotal,
 } from "@/components/ui/TableCard";
-import { ageOn, fromIsoDate, tenureMonths } from "@/lib/date";
+import { ageOn, fromIsoDate, tenureMonths, weekdayIndex } from "@/lib/date";
 import { employeePosition } from "@/lib/employee";
 import {
   formatFullDate,
@@ -209,7 +209,7 @@ export function StaffPayrollCard({ detail, dict, locale }: StaffPayrollCardProps
                       className="h-[15px] w-[15px] text-accent-green"
                     />
                     <span className="truncate text-sm font-semibold">
-                      {dict.calendar.daysShort[(date.getDay() + 6) % 7]} {date.getDate()}
+                      {dict.calendar.daysShort[weekdayIndex(cell.date)]} {date.getDate()}
                     </span>
                   </span>
                   <span className="tabular text-center text-sm text-muted">

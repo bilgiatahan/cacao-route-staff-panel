@@ -9,7 +9,7 @@ import { Card, IconTile, StatCard } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PageHeader, SectionHeading } from "@/components/ui/Section";
-import { fromIsoDate } from "@/lib/date";
+import { weekdayIndex } from "@/lib/date";
 import {
   formatDayMonth,
   formatHours,
@@ -55,8 +55,7 @@ function periodOptions(
 }
 
 function dayLabel(date: IsoDate, dict: Dictionary): string {
-  const index = fromIsoDate(date).getDay();
-  const dayName = dict.calendar.daysLong[index === 0 ? 6 : index - 1];
+  const dayName = dict.calendar.daysLong[weekdayIndex(date)];
   return `${dayName} · ${formatDayMonth(date, dict)}`;
 }
 

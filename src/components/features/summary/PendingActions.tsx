@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ACCENT_EDGE, Card } from "@/components/ui/Card";
 import { employeeDisplayName } from "@/lib/employee";
-import { fromIsoDate } from "@/lib/date";
+import { weekdayIndex } from "@/lib/date";
 import { formatDateRange, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { panelHref, ROUTES } from "@/lib/routes";
@@ -41,10 +41,7 @@ export function PendingActions({
     const employee = byId.get(id);
     return employee ? employeeDisplayName(employee, locale) : dict.common.dash;
   };
-  const dayNameOf = (date: IsoDate) => {
-    const index = fromIsoDate(date).getDay();
-    return dict.calendar.daysLong[index === 0 ? 6 : index - 1];
-  };
+  const dayNameOf = (date: IsoDate) => dict.calendar.daysLong[weekdayIndex(date)];
 
   const rows: ActionRow[] = [
     ...leaveRequests.slice(0, 3).map((request) => ({

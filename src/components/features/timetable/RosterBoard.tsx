@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { fromIsoDate, weekdayIndex } from "@/lib/date";
 import { cn } from "@/lib/utils";
 
 import { cellClass } from "./cell-styles";
@@ -43,9 +44,8 @@ export interface RosterBoardProps {
 }
 
 function dayLabelFor(date: string, labels: RosterBoardProps["labels"]): string {
-  const [year, month, day] = date.split("-").map(Number);
-  const value = new Date(year, month - 1, day);
-  const weekday = labels.daysLong[(value.getDay() + 6) % 7];
+  const value = fromIsoDate(date);
+  const weekday = labels.daysLong[weekdayIndex(date)];
   return `${weekday} ${value.getDate()} ${labels.monthNames[value.getMonth()]}`;
 }
 

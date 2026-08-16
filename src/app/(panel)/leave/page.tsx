@@ -3,7 +3,7 @@ import { LeaveRequestForm } from "@/components/features/leave/LeaveRequestForm";
 import { SwapList } from "@/components/features/leave/SwapList";
 import { SwapRequestForm } from "@/components/features/leave/SwapRequestForm";
 import { PageHeader, SectionHeading } from "@/components/ui/Section";
-import { addIsoDays, fromIsoDate, todayIso } from "@/lib/date";
+import { addIsoDays, fromIsoDate, todayIso, weekdayIndex } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
 import { formatShiftSpan } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
@@ -36,7 +36,7 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
 
   const shiftOptions = board.mySwapOptions.map((option) => {
     const date = fromIsoDate(option.date);
-    const dayName = dict.calendar.daysShort[(date.getDay() + 6) % 7];
+    const dayName = dict.calendar.daysShort[weekdayIndex(option.date)];
     return {
       value: option.date,
       label: `${dayName} ${date.getDate()} · ${formatShiftSpan(option.shift, dict)}`,

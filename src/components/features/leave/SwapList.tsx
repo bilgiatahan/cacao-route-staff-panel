@@ -1,6 +1,6 @@
 import { EmptyState, RuledList } from "@/components/ui/Section";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { fromIsoDate } from "@/lib/date";
+import { fromIsoDate, weekdayIndex } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
 import { formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
@@ -31,7 +31,7 @@ export function SwapList({ rows, dict, locale }: SwapListProps) {
       <ul>
         {rows.map(({ request, requester, target, shift, actionable }) => {
           const date = fromIsoDate(request.date);
-          const dayName = dict.calendar.daysLong[(date.getDay() + 6) % 7];
+          const dayName = dict.calendar.daysLong[weekdayIndex(request.date)];
 
           return (
             <li

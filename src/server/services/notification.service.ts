@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fromIsoDate } from "@/lib/date";
+import { weekdayIndex } from "@/lib/date";
 import { formatDateRange } from "@/lib/format";
 import { getDictionary, interpolate, LOCALES } from "@/lib/i18n";
 import { notificationRepository } from "@/server/repositories/notification.repository";
@@ -42,8 +42,7 @@ function displayName(employee: Employee | null, locale: Locale): string {
 
 function dayName(date: IsoDate, locale: Locale): string {
   const dict = getDictionary(locale);
-  const index = fromIsoDate(date).getDay();
-  return dict.calendar.daysLong[index === 0 ? 6 : index - 1];
+  return dict.calendar.daysLong[weekdayIndex(date)];
 }
 
 async function push(

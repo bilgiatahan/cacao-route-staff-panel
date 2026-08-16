@@ -13,7 +13,9 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force && prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
@@ -42,6 +44,7 @@
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

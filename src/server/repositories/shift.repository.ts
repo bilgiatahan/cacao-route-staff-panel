@@ -2,6 +2,7 @@ import "server-only";
 
 import { weekDates } from "@/lib/date";
 import type { IsoDate, Shift } from "@/types/domain";
+import type { Prisma } from "@/generated/prisma/client";
 
 import { createId, prisma } from "../db/client";
 
@@ -55,20 +56,32 @@ export const shiftRepository = {
     return count > 0;
   },
 
-  /** Moves a day's shift from one employee to another (used by swaps). */
-  async reassign(fromEmployeeId: string, toEmployeeId: string, date: IsoDate): Promise<boolean> {
-    const source = await prisma.shift.findUnique({
+  /**
+   * Moves a day's shift from one employee to another (used by swaps).
+   *
+   * Takes the caller's transaction client rather than opening its own: approving
+   * a swap has to flip the request's status and move the shift together, so the
+   * transaction boundary belongs to the caller (`swapRepository.approve`). Both
+   * statements still have to land together — the target may already have a shift
+   * that day, and the `[employeeId, date]` unique index would reject the move if
+   * the delete were skipped or lost.
+   *
+   * Returns `false` when the source employee holds no shift that day, which
+   * leaves it to the caller to decide whether that aborts the transaction.
+   */
+  async reassign(
+    tx: Prisma.TransactionClient,
+    fromEmployeeId: string,
+    toEmployeeId: string,
+    date: IsoDate,
+  ): Promise<boolean> {
+    const source = await tx.shift.findUnique({
       where: { employeeId_date: { employeeId: fromEmployeeId, date } },
     });
     if (!source) return false;
 
-    // Both statements have to land together: the target may already have a shift
-    // that day, and the `[employeeId, date]` unique index would reject the move
-    // if the delete were skipped or lost.
-    await prisma.$transaction([
-      prisma.shift.deleteMany({ where: { employeeId: toEmployeeId, date } }),
-      prisma.shift.update({ where: { id: source.id }, data: { employeeId: toEmployeeId } }),
-    ]);
+    await tx.shift.deleteMany({ where: { employeeId: toEmployeeId, date } });
+    await tx.shift.update({ where: { id: source.id }, data: { employeeId: toEmployeeId } });
 
     return true;
   },

@@ -46,7 +46,16 @@ export async function createSwapRequestAction(
   }
 }
 
-/** Approving a swap actually moves the shift onto the other person's row. */
+/**
+ * Approving a swap actually moves the shift onto the other person's row, so the
+ * approval goes through `swapRepository.approve`, which does both in one
+ * transaction. A rejection changes nothing but the status, so it stays on the
+ * plain `decide` path.
+ *
+ * Either way a `null` means nothing was written — the request was already
+ * decided, or the shift is no longer there to move — so the notification and
+ * the success result sit behind that check and can only follow a real change.
+ */
 export async function decideSwapAction(
   requestId: string,
   decision: "approved" | "rejected",
@@ -54,12 +63,12 @@ export async function decideSwapAction(
   try {
     await assertAdmin();
 
-    const request = await swapRepository.decide(requestId, decision);
-    if (!request) return actionError("notFound");
+    const request =
+      decision === "approved"
+        ? await swapRepository.approve(requestId)
+        : await swapRepository.decide(requestId, decision);
 
-    if (decision === "approved") {
-      await shiftRepository.reassign(request.requesterId, request.targetId, request.date);
-    }
+    if (!request) return actionError("notFound");
 
     await notificationService.swapDecided(request);
 

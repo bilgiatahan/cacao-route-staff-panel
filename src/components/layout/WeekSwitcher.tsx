@@ -1,71 +1,61 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 
-import { addIsoDays } from "@/lib/date";
-import { resolveWeekStart } from "@/lib/week-params";
+import { Icon } from "@/components/ui/Icon";
 
 export interface WeekSwitcherProps {
-  /** Pre-rendered labels, so the client never needs the dictionary. */
+  /** Pre-built by the page with `panelHref`, so the rest of the URL survives. */
+  previousHref: string;
+  nextHref: string;
+  /** Server-formatted range, e.g. "3–9 Aug". */
+  label: string;
   previousLabel: string;
   nextLabel: string;
-  /** Server-formatted label for the week currently in the URL. */
-  fallbackLabel: string;
-  /** Month names for re-labelling after a client-side navigation. */
-  monthNames: string[];
-}
-
-function labelFor(weekStart: string, monthNames: string[]): string {
-  const [startYear, startMonth, startDay] = weekStart.split("-").map(Number);
-  const start = new Date(startYear, startMonth - 1, startDay);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 6);
-  return `${start.getDate()}–${end.getDate()} ${monthNames[end.getMonth()]}`;
+  /** Names the control as a whole for assistive tech. */
+  ariaLabel: string;
 }
 
 /**
- * Week navigation lives in the URL, so the roster stays server-rendered and a
- * given week can be linked to or bookmarked.
+ * Previous / current / next week, as links.
+ *
+ * This used to be a Client Component that read `useSearchParams` and re-derived
+ * the label in the browser — necessary when it lived in the panel layout, which
+ * cannot see search params. Mounted in the page instead, none of that is needed:
+ * the page already knows the week, the view and the day, so it builds both hrefs
+ * with `panelHref` and formats the label with `formatWeekLabel`. No client
+ * JavaScript, no second copy of the date maths, and the whole thing stays
+ * server-rendered and linkable.
  */
 export function WeekSwitcher({
+  previousHref,
+  nextHref,
+  label,
   previousLabel,
   nextLabel,
-  fallbackLabel,
-  monthNames,
+  ariaLabel,
 }: WeekSwitcherProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const weekStart = resolveWeekStart(searchParams.get("week") ?? undefined);
-
-  const hrefFor = (offsetWeeks: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("week", addIsoDays(weekStart, offsetWeeks * 7));
-    return `${pathname}?${params.toString()}`;
-  };
-
-  const label = searchParams.get("week") ? labelFor(weekStart, monthNames) : fallbackLabel;
-
   return (
-    <div className="flex flex-none items-center border border-line-strong">
+    <nav
+      aria-label={ariaLabel}
+      className="flex flex-none items-center rounded-md border border-line bg-surface"
+    >
       <Link
-        href={hrefFor(-1)}
+        href={previousHref}
         aria-label={previousLabel}
-        className="px-2.5 py-1 text-base font-bold text-ink hover:bg-hover"
+        className="flex size-11 flex-none items-center justify-center rounded-md text-ink hover:bg-hover"
       >
-        ‹
+        <Icon name="chevronRight" className="h-4 w-4 rotate-180" />
       </Link>
-      <span className="tabular whitespace-nowrap border-x border-line px-2 text-xs font-bold tracking-[0.04em]">
+      {/* The range is the control's current value, so it is announced with it. */}
+      <span className="tabular whitespace-nowrap border-x border-line px-2.5 text-sm font-bold">
         {label}
       </span>
       <Link
-        href={hrefFor(1)}
+        href={nextHref}
         aria-label={nextLabel}
-        className="px-2.5 py-1 text-base font-bold text-ink hover:bg-hover"
+        className="flex size-11 flex-none items-center justify-center rounded-md text-ink hover:bg-hover"
       >
-        ›
+        <Icon name="chevronRight" className="h-4 w-4" />
       </Link>
-    </div>
+    </nav>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageShell } from "@/components/layout/PageShell";
 
 import { StaffPayrollCard } from "@/components/features/team/StaffPayrollCard";
 import { TeamRosterList } from "@/components/features/team/TeamRosterList";
@@ -27,36 +28,41 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     if (!detail) return null;
 
     return (
-      // The staff view is card family: tinted ground, cards gutter to gutter.
-      <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6">
-        <PageHeader variant="plain" title={dict.team.titleStaff} />
-        <StaffPayrollCard detail={detail} dict={dict} locale={locale} />
-      </section>
+      // Card family: the page owns the tint and the gutter, every block inside
+      // is a Card — the same rule Profile, Summary and Leave follow.
+      <PageShell>
+        <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5">
+          <PageHeader variant="plain" title={dict.team.titleStaff} />
+          <StaffPayrollCard detail={detail} dict={dict} />
+        </section>
+      </PageShell>
     );
   }
 
   const overview = await getTeamOverview(weekStart);
 
   return (
-    <section className="flex flex-1 flex-col">
-      <PageHeader
-        title={dict.team.titleAdmin}
-        subtitle={`${overview.members.length} ${dict.summary.staffSuffix} · ${dict.team.subAdmin}`}
-        action={
-          <Link
-            href={panelHref(ROUTES.teamNew, { week: weekStart })}
-            className="inline-flex items-center bg-brand px-3 py-2.5 text-sm font-bold tracking-[0.04em] text-white hover:bg-brand-dark"
-          >
-            + {dict.team.addPerson}
-          </Link>
-        }
-      />
-      <TeamRosterList
-        members={overview.members}
-        dict={dict}
-        locale={locale}
-        weekStart={weekStart}
-      />
-    </section>
+    <PageShell>
+      <section className="flex flex-1 flex-col">
+        <PageHeader
+          title={dict.team.titleAdmin}
+          subtitle={`${overview.members.length} ${dict.summary.staffSuffix} · ${dict.team.subAdmin}`}
+          action={
+            <Link
+              href={panelHref(ROUTES.teamNew, { week: weekStart })}
+              className="inline-flex items-center bg-brand px-3 py-2.5 text-sm font-bold tracking-[0.04em] text-white hover:bg-brand-dark"
+            >
+              + {dict.team.addPerson}
+            </Link>
+          }
+        />
+        <TeamRosterList
+          members={overview.members}
+          dict={dict}
+          locale={locale}
+          weekStart={weekStart}
+        />
+      </section>
+    </PageShell>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageShell } from "@/components/layout/PageShell";
 
 import { EmployeeForm } from "@/components/features/team/EmployeeForm";
 import { Avatar } from "@/components/ui/Avatar";
@@ -22,39 +23,41 @@ export default async function NewEmployeePage({ searchParams }: NewEmployeePageP
   const weekStart = resolveWeekStart(query.week);
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="flex items-center gap-3 border-y-2 border-ink bg-surface-alt px-4 py-3.5">
-        <Avatar initials="+" size="lg" solid />
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-extrabold">{dict.team.newPerson}</h1>
-          <p className="text-xs text-muted">{dict.team.editHint}</p>
+    <PageShell>
+      <section className="flex flex-1 flex-col">
+        <div className="flex items-center gap-3 border-y-2 border-ink bg-surface-alt px-4 py-3.5">
+          <Avatar initials="+" size="lg" solid />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-extrabold">{dict.team.newPerson}</h1>
+            <p className="text-xs text-muted">{dict.team.editHint}</p>
+          </div>
+          <Link
+            href={panelHref(ROUTES.team, { week: weekStart })}
+            className="inline-flex min-h-11 flex-none items-center border border-line-strong bg-surface px-2.5 text-xs font-bold hover:bg-hover"
+          >
+            {dict.common.back}
+          </Link>
         </div>
-        <Link
-          href={panelHref(ROUTES.team, { week: weekStart })}
-          className="flex-none border border-line-strong bg-surface px-2.5 py-[7px] text-xs font-bold hover:bg-hover"
-        >
-          {dict.common.back}
-        </Link>
-      </div>
 
-      <EmployeeForm
-        dict={dict}
-        mode="create"
-        values={{
-          firstName: "",
-          lastName: "",
-          position: "",
-          contract: "part",
-          birthDate: "",
-          hiredAt: "",
-          hourlyRate: 130,
-          leaveBalance: 0,
-          phone: "",
-          email: "",
-          address: "",
-        }}
-        action={createEmployeeAction}
-      />
-    </section>
+        <EmployeeForm
+          dict={dict}
+          mode="create"
+          values={{
+            firstName: "",
+            lastName: "",
+            position: "",
+            contract: "part",
+            birthDate: "",
+            hiredAt: "",
+            hourlyRate: 130,
+            leaveBalance: 0,
+            phone: "",
+            email: "",
+            address: "",
+          }}
+          action={createEmployeeAction}
+        />
+      </section>
+    </PageShell>
   );
 }

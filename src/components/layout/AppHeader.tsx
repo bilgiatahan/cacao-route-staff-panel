@@ -1,11 +1,12 @@
 import Link from "next/link";
 
+import { CountBadge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { APP_VERSION } from "@/lib/constants";
 import { employeeInitials } from "@/lib/employee";
 import type { Dictionary } from "@/lib/i18n";
 import { ROUTES } from "@/lib/routes";
-import type { Employee, SessionUser } from "@/types/domain";
+import type { Employee, Locale, SessionUser } from "@/types/domain";
 
 import { AppMenu, type MenuEntry } from "./AppMenu";
 
@@ -13,52 +14,43 @@ export interface AppHeaderProps {
   dict: Dictionary;
   user: SessionUser;
   employee: Employee;
-  locale: "tr" | "en";
+  locale: Locale;
   unreadCount: number;
 }
 
-export function AppHeader({
-  dict,
-  user,
-  employee,
-  locale,
-  unreadCount,
-}: AppHeaderProps) {
+/**
+ * Three slots: the drawer trigger, the brand, and the notification bell.
+ *
+ * It stays this thin on purpose — each screen states its own identity through
+ * `PageHeader`, so repeating it here would say the same thing twice. Sign-out
+ * lives in the drawer, not up here where it sits next to a destructive-free
+ * toolbar and invites a mis-tap.
+ */
+export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHeaderProps) {
   const roleTitle =
     user.role === "admin" ? dict.brand.managerTitle : employee.position[locale];
 
-  // Everyone edits their own record on `/profile`; the manager's read-only pay
-  // fields there link nowhere else. The rest of the menu is still to be built,
-  // and says so rather than linking nowhere.
-  const menuGroups: MenuEntry[][] = [
-    [
-      { key: "summary", label: dict.menu.summary, icon: "home", href: ROUTES.summary },
-      { key: "profile", label: dict.menu.profile, icon: "user", href: ROUTES.profile },
-      { key: "work", label: dict.menu.workDetails, icon: "briefcase" },
-      { key: "settings", label: dict.menu.settings, icon: "settings" },
-      {
-        key: "notificationPrefs",
-        label: dict.menu.notificationPrefs,
-        icon: "notifications",
-      },
-      { key: "support", label: dict.menu.support, icon: "support" },
-    ],
-    [{ key: "privacy", label: dict.menu.privacy, icon: "shield" }],
+  // Secondary destinations only, and only ones that exist. Profile is the sole
+  // real one today; settings, support and legal get rows when they get pages.
+  const menuEntries: MenuEntry[] = [
+    { key: "profile", label: dict.menu.profile, icon: "user", href: ROUTES.profile },
   ];
 
+  const unreadLabel = `${unreadCount} ${dict.notifications.unread}`;
+
   return (
-    <header className="sticky top-0 z-20">
-      <div className="grid grid-cols-[36px_1fr_36px] items-center gap-2 px-3 pb-2.5 pt-2.5">
+    // A sticky bar needs its own ground: without one, cards scrolled underneath
+    // and straight through the brand mark.
+    <header className="sticky top-0 z-20 border-b border-line bg-surface">
+      <div className="mx-auto flex max-w-panel items-center gap-2 px-3 py-1.5">
         <AppMenu
           labels={{
             open: dict.menu.open,
-            close: dict.menu.close,
             language: dict.menu.language,
             signOut: dict.menu.signOut,
             version: dict.menu.version,
-            soon: dict.menu.soon,
           }}
-          groups={menuGroups}
+          entries={menuEntries}
           profile={{
             name: user.fullName,
             role: roleTitle,
@@ -68,8 +60,8 @@ export function AppHeader({
           appVersion={APP_VERSION}
         />
 
-        <div className="flex min-w-0 flex-col items-center gap-0.5">
-          <span className="truncate text-lg text-brand font-extrabold leading-none tracking-[0.14em]">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+          <span className="truncate text-lg font-extrabold leading-none tracking-[0.14em] text-brand">
             {dict.brand.name}
           </span>
           <span className="truncate text-2xs font-semibold uppercase tracking-[0.18em] text-muted">
@@ -79,18 +71,22 @@ export function AppHeader({
 
         <Link
           href={ROUTES.notifications}
-          aria-label={dict.nav.notifications}
-          className="relative flex size-9 flex-none items-center justify-center text-ink hover:bg-hover"
+          // The digit alone is not a label, so the count is spelled out here.
+          aria-label={
+            unreadCount > 0
+              ? `${dict.nav.notifications}, ${unreadLabel}`
+              : dict.nav.notifications
+          }
+          className="relative flex size-11 flex-none items-center justify-center rounded-md text-ink hover:bg-hover"
         >
           <Icon name="notifications" className="h-5 w-5" />
-          {unreadCount > 0 ? (
-            <span className="tabular absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center bg-warn px-[3px] text-nano font-extrabold text-ink">
-              {unreadCount}
-            </span>
-          ) : null}
+          <CountBadge
+            count={unreadCount}
+            label={unreadLabel}
+            className="absolute right-1 top-1"
+          />
         </Link>
       </div>
-
     </header>
   );
 }

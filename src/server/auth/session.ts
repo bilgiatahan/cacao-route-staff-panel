@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { redirect } from "next/navigation";
 
+import { AuthorizationError } from "@/lib/auth-error";
 import { fullName } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
 import { employeeRepository } from "@/server/repositories/employee.repository";
@@ -77,13 +78,13 @@ export async function requireCurrentEmployee(): Promise<{
 /** Throws instead of redirecting — the right shape for server actions. */
 export async function assertAdmin(): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) throw new Error("UNAUTHENTICATED");
-  if (user.role !== "admin") throw new Error("FORBIDDEN");
+  if (!user) throw new AuthorizationError("unauthenticated");
+  if (user.role !== "admin") throw new AuthorizationError("forbidden");
   return user;
 }
 
 export async function assertAuthenticated(): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) throw new Error("UNAUTHENTICATED");
+  if (!user) throw new AuthorizationError("unauthenticated");
   return user;
 }

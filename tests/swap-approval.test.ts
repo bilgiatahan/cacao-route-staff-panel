@@ -12,6 +12,7 @@
 
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AuthorizationError } from "@/lib/auth-error";
 import type { SessionUser } from "@/types/domain";
 
 const ADMIN: SessionUser = {
@@ -245,7 +246,7 @@ describe("rejection is unchanged", () => {
 describe("authorization is unchanged", () => {
   it("does not decide when the caller is not an admin", async () => {
     assertAdmin.mockImplementation(async () => {
-      throw new Error("FORBIDDEN");
+      throw new AuthorizationError("forbidden");
     });
     await createShift(REQUESTER, MONDAY);
     await createPendingSwap(SWAP, REQUESTER, TARGET, MONDAY);

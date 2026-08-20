@@ -1,3 +1,4 @@
+import { AuthorizationError } from "@/lib/auth-error";
 import type { Dictionary } from "@/lib/i18n";
 
 /**
@@ -30,12 +31,16 @@ export function actionError(error: ActionErrorKey): ActionResult {
   return { ok: false, error };
 }
 
-/** Maps a thrown authorisation error onto a result the UI can render. */
+/**
+ * Maps a thrown authorisation error onto a result the UI can render.
+ *
+ * `AuthErrorKind` is a subset of `ActionErrorKey`, so the kind passes straight
+ * through — rename either union and this stops compiling. Anything that is not
+ * an `AuthorizationError` is not an authorisation failure and must not be
+ * reported as one.
+ */
 export function toActionResult(error: unknown): ActionResult {
-  if (error instanceof Error) {
-    if (error.message === "UNAUTHENTICATED") return actionError("unauthenticated");
-    if (error.message === "FORBIDDEN") return actionError("forbidden");
-  }
+  if (error instanceof AuthorizationError) return actionError(error.kind);
   return actionError("unexpected");
 }
 

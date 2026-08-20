@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import { useActionFeedback } from "@/components/ui/use-action-feedback";
 import { markAllNotificationsReadAction } from "@/server/actions/notification.actions";
 import type { ActionErrorKey } from "@/server/actions/action-result";
@@ -11,20 +12,27 @@ export interface MarkAllReadButtonProps {
   errorMessages: Record<ActionErrorKey, string>;
 }
 
+/**
+ * Was a bare `<button>` with hand-rolled brand text and no busy state: pressing
+ * it on a slow connection looked like nothing had happened. It is the shared
+ * `Button` now — `ghost` is the variant for a header action, `md` keeps the
+ * 44px target the hand-rolled version was careful to reach, and `loading`
+ * finally shows the request in flight.
+ */
 export function MarkAllReadButton({ label, disabled, errorMessages }: MarkAllReadButtonProps) {
   const { run, pending, error } = useActionFeedback(errorMessages);
 
   return (
     <div className="flex flex-col items-end gap-1.5">
-      <button
-        type="button"
-        disabled={disabled || pending}
+      <Button
+        variant="ghost"
+        disabled={disabled}
+        loading={pending}
+        loadingLabel={label}
         onClick={() => run(() => markAllNotificationsReadAction())}
-        // 44px of hit area without changing how the label reads.
-        className="inline-flex min-h-11 items-center px-2 text-xs font-bold text-brand hover:text-brand-dark disabled:text-muted"
       >
         {label}
-      </button>
+      </Button>
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

@@ -11,7 +11,17 @@ import { cn } from "@/lib/utils";
 import type { PayrollReport } from "@/server/services/payroll.service";
 import type { Locale } from "@/types/domain";
 
-const COLUMNS = "grid grid-cols-[1fr_52px_56px_78px] gap-1.5 px-3.5";
+/**
+ * One template for the head and every row, so the columns cannot desync.
+ *
+ * The phone tracks are as narrow as the numbers allow, which is right at 560px
+ * and wrong at 1216: the name column absorbed the whole difference and left the
+ * figures crushed against the far edge. From `lg` the numeric tracks take the
+ * extra room instead.
+ */
+const COLUMNS =
+  "grid grid-cols-[1fr_52px_56px_78px] gap-1.5 px-3.5 " +
+  "lg:grid-cols-[1fr_96px_96px_128px] lg:gap-3 lg:px-4";
 
 export interface PayrollTableProps {
   report: PayrollReport;

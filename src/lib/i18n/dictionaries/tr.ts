@@ -234,6 +234,7 @@ export const tr = {
     noEarnings: "Bu hafta çalışılan vardiya yok",
     age: "yaş",
     tenure: "kıdem",
+    saved: "Değişiklikler kaydedildi.",
     contracts: {
       full: "Tam zamanlı",
       part: "Yarı zamanlı",

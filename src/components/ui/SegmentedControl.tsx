@@ -33,6 +33,10 @@ export function SegmentedControl({ options, className, ariaLabel }: SegmentedCon
       aria-label={ariaLabel}
       className={cn(
         "flex overflow-x-auto rounded-md border border-line bg-surface",
+        // The track fills its column on a phone, which is right when the column
+        // is 560px. On a desk it would stretch a three-way switch across the
+        // whole workspace, so from `lg` it shrinks to its segments.
+        "lg:w-fit",
         className,
       )}
     >
@@ -45,6 +49,10 @@ export function SegmentedControl({ options, className, ariaLabel }: SegmentedCon
             // 44px tall, and `min-w-0 flex-1` lets a long label truncate instead
             // of forcing the strip wider than its container.
             "flex min-h-11 min-w-24 flex-1 items-center justify-center rounded-md px-3",
+            // From `lg` a segment is as wide as its label plus padding, not a
+            // twelfth of the monitor. Still 44px tall — desktop is not a reason
+            // to shrink a target.
+            "lg:min-w-0 lg:flex-none lg:px-5",
             "text-base font-bold transition-colors",
             // The global focus ring is clipped by the track's own rounding, so
             // pull it inside.

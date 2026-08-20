@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ButtonHTMLAttributes, Ref } from "react";
 
 import { Icon } from "@/components/ui/Icon";
@@ -41,6 +42,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   /** Announced while `loading`; the spinner alone says nothing to a screen reader. */
   loadingLabel?: string;
+  /**
+   * Renders the control as a link, mirroring `Card`'s own `href`.
+   *
+   * Three places navigate with something that has to look like a button — "add
+   * person", and the two "back" affordances. Each had its own hand-rolled copy
+   * of the primary or outline styling, which is how the team header ended up
+   * with a square brand-filled link while every real button on the screen was
+   * on the radius ladder. `loading`, `disabled` and button-only attributes do
+   * not apply on this path: a link is not a control that can be busy.
+   */
+  href?: string;
   /** Needed so a dialog can move focus onto its safe default control. */
   ref?: Ref<HTMLButtonElement>;
 }
@@ -54,24 +66,38 @@ export function Button({
   className,
   type = "button",
   disabled,
+  href,
   children,
   ...props
 }: ButtonProps) {
+  // Exactly the list the button rendered before `href` existed, in the same
+  // order — `tailwind-merge` resolves last-wins, so the order is part of the
+  // output. The `disabled:` rules simply never match on the link path.
+  const shared = cn(
+    "relative inline-flex items-center justify-center gap-1.5 rounded-md border",
+    "font-bold tracking-[0.04em] transition-colors",
+    "disabled:cursor-not-allowed disabled:border-line disabled:bg-fill disabled:text-disabled",
+    VARIANTS[variant],
+    SIZES[size],
+    fullWidth && "w-full",
+    className,
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={shared}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <button
       type={type}
       // A loading button must not be pressable twice.
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        "relative inline-flex items-center justify-center gap-1.5 rounded-md border",
-        "font-bold tracking-[0.04em] transition-colors",
-        "disabled:cursor-not-allowed disabled:border-line disabled:bg-fill disabled:text-disabled",
-        VARIANTS[variant],
-        SIZES[size],
-        fullWidth && "w-full",
-        className,
-      )}
+      className={shared}
       {...props}
     >
       {loading ? (

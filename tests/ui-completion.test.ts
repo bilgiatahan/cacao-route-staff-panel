@@ -98,21 +98,38 @@ describe("B1 — notification pending is scoped to one row", () => {
 });
 
 describe("A1 — the four sub-44px controls", () => {
-  const controls: Array<[string, string]> = [
-    ["src/components/features/notifications/MarkAllReadButton.tsx", "min-h-11"],
-    ["src/app/(panel)/team/new/page.tsx", "min-h-11"],
-    ["src/app/(panel)/team/[employeeId]/page.tsx", "min-h-11"],
-    ["src/app/login/page.tsx", "min-h-11"],
+  const controls = [
+    "src/components/features/notifications/MarkAllReadButton.tsx",
+    "src/app/(panel)/team/new/page.tsx",
+    "src/app/(panel)/team/[employeeId]/page.tsx",
+    "src/app/login/page.tsx",
   ];
 
-  it("each now declares a 44px minimum", () => {
-    for (const [path, token] of controls) {
-      expect(read(path), path).toContain(token);
+  /**
+   * All four were hand-rolled controls that each grew their own `min-h-11`.
+   * The Card-family migration replaced every one of them with the shared
+   * `Button`, so the 44px floor now lives in a single place instead of four
+   * copies. The assertion follows it there: a control clears the minimum by
+   * declaring it inline, or by delegating to `Button` at a step that is not the
+   * 40px `sm` one — and `Button`'s own floor is pinned below, which nothing
+   * checked while the literals were scattered.
+   */
+  it("each still clears 44px, inline or through Button", () => {
+    for (const path of controls) {
+      const src = read(path);
+      const delegatesToButton = src.includes("<Button") && !src.includes('size="sm"');
+      expect(src.includes("min-h-11") || delegatesToButton, path).toBe(true);
     }
   });
 
+  it("Button's md and lg steps are where the 44px floor now lives", () => {
+    const src = read("src/components/ui/Button.tsx");
+    expect(src).toContain('md: "min-h-11');
+    expect(src).toContain('lg: "min-h-12');
+  });
+
   it("no longer uses the 29px padding they shared", () => {
-    for (const [path] of controls) {
+    for (const path of controls) {
       expect(read(path), path).not.toContain("py-[7px]");
     }
   });

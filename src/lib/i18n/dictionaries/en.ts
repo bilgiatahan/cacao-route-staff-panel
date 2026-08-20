@@ -232,6 +232,7 @@ export const en: Dictionary = {
     noEarnings: "No shifts worked this week",
     age: "yrs old",
     tenure: "tenure",
+    saved: "Changes saved.",
     contracts: {
       full: "Full-time",
       part: "Part-time",

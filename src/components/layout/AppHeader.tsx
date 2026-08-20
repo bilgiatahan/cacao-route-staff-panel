@@ -41,7 +41,13 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
   return (
     // A sticky bar needs its own ground: without one, cards scrolled underneath
     // and straight through the brand mark.
-    <header className="sticky top-0 z-20 border-b border-line bg-surface">
+    //
+    // `lg:hidden` retires the whole bar on a desktop, and `AppMenu` with it —
+    // its trigger, scrim and drawer are all rendered inside this element, so one
+    // class removes the drawer system rather than leaving a focusable hamburger
+    // behind an invisible overlay. Everything it holds (brand, bell, the
+    // drawer's account block) is in `SideNav` from 1024 up.
+    <header className="sticky top-0 z-20 border-b border-line bg-surface lg:hidden">
       <div className="mx-auto flex max-w-panel items-center gap-2 px-3 py-1.5">
         <AppMenu
           labels={{

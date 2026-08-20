@@ -15,9 +15,14 @@ import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "@/server/services/team.service";
 
-/** Day · span · worked · earned. Narrow enough to survive a 360px phone. */
+/**
+ * Day · span · worked · earned. Narrow enough to survive a 360px phone, and
+ * from `lg` wide enough that the figures are not pinned to the right edge of a
+ * column three times the width they were designed for.
+ */
 const EARNINGS_COLUMNS =
-  "grid grid-cols-[minmax(0,1fr)_84px_62px_78px] gap-1.5 px-3.5";
+  "grid grid-cols-[minmax(0,1fr)_84px_62px_78px] gap-1.5 px-3.5 " +
+  "lg:grid-cols-[minmax(0,1fr)_120px_96px_120px] lg:gap-3 lg:px-4";
 
 export interface StaffPayrollCardProps {
   detail: EmployeeDetail;
@@ -83,8 +88,15 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
 
   return (
     <div className="flex flex-col gap-3.5">
+      {/*
+        Two pairs stacked on a phone; one band of four on a desk. Keeping them
+        as two grids rather than merging into one four-column grid is what makes
+        that free: the wrapper is `contents` below `lg`, so the phone still gets
+        exactly the two rows it has today, week above month.
+      */}
+      <div className="contents lg:flex lg:gap-2">
       {/* This week leads: it is the pay being earned right now. */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
         <StatCard
           icon="timetable"
           accent={detail.overtime ? "amber" : "green"}
@@ -108,7 +120,7 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
       </div>
 
       {/* The month is a projection of the week, so it sits one step quieter. */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
         <StatCard
           icon="clock"
           accent="green"
@@ -124,8 +136,18 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
           hint={`${detail.weeksInMonth} ${dict.units.weeks}`}
         />
       </div>
+      </div>
 
-      <SectionBlock title={dict.team.myWeeklyEarnings}>
+      {/*
+        The earnings breakdown is at most seven rows of four figures; run across
+        1216px it reads as a nearly empty table. Paired with the terms card it
+        gets a measure that suits it, and the terms stop being a sparse strip.
+      */}
+      <div className="contents lg:flex lg:items-start lg:gap-3.5">
+      <SectionBlock
+        className="lg:min-w-0 lg:basis-0 lg:grow-[7]"
+        title={dict.team.myWeeklyEarnings}
+      >
         {payRows.length === 0 ? (
           <Card>
             <EmptyState icon="timetable">{dict.team.noEarnings}</EmptyState>
@@ -175,11 +197,15 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
         )}
       </SectionBlock>
 
-      <SectionBlock title={dict.profile.employment}>
+      <SectionBlock
+        className="lg:min-w-0 lg:basis-0 lg:grow-[5]"
+        title={dict.profile.employment}
+      >
         <Card padding="md">
           <DetailList items={terms} />
         </Card>
       </SectionBlock>
+      </div>
     </div>
   );
 }

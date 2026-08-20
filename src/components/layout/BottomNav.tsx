@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 import { CountBadge } from "@/components/ui/Badge";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { isNavItemActive, navHref } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -35,16 +36,21 @@ export function BottomNav({ items }: { items: NavItem[] }) {
     <nav
       // `pb-[env(safe-area-inset-bottom)]` keeps the labels clear of the iOS
       // home indicator, which used to sit on top of them.
-      className="sticky bottom-0 z-10 rounded-t-xl border-t-2 border-brand bg-brand pb-[env(safe-area-inset-bottom)]"
+      //
+      // `lg:hidden` is the whole of this bar's desktop story: from 1024 up the
+      // `SideNav` is the one navigation surface, and two of them at the same
+      // breakpoint would be a duplicate, not a convenience.
+      className="sticky bottom-0 z-10 rounded-t-xl border-t-2 border-brand bg-brand pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <div
         className="mx-auto grid max-w-panel"
         style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
       >
         {items.map((item) => {
-          // Nested routes count as their section: /team/emp-3 keeps Payroll lit.
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const href = week ? `${item.href}?week=${week}` : item.href;
+          // Both rules now live in `lib/nav`, shared with `SideNav`, so the two
+          // navigation surfaces cannot drift. Same behaviour, same output.
+          const active = isNavItemActive(pathname, item.href);
+          const href = navHref(item.href, week);
 
           return (
             <Link

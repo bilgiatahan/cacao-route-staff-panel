@@ -2,6 +2,9 @@ import { Suspense, type ReactNode } from "react";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav, type NavItem } from "@/components/layout/BottomNav";
+import { SideNav } from "@/components/layout/SideNav";
+import { APP_VERSION } from "@/lib/constants";
+import { employeeInitials } from "@/lib/employee";
 import { getTranslations } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import { requireCurrentEmployee } from "@/server/auth/session";
@@ -15,6 +18,12 @@ import { getPendingRequests } from "@/server/services/leave.service";
  * *content* measure is each screen's own decision, made with `PageShell`, which
  * is why this layout does not impose one: the roster needs all 960px for seven
  * day columns, while a form wants a short line whatever the monitor is.
+ *
+ * From 1024px the shell swaps rather than stretches. `SideNav` appears, the
+ * header and the tab bar go to `display: none`, and the frame stops being a
+ * centred column and becomes the workspace. Every one of those changes is an
+ * `lg:` utility on top of the mobile class it does not replace, so 0–1023px
+ * renders exactly what it rendered before the sidebar existed.
  */
 export default async function PanelLayout({
   children,
@@ -36,6 +45,8 @@ export default async function PanelLayout({
   ]);
 
   const pendingCount = pending.leave.length + pending.swaps.length;
+  // The bell's sentence, built once and given to both the header and the rail.
+  const unreadLabel = `${unreadCount} ${dict.notifications.unread}`;
 
   // Summary, Schedule, Leave, Payroll — the employee's four recurring tasks, in
   // the order they are thought about. Notifications stay in the header bell and
@@ -74,9 +85,54 @@ export default async function PanelLayout({
     },
   ];
 
+  // Notifications and Profile are the header bell and the drawer's single row.
+  // On a phone they are deliberately not tabs; on a desk there is room to list
+  // them without crowding the four that matter, one divider down.
+  const secondaryItems: NavItem[] = [
+    {
+      key: "notifications",
+      href: ROUTES.notifications,
+      label: dict.nav.notifications,
+      icon: "notifications",
+      badge: unreadCount,
+      badgeLabel: unreadLabel,
+    },
+    {
+      key: "profile",
+      href: ROUTES.profile,
+      label: dict.menu.profile,
+      icon: "user",
+      badge: 0,
+    },
+  ];
+
   return (
-    <div className="flex min-h-dvh justify-center bg-canvas">
-      <div className="relative flex min-h-dvh w-full max-w-panel flex-col shadow-[0_0_0_1px_var(--color-line)] md:max-w-shell">
+    <div className="flex min-h-dvh justify-center bg-canvas lg:justify-start">
+      <Suspense
+        // Reserves the rail so the workspace cannot jump sideways on hydration.
+        fallback={<div aria-hidden className="hidden w-18 flex-none lg:block xl:w-65" />}
+      >
+        <SideNav
+          items={navItems}
+          secondary={secondaryItems}
+          brand={{ name: dict.brand.name, panel: dict.brand.panel }}
+          profile={{
+            name: user.fullName,
+            role: user.role === "admin" ? dict.brand.managerTitle : employee.position[locale],
+            email: user.email,
+            initials: employeeInitials(employee, locale),
+          }}
+          labels={{
+            navigation: dict.brand.panel,
+            language: dict.menu.language,
+            signOut: dict.menu.signOut,
+            version: dict.menu.version,
+          }}
+          appVersion={APP_VERSION}
+        />
+      </Suspense>
+
+      <div className="relative flex min-h-dvh w-full max-w-panel flex-col shadow-[0_0_0_1px_var(--color-line)] md:max-w-shell lg:max-w-none lg:flex-1 lg:shadow-none">
         <AppHeader
           dict={dict}
           user={user}
@@ -84,12 +140,15 @@ export default async function PanelLayout({
           locale={locale}
           unreadCount={unreadCount}
         />
-        <main className="flex flex-1 flex-col">
+        <main
+          id="main"
+          className="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-[96rem] lg:bg-fill lg:px-6 xl:px-8"
+        >
           {children}
           <div className="h-7" />
         </main>
 
-        <Suspense fallback={<div className="h-14 rounded-t-xl bg-brand" />}>
+        <Suspense fallback={<div className="h-14 rounded-t-xl bg-brand lg:hidden" />}>
           <BottomNav items={navItems} />
         </Suspense>
       </div>

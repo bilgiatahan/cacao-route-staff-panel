@@ -136,6 +136,13 @@
    * here so a screen can opt into it during its own migration.
    */
   --container-shell: 60rem; /* 960 */
+  /*
+   * The two desktop measures, used only from `lg` up by `PageShell`. Below
+   * 1024 every screen still resolves to `--container-panel`, so these cannot
+   * move anything on a phone or a tablet.
+   */
+  --container-form: 45rem; /* 720 — a form or a reading column on a desk */
+  --container-data: 76rem; /* 1216 — dashboards, tables, two-column screens */
 }
 
 /* --------------------------------------------------------------------------

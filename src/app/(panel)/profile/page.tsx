@@ -15,8 +15,10 @@ import { updateProfileAction } from "@/server/actions/profile.actions";
  * The rules it sets for the migrations that follow:
  *
  *  - The page owns the tint and the gutter; every block inside is a `Card`.
- *  - The screen owns its measure via `PageShell`. Profile stays narrow: it is a
- *    form, and a form wants a short line length however wide the monitor is.
+ *  - The screen owns its measure via `PageShell`. Profile stays constrained: it
+ *    is a form, and a form wants a short line length however wide the monitor
+ *    is. `medium` opens it from 560 to 720 on a desk and no further; the two
+ *    columns the fields already form at `sm` are what that room is for.
  *  - Identity is not repeated. The drawer already shows who is signed in, so the
  *    page opens with a title rather than an avatar card.
  *  - Editable and read-only never look alike. Inputs are inputs; facts the
@@ -64,7 +66,7 @@ export default async function ProfilePage() {
   ];
 
   return (
-    <PageShell>
+    <PageShell width="medium">
       <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5">
         <PageHeader variant="plain" title={dict.profile.title} />
 

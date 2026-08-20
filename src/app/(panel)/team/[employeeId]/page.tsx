@@ -1,17 +1,18 @@
-import Link from "next/link";
 import { PageShell } from "@/components/layout/PageShell";
 import { notFound } from "next/navigation";
 
 import { EmployeeForm } from "@/components/features/team/EmployeeForm";
 import { WeekShiftList } from "@/components/features/summary/WeekShiftList";
 import { Avatar } from "@/components/ui/Avatar";
-import { SectionHeading } from "@/components/ui/Section";
+import { Button } from "@/components/ui/Button";
+import { accentForId, Card, StatCard } from "@/components/ui/Card";
+import { DetailList, type DetailItem } from "@/components/ui/DetailList";
+import { PageHeader, SectionBlock } from "@/components/ui/Section";
 import { todayIso } from "@/lib/date";
 import { employeeFullName, employeeInitials, employeePosition } from "@/lib/employee";
-import { formatHours, formatMoney } from "@/lib/format";
+import { formatHours, formatHoursValue, formatMoney } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 import { resolveWeekStart } from "@/lib/week-params";
 import { requireAdmin } from "@/server/auth/session";
 import { archiveEmployeeAction, updateEmployeeAction } from "@/server/actions/employee.actions";
@@ -22,6 +23,22 @@ interface EmployeeDetailPageProps {
   searchParams: Promise<{ week?: string }>;
 }
 
+/** The page owns the tint and the gutter; every block inside is a Card. */
+const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
+
+/**
+ * One person, as the manager sees them.
+ *
+ * The screen answers two different questions and now looks like it: on the left
+ * everything about them the manager *sets*, as a form; on the right everything
+ * the schedule *produced*, as read-only figures. That split is the rule Profile
+ * established — editable and read-only never look alike, and a fact you cannot
+ * change is a `DetailList` row or a `StatCard`, never a disabled input.
+ *
+ * What the week and month cost used to be a `SectionHeading` meta string and a
+ * loose grey paragraph under the form. They are the same numbers the person
+ * sees on their own pay screen, so they are shown the same way.
+ */
 export default async function EmployeeDetailPage({
   params,
   searchParams,
@@ -44,59 +61,125 @@ export default async function EmployeeDetailPage({
   // The manager cannot remove their own account from inside the panel.
   const canArchive = employee.id !== admin.employeeId && !employee.isTaskRow;
 
+  // Produced by the roster, not set by anyone — so they read as facts.
+  const monthly: DetailItem[] = [
+    {
+      key: "monthlyHours",
+      icon: "clock",
+      label: dict.team.monthlyHours,
+      value: formatHours(detail.monthlyHours, dict),
+    },
+    {
+      key: "monthlyPay",
+      icon: "wallet",
+      label: dict.team.monthlyPay,
+      value: formatMoney(detail.monthlyPay),
+    },
+  ];
+
   return (
-    <PageShell>
-      <section className="flex flex-1 flex-col">
-        <div className="flex items-center gap-3 border-y-2 border-ink bg-surface-alt px-4 py-3.5">
-          <Avatar initials={employeeInitials(employee, locale)} size="lg" solid />
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-extrabold">
-              {employeeFullName(employee, locale)}
-            </h1>
-            <p className="text-xs text-muted">{employeePosition(employee, locale)}</p>
-          </div>
-          <Link
-            href={panelHref(ROUTES.team, { week: weekStart })}
-            className="inline-flex min-h-11 flex-none items-center border border-line-strong bg-surface px-2.5 text-xs font-bold hover:bg-hover"
-          >
-            {dict.common.back}
-          </Link>
-        </div>
-
-        <EmployeeForm
-          dict={dict}
-          mode="edit"
-          hasAccount={detail.hasAccount}
-          values={{
-            firstName: employee.firstName,
-            lastName: employee.lastName,
-            position: employeePosition(employee, locale),
-            contract: employee.contract,
-            birthDate: employee.birthDate ?? "",
-            hiredAt: employee.hiredAt ?? "",
-            hourlyRate: employee.hourlyRate,
-            leaveBalance: employee.leaveBalance,
-            phone: employee.phone,
-            email: employee.email,
-            address: employee.address,
-          }}
-          action={updateEmployeeAction.bind(null, employee.id)}
-          onArchive={canArchive ? archiveEmployeeAction.bind(null, employee.id) : undefined}
-        />
-
-        <SectionHeading
-          title={dict.team.thisWeek}
-          meta={
-            <span className={cn("tabular", detail.overtime ? "text-warn-dark" : "text-muted")}>
-              {formatHours(detail.weeklyHours, dict)} · {formatMoney(detail.weeklyPay.total)}
-            </span>
+    <PageShell width="data">
+      <section className={PAGE}>
+        <PageHeader
+          variant="plain"
+          title={dict.team.details}
+          action={
+            // `md`, not `sm`: 44px. `sm` is 40px and is for dense inline
+            // controls, which a page-level back affordance is not.
+            <Button href={panelHref(ROUTES.team, { week: weekStart })} variant="outline">
+              {dict.common.back}
+            </Button>
           }
         />
-        <p className="tabular px-4 pb-2.5 text-xs text-muted">
-          {dict.team.monthlyHours}: {formatHours(detail.monthlyHours, dict)} ·{" "}
-          {formatMoney(detail.monthlyPay)} ({detail.weeksInMonth} {dict.units.weeks})
-        </p>
-        <WeekShiftList cells={detail.row?.cells ?? []} dict={dict} today={todayInWeek} />
+
+        {/* Who this page is about. The accent is derived from the id, so it is
+            the same colour they carry in the team list and on the summary. */}
+        <Card padding="md" className="flex items-center gap-3">
+          <Avatar
+            initials={employeeInitials(employee, locale)}
+            tone={accentForId(employee.id)}
+            size="lg"
+            className="rounded-full"
+          />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-extrabold">
+              {employeeFullName(employee, locale)}
+            </h1>
+            <p className="truncate text-xs text-muted">{employeePosition(employee, locale)}</p>
+          </div>
+        </Card>
+
+        <div className="contents lg:flex lg:items-start lg:gap-3.5">
+          <div className="contents lg:block lg:min-w-0 lg:basis-0 lg:grow-[7]">
+            <EmployeeForm
+              dict={dict}
+              mode="edit"
+              hasAccount={detail.hasAccount}
+              values={{
+                firstName: employee.firstName,
+                lastName: employee.lastName,
+                position: employeePosition(employee, locale),
+                contract: employee.contract,
+                birthDate: employee.birthDate ?? "",
+                hiredAt: employee.hiredAt ?? "",
+                hourlyRate: employee.hourlyRate,
+                leaveBalance: employee.leaveBalance,
+                phone: employee.phone,
+                email: employee.email,
+                address: employee.address,
+              }}
+              action={updateEmployeeAction.bind(null, employee.id)}
+              onArchive={canArchive ? archiveEmployeeAction.bind(null, employee.id) : undefined}
+            />
+          </div>
+
+          <div className="contents lg:flex lg:min-w-0 lg:basis-0 lg:grow-[5] lg:flex-col lg:gap-3.5">
+            {/* One block for the week: what it came to, then the days it came
+                from. Two headings saying "This Week" would be one heading too
+                many. */}
+            <SectionBlock title={dict.team.thisWeek}>
+              <div className="grid grid-cols-2 gap-2">
+                <StatCard
+                  icon="timetable"
+                  accent={detail.overtime ? "amber" : "green"}
+                  label={dict.team.thisWeek}
+                  value={formatHours(detail.weeklyHours, dict)}
+                  highlight={detail.overtime}
+                  hint={
+                    detail.overtime
+                      ? `+${formatHoursValue(detail.weeklyPay.overtimeHours)}${dict.units.hourSuffix} ${dict.team.overtime}`
+                      : undefined
+                  }
+                />
+                <StatCard
+                  icon="wallet"
+                  accent="green"
+                  label={dict.team.weekPay}
+                  value={formatMoney(detail.weeklyPay.total)}
+                />
+              </div>
+              <Card className="overflow-hidden">
+                <WeekShiftList
+                  cells={detail.row?.cells ?? []}
+                  dict={dict}
+                  today={todayInWeek}
+                  bare
+                />
+              </Card>
+            </SectionBlock>
+
+            {/* The month is a projection of the week, so it sits one step
+                quieter — reference figures, not headline numbers. */}
+            <SectionBlock
+              title={dict.calendar.thisMonth}
+              meta={`${detail.weeksInMonth} ${dict.units.weeks}`}
+            >
+              <Card padding="md">
+                <DetailList items={monthly} />
+              </Card>
+            </SectionBlock>
+          </div>
+        </div>
       </section>
     </PageShell>
   );

@@ -1,8 +1,9 @@
-import Link from "next/link";
 import { PageShell } from "@/components/layout/PageShell";
 
 import { StaffPayrollCard } from "@/components/features/team/StaffPayrollCard";
 import { TeamRosterList } from "@/components/features/team/TeamRosterList";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { PageHeader } from "@/components/ui/Section";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
@@ -30,7 +31,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     return (
       // Card family: the page owns the tint and the gutter, every block inside
       // is a Card — the same rule Profile, Summary and Leave follow.
-      <PageShell>
+      <PageShell width="data">
         <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5">
           <PageHeader variant="plain" title={dict.team.titleStaff} />
           <StaffPayrollCard detail={detail} dict={dict} />
@@ -42,18 +43,20 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const overview = await getTeamOverview(weekStart);
 
   return (
-    <PageShell>
-      <section className="flex flex-1 flex-col">
+    <PageShell width="data">
+      {/* Card family: the page owns the tint and the gutter. */}
+      <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5">
         <PageHeader
+          variant="plain"
           title={dict.team.titleAdmin}
           subtitle={`${overview.members.length} ${dict.summary.staffSuffix} · ${dict.team.subAdmin}`}
           action={
-            <Link
-              href={panelHref(ROUTES.teamNew, { week: weekStart })}
-              className="inline-flex items-center bg-brand px-3 py-2.5 text-sm font-bold tracking-[0.04em] text-white hover:bg-brand-dark"
-            >
-              + {dict.team.addPerson}
-            </Link>
+            // Was a hand-rolled square brand-filled link — the one control on
+            // this screen that ignored the radius ladder and the size scale.
+            <Button href={panelHref(ROUTES.teamNew, { week: weekStart })} className="gap-1">
+              <Icon name="plus" className="h-4 w-4" />
+              {dict.team.addPerson}
+            </Button>
           }
         />
         <TeamRosterList

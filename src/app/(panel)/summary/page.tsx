@@ -91,14 +91,21 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     const pendingCount = summary.pendingLeave.length + summary.pendingSwaps.length;
 
     return (
-      <PageShell>
+      <PageShell width="data">
         <section className={PAGE}>
-          <PageHeader
-            variant="plain"
-            title={dict.summary.title}
-            subtitle={`${formatWeekLabel(weekStart, dict)}`}
-          />
-          {segments}
+          {/*
+            `contents` below `lg`: the wrapper has no box, so the heading and the
+            period switch stay two stacked children of this column exactly as
+            they are on a phone. From `lg` it becomes the row they belong on.
+          */}
+          <div className="contents lg:flex lg:items-center lg:justify-between lg:gap-3">
+            <PageHeader
+              variant="plain"
+              title={dict.summary.title}
+              subtitle={`${formatWeekLabel(weekStart, dict)}`}
+            />
+            {segments}
+          </div>
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <StatCard
@@ -137,14 +144,25 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             />
           </div>
 
+          {/*
+            Coverage and the worklist are the two questions a manager opens this
+            page with, so on a desk they sit next to each other rather than one
+            scroll apart. 7/5 because "who is on today" is a list of people and
+            "what needs me" is a short queue.
+          */}
+          <div className="contents lg:flex lg:items-start lg:gap-3.5">
           <SectionBlock
+            className="lg:min-w-0 lg:basis-0 lg:grow-[7]"
             title={dict.summary.todayTitle}
             meta={summary.today ? dayLabel(summary.today, dict) : dict.common.dash}
           >
             <OnShiftList rows={summary.onShiftToday} dict={dict} locale={locale} />
           </SectionBlock>
 
-          <SectionBlock title={dict.summary.needsAction}>
+          <SectionBlock
+            className="lg:min-w-0 lg:basis-0 lg:grow-[5]"
+            title={dict.summary.needsAction}
+          >
             <PendingActions
               leaveRequests={summary.pendingLeave}
               swapRequests={summary.pendingSwaps}
@@ -155,6 +173,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               weekStart={weekStart}
             />
           </SectionBlock>
+          </div>
 
           <SectionBlock title={isMonth ? dict.team.payrollMonthly : dict.team.payrollWeekly}>
             <PayrollTable report={summary.payroll} dict={dict} locale={locale} />
@@ -167,7 +186,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const summary = await getStaffSummary(user.employeeId, weekStart, period);
   if (!summary) {
     return (
-      <PageShell>
+      <PageShell width="data">
         <section className={PAGE}>
           <PageHeader
             variant="plain"
@@ -183,20 +202,28 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const nextShift = summary.nextShift;
 
   return (
-    <PageShell>
+    <PageShell width="data">
       <section className={PAGE}>
-        <PageHeader
-          variant="plain"
-          title={dict.summary.title}
-          subtitle={`${formatWeekLabel(weekStart, dict)}`}
-        />
-        {segments}
+        <div className="contents lg:flex lg:items-center lg:justify-between lg:gap-3">
+          <PageHeader
+            variant="plain"
+            title={dict.summary.title}
+            subtitle={`${formatWeekLabel(weekStart, dict)}`}
+          />
+          {segments}
+        </div>
 
+        {/*
+          The next shift keeps its lead, but on a desk it no longer runs the
+          whole width with three tiles stranded underneath: the hero and the
+          numbers that qualify it read as one band.
+        */}
+        <div className="contents lg:flex lg:items-stretch lg:gap-2">
         {/* The one thing a barista opens the panel for, so it leads. */}
         <Card
           href={nextShift ? panelHref(ROUTES.timetable, { week: weekStart }) : undefined}
           padding="md"
-          className="flex items-center gap-3"
+          className="flex items-center gap-3 lg:min-w-0 lg:basis-0 lg:grow-[5]"
         >
           <IconTile name="calendarClock" accent="green" />
           <div className="min-w-0 flex-1">
@@ -214,7 +241,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
         </Card>
 
         {/* Secondary numbers: two up on a phone, three where they fit. */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-0 lg:basis-0 lg:grow-[7]">
           <StatCard
             icon="clock"
             accent="blue"
@@ -243,8 +270,13 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             hint={dict.leave.types.annual}
           />
         </div>
+        </div>
 
+        {/* Who else is in today, beside your own week — the two lists you
+            actually compare. */}
+        <div className="contents lg:flex lg:items-start lg:gap-3.5">
         <SectionBlock
+          className="lg:min-w-0 lg:flex-1"
           title={dict.summary.todayTitle}
           meta={summary.today ? dayLabel(summary.today, dict) : dict.common.dash}
         >
@@ -256,7 +288,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           />
         </SectionBlock>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden lg:min-w-0 lg:flex-1">
           <Link
             href={panelHref(ROUTES.timetable, { week: weekStart })}
             className="flex min-h-11 items-center gap-2.5 px-3.5 py-3 text-ink hover:bg-hover"
@@ -267,6 +299,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           </Link>
           <WeekShiftList cells={summary.myRow?.cells ?? []} dict={dict} today={summary.today} />
         </Card>
+        </div>
       </section>
     </PageShell>
   );

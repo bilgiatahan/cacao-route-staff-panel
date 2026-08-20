@@ -49,7 +49,7 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
   }));
 
   return (
-    <PageShell>
+    <PageShell width="data">
       <section className={PAGE}>
         <PageHeader
           variant="plain"
@@ -66,53 +66,75 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
           sit next to the submit button as small grey text, which read as a limit
           on it — and nothing in the product enforces one.
         */}
+        {/*
+          Balance and the form it informs, side by side from `lg`. The two
+          `!isAdmin` blocks became one so they can share a row wrapper; the
+          wrapper is `contents` below `lg`, so the phone still renders the same
+          two children of this column, in the same order.
+        */}
         {!isAdmin && (
-          <Card padding="md">
-            <div className="flex items-center gap-3">
-              <IconTile name="hourglass" accent="amber" />
-              <div className="min-w-0 flex-1">
-                <div className="label-eyebrow truncate">{dict.leave.balance}</div>
-                <div className="tabular text-3xl font-extrabold -tracking-[0.02em]">
-                  {board.leaveBalance}{" "}
-                  <span className="text-lg font-bold text-muted">{dict.units.days}</span>
+          <div className="contents lg:flex lg:items-start lg:gap-3.5">
+            <Card padding="md" className="lg:min-w-0 lg:basis-0 lg:grow-[5]">
+              <div className="flex items-center gap-3">
+                <IconTile name="hourglass" accent="amber" />
+                <div className="min-w-0 flex-1">
+                  <div className="label-eyebrow truncate">{dict.leave.balance}</div>
+                  <div className="tabular text-3xl font-extrabold -tracking-[0.02em]">
+                    {board.leaveBalance}{" "}
+                    <span className="text-lg font-bold text-muted">{dict.units.days}</span>
+                  </div>
                 </div>
               </div>
+              <Hint className="pt-2.5">{dict.leave.balanceHint}</Hint>
+            </Card>
+
+            {/* `LeaveRequestForm` owns no `className`, so the column lives on a
+                wrapper rather than on a new prop. */}
+            <div className="contents lg:block lg:min-w-0 lg:basis-0 lg:grow-[7]">
+              <LeaveRequestForm
+                dict={dict}
+                defaultStart={addIsoDays(today, 7)}
+                defaultEnd={addIsoDays(today, 8)}
+              />
             </div>
-            <Hint className="pt-2.5">{dict.leave.balanceHint}</Hint>
-          </Card>
+          </div>
         )}
 
+        {/*
+          The two histories are the same kind of thing read the same way, so on
+          a desk they are columns rather than one long scroll. Order is
+          unchanged: requests first, swaps second, left to right.
+        */}
+        <div className="contents lg:flex lg:items-start lg:gap-3.5">
+          <SectionBlock
+            className="lg:min-w-0 lg:flex-1"
+            title={dict.leave.requests}
+            meta={
+              board.pendingLeaveCount > 0 ? (
+                <Badge tone="warning">
+                  {board.pendingLeaveCount} {dict.summary.pendingSuffix}
+                </Badge>
+              ) : null
+            }
+          >
+            <LeaveList rows={board.leaveRows} dict={dict} locale={locale} />
+          </SectionBlock>
+
+          <SectionBlock className="lg:min-w-0 lg:flex-1" title={dict.leave.swaps}>
+            <SwapList rows={board.swapRows} dict={dict} locale={locale} />
+          </SectionBlock>
+        </div>
+
+        {/* Two selects and a button: capped so the last block on the page does
+            not run the full 1216px on its own. */}
         {!isAdmin && (
-          <LeaveRequestForm
-            dict={dict}
-            defaultStart={addIsoDays(today, 7)}
-            defaultEnd={addIsoDays(today, 8)}
-          />
-        )}
-
-        <SectionBlock
-          title={dict.leave.requests}
-          meta={
-            board.pendingLeaveCount > 0 ? (
-              <Badge tone="warning">
-                {board.pendingLeaveCount} {dict.summary.pendingSuffix}
-              </Badge>
-            ) : null
-          }
-        >
-          <LeaveList rows={board.leaveRows} dict={dict} locale={locale} />
-        </SectionBlock>
-
-        <SectionBlock title={dict.leave.swaps}>
-          <SwapList rows={board.swapRows} dict={dict} locale={locale} />
-        </SectionBlock>
-
-        {!isAdmin && (
-          <SwapRequestForm
-            dict={dict}
-            shiftOptions={shiftOptions}
-            colleagueOptions={colleagueOptions}
-          />
+          <div className="contents lg:block lg:w-full lg:max-w-[34rem]">
+            <SwapRequestForm
+              dict={dict}
+              shiftOptions={shiftOptions}
+              colleagueOptions={colleagueOptions}
+            />
+          </div>
         )}
       </section>
     </PageShell>

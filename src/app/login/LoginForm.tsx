@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { Field, FormError, TextInput } from "@/components/ui/Field";
+import { Field, FormError, SoftInput } from "@/components/ui/Field";
 import { actionErrorMessage, type ActionResult } from "@/server/actions/action-result";
 import { signInAction } from "@/server/actions/auth.actions";
 import type { Dictionary } from "@/lib/i18n";
@@ -30,9 +30,10 @@ export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
       <Field label={dict.auth.email} required>
-        <TextInput
+        <SoftInput
           name="email"
           type="email"
+          icon="mail"
           autoComplete="username"
           required
           defaultValue={defaultEmail}
@@ -40,7 +41,13 @@ export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
       </Field>
 
       <Field label={dict.auth.password} required>
-        <TextInput name="password" type="password" autoComplete="current-password" required />
+        <SoftInput
+          name="password"
+          type="password"
+          icon="lock"
+          autoComplete="current-password"
+          required
+        />
       </Field>
 
       {error ? <FormError>{error}</FormError> : null}

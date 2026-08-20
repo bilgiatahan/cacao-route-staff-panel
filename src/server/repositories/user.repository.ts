@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { User } from "@/types/domain";
+import type { Prisma } from "@/generated/prisma/client";
 
 import { createId, prisma } from "../db/client";
 
@@ -29,6 +30,24 @@ export const userRepository = {
     });
     if (count === 0) return null;
     return prisma.user.findUnique({ where: { employeeId } });
+  },
+
+  /**
+   * Removes an employee's sign-in credential.
+   *
+   * Takes the caller's transaction client rather than opening its own: the
+   * credential has to be released in the same transaction as the archive that
+   * triggered it (see `employeeRepository.archive`), so the boundary belongs to
+   * the caller. `deleteMany` rather than `delete` because an employee may never
+   * have had a login at all — a task row, or an account set up later — and that
+   * is not an error.
+   */
+  async removeForEmployee(
+    tx: Prisma.TransactionClient,
+    employeeId: string,
+  ): Promise<boolean> {
+    const { count } = await tx.user.deleteMany({ where: { employeeId } });
+    return count > 0;
   },
 
   /**

@@ -5,9 +5,8 @@ import { BottomNav, type NavItem } from "@/components/layout/BottomNav";
 import { getTranslations } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import { requireCurrentEmployee } from "@/server/auth/session";
-import { leaveRepository } from "@/server/repositories/leave.repository";
 import { notificationRepository } from "@/server/repositories/notification.repository";
-import { swapRepository } from "@/server/repositories/swap.repository";
+import { getPendingRequests } from "@/server/services/leave.service";
 
 /**
  * The app shell: a single 560px column with a sticky header and tab bar, which
@@ -25,10 +24,11 @@ export default async function PanelLayout({
 
   const isAdmin = user.role === "admin";
 
-  const [unreadCount, pendingLeave, pendingSwaps] = await Promise.all([
+  const [unreadCount, pending] = await Promise.all([
     notificationRepository.countUnread(user),
-    isAdmin ? leaveRepository.listByStatus("pending") : Promise.resolve([]),
-    isAdmin ? swapRepository.listByStatus("pending") : Promise.resolve([]),
+    // Same cached read the admin summary uses, so the badge and the page agree
+    // and only one pair of queries goes out.
+    isAdmin ? getPendingRequests() : Promise.resolve({ leave: [], swaps: [] }),
   ]);
 
   const navItems: NavItem[] = [
@@ -52,7 +52,7 @@ export default async function PanelLayout({
       href: ROUTES.leave,
       label: dict.nav.leave,
       icon: "leave",
-      badge: pendingLeave.length + pendingSwaps.length,
+      badge: pending.leave.length + pending.swaps.length,
     },
     {
       key: "team",

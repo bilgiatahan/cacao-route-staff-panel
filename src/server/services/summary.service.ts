@@ -5,10 +5,9 @@ import { countGapDays } from "@/lib/domain/coverage";
 import type { ScheduleCell, ScheduleRow } from "@/lib/domain/schedule";
 import { calculateWeeklyPay } from "@/lib/domain/payroll";
 import type { Period } from "@/lib/week-params";
-import { leaveRepository } from "@/server/repositories/leave.repository";
-import { swapRepository } from "@/server/repositories/swap.repository";
 import type { Employee, IsoDate, LeaveRequest, Shift, SwapRequest } from "@/types/domain";
 
+import { getPendingRequests } from "./leave.service";
 import { buildPayrollReport, weeksInPeriod, type PayrollReport } from "./payroll.service";
 import { getRosterWeek, type RosterWeek } from "./roster.service";
 
@@ -69,10 +68,7 @@ export async function getAdminSummary(
   period: Period,
 ): Promise<AdminSummary> {
   const roster = await getRosterWeek(weekStart);
-  const [pendingLeave, pendingSwaps] = await Promise.all([
-    leaveRepository.listByStatus("pending"),
-    swapRepository.listByStatus("pending"),
-  ]);
+  const pending = await getPendingRequests();
 
   const today = resolveToday(roster);
 
@@ -86,8 +82,8 @@ export async function getAdminSummary(
     gapDays: countGapDays(roster.coverage),
     today,
     onShiftToday: collectOnShift(roster, today),
-    pendingLeave,
-    pendingSwaps,
+    pendingLeave: pending.leave,
+    pendingSwaps: pending.swaps,
   };
 }
 

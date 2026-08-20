@@ -23,8 +23,13 @@ page / layout (Server Component)
 ```
 
 - Generated Prisma client'ı (`@/generated/prisma/*`) **yalnızca**
-  `src/server/db/client.ts` ve repository'lerdeki satır tipleri import eder.
-  `prisma` instance'ını sadece repository'ler kullanır.
+  `src/server/db/client.ts` ve repository'ler import eder — satır tipleri
+  (`EmployeeModel`…) ve `Prisma.TransactionClient` için. `prisma` instance'ını
+  sadece repository'ler kullanır.
+- Repository'ler kural olarak birbirini import **etmez**. Tek istisna: bir
+  transaction iki tabloyu birden kapsıyorsa (`swap.repository` →
+  `shift.repository`, bkz. "Takas onayı atomiktir"). Servis ve action katmanı
+  `prisma`'ya dokunamadığı için transaction açmak veri katmanının işi.
 - Servis katmanı ve üstü Prisma tiplerini **hiç görmez** — sadece
   `src/types/domain.ts`. Her repository kendi mapper'ıyla (`toEmployee`,
   `toLeaveRequest`…) satırı domain tipine çevirir: `Decimal → Number`,
@@ -46,6 +51,13 @@ page / layout (Server Component)
   `ActionErrorKey`); çeviriyi client `actionErrorMessage` ile yapar. Yeni bir
   hata eklerken: `action-result.ts` union'ı + `actionErrorMessage` case'i + `tr.ts`
   + `en.ts`.
+- Yetki hatası **string değil tip**: `assertAdmin` / `assertAuthenticated`
+  `AuthorizationError` (`src/lib/auth-error.ts`) atar, `toActionResult`
+  `instanceof` ile daraltır. `throw new Error("FORBIDDEN")` **yazma** — artık
+  `unexpected`'a düşer. `AuthErrorKind`, `ActionErrorKey`'in alt kümesi olduğu
+  için kind doğrudan geçer; birini yeniden adlandırmak derleme hatası verir.
+  Sınıf `lib/` altında, çünkü `action-result.ts`'i 6 client component import
+  ediyor — oraya `server-only` giremez.
 - Kullanıcı kimliği **daima oturumdan** alınır, formdan değil (bkz.
   `createLeaveRequestAction`).
 
@@ -55,7 +67,7 @@ Eğitim verisinden farklı olanlar — `AGENTS.md` uyarısı ciddi:
 
 - `middleware.ts` **yok**: `src/proxy.ts`, export adı `proxy`, runtime `nodejs`
   ve değiştirilemez.
-- `revalidatePath` yerine `refresh()` from `next/cache` kullanılıyor (16 call site).
+- `revalidatePath` yerine `refresh()` from `next/cache` kullanılıyor (11 call site).
   `refresh()` ve `updateTag()` **yalnızca Server Action'larda** çalışır.
 - `params`, `searchParams`, `cookies()` hepsi **Promise** — `await` şart.
 - `revalidateTag` eklersen **ikinci argüman zorunlu** (`revalidateTag("x", "max")`),
@@ -93,9 +105,28 @@ Prisma 7 eski sürümlerden ciddi biçimde ayrılıyor:
 | `NotificationAudience` union | `audienceKind` enum + `audienceEmployeeId` | Düzleştirilmiş discriminant; `readBy: string[]` ise `NotificationRead` join tablosu, böylece okunmamış sayısı tek `count()`. |
 
 Ayrıca: `Shift` üzerinde `@@unique([employeeId, date])` var — "günde bir vardiya"
-kuralı artık kodda değil DB'de. `shiftRepository.reassign` bu yüzden
-`$transaction` kullanır (hedefin o günkü vardiyasını silmeden taşıma constraint'e
-çarpar). Roster sırası `[isTaskRow, sortOrder]`; görev satırları hep sonda.
+kuralı artık kodda değil DB'de. Hedefin o günkü vardiyasını silmeden taşıma
+constraint'e çarpar, o yüzden silme + taşıma aynı transaction'da olmak zorunda
+(bkz. aşağıdaki bölüm). Roster sırası `[isTaskRow, sortOrder]`; görev satırları
+hep sonda.
+
+### Takas onayı atomiktir
+
+Onay hem talebin durumunu hem gerçek vardiyayı değiştirir; ikisi tek
+transaction'da olmak zorunda, yoksa talep "onaylandı" görünürken vardiya
+taşınmamış olabilir (bu bir kez oldu, geri gelmesin):
+
+- `swapRepository.approve(id)` interactive `$transaction` açar: `status: "pending"`
+  guard'ı + durum güncellemesi + `shiftRepository.reassign`. Vardiya taşınamazsa
+  modül-içi bir sentinel hata atılır, transaction geri alınır ve `null` döner —
+  talep `pending` kalır, vardiya geri gelince tekrar denenebilir.
+- `shiftRepository.reassign` **kendi transaction'ını açmaz**; ilk parametresi
+  `Prisma.TransactionClient`, yani **yalnızca bir transaction içinden**
+  çağrılabilir. Transaction'sız bir çağıran gerekirse ona ayrı bir sarmalayıcı
+  yaz; `tx`'i optional yapıp ölü dal ekleme.
+- Reddetme vardiyaya dokunmaz, o yüzden düz `swapRepository.decide`'da kalır.
+- Bildirim `null` kontrolünden **sonra** gönderilir: başarı bildirimi ancak
+  yazma gerçekten olduysa çıkar.
 
 ## Durum yönetimi
 
@@ -104,7 +135,7 @@ Hafta / görünüm / gün / dönem React state'inde değil **URL'de**:
 (`src/lib/routes.ts`) kullan, elle string birleştirme yapma. Dil `cr_locale`
 cookie'sinde.
 
-Client component sayısı bilinçli olarak az (12 tane). Yeni bir tanesini eklemeden
+Client component sayısı bilinçli olarak az (14 tane). Yeni bir tanesini eklemeden
 önce sunucuda formatlanmış veri geçirmenin yetip yetmediğine bak.
 
 ## i18n
@@ -112,7 +143,9 @@ Client component sayısı bilinçli olarak az (12 tane). Yeni bir tanesini eklem
 - `tr.ts` kaynak-doğrudur (`Dictionary = typeof tr`); `en.ts` yapısal olarak
   eşleşmek zorunda. Bir anahtar eklerken **ikisine de** ekle.
 - Sözlük **client'a gönderilmez**. Server'da formatla, hazır string geçir —
-  `WeekSwitcher`'ın ay adlarını önceden alması bu yüzden.
+  kanonik örnek `components/features/timetable/view-model.ts`: `RosterBoard`'a
+  yalnızca bitmiş string'ler gider, ne dictionary ne domain tipleri. (Kurala
+  uymayan yer: 5 form bileşeni `dict`'in tamamını alıyor. Örnek alma.)
 - `notification.service.ts` bildirimi yazma anında **iki dilde** render eder;
   okuma anında çeviri yapılmaz.
 
@@ -138,8 +171,8 @@ Yeni bir primitive yazmadan önce `src/components/ui/` içine bak.
 - **Ruled** (program, izin, ekip, bildirim): keskin köşe, 2px ink çizgi,
   uçtan uca satır, beyaz zemin. `RuledList`, `SectionHeading`, `PageHeader`
   varsayılan (`variant="rule"`).
-- **Card** (şimdilik yalnız özet): `bg-fill` zemin üstünde `Card` yüzeyleri —
-  hairline `border-line`, `rounded-lg`, aksan renkli kenar/çip.
+- **Card** (özet, profil, ekip'in staff görünümü): `bg-fill` zemin üstünde
+  `Card` yüzeyleri — hairline `border-line`, `rounded-lg`, aksan renkli kenar/çip.
   `SegmentedControl variant="pill"`, `SectionHeading variant="plain"`.
 
 `--radius-*: initial` hâlâ geçerli; geri konan tek şey `sm/md/lg/full` merdiveni,
@@ -170,11 +203,32 @@ Lucide 2px yuvarlak uçla çiziyor; `Icon` tüm seti 1.75px + `square` uç +
 
 ```bash
 npm run dev / build / start / lint / typecheck
+npm test             # vitest run — yerel Postgres gerekir, aşağıya bak
+npm run test:watch
 npm run db:migrate   # şema değişikliği → migration
 npm run db:seed      # demo veriyi yaz
 npm run db:reset     # sıfırla + yeniden seed (demo haftasını bugüne taşır)
 npm run db:studio    # Prisma Studio
 ```
 
-Test altyapısı yok. Doğrulama: `npm run typecheck` + `npm run lint` + panelde
-elle tıklama.
+## Testler
+
+Doğrulama: `npm test` + `npm run typecheck` + `npm run lint` + panelde elle
+tıklama.
+
+- Vitest. Testler `tests/**/*.test.ts`; şu an 3 dosya / 47 test:
+  `swap-approval`, `auth-errors`, `weekday-index`.
+- **Docker kullanılmıyor.** `tests/support/global-setup.ts` her koşuda
+  `initdb`/`pg_ctl` ile `/tmp` altında tek kullanımlık bir cluster kurar
+  (port 54329), migration'ları uygular, koşu sonunda siler. Homebrew
+  `postgresql@18` gerekiyor. PostgreSQL 18 macOS'ta `LC_ALL` set edilmeden
+  "postmaster became multithreaded" ile ölüyor, o yüzden child process'lere
+  veriliyor.
+- `assertIsTestDatabase` bağlantı URL'ini doğruluyor: testler Supabase'e
+  **bağlanamaz**. `prisma.config.ts` `dotenv/config` çağırdığı için bu önemli.
+- Testlerde `server-only` boş bir stub'a alias'lanır (gerçeği RSC dışında
+  throw eder). `next/cache` ve `@/server/auth/session` `vi.mock` ile veriliyor.
+- Testler tek veritabanını paylaştığı için `fileParallelism: false`.
+- Saf birim testleri de bu global setup'ı tetikliyor (~2 sn ek maliyet).
+- Transaction davranışını mock'la doğrulamak mümkün değil: `swap-approval`
+  gerçek `BEGIN`/`ROLLBACK` istediği için gerçek sunucuya koşuyor.

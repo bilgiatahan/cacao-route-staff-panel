@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { employeeRepository } from "@/server/repositories/employee.repository";
 import { leaveRepository } from "@/server/repositories/leave.repository";
 import { swapRepository } from "@/server/repositories/swap.repository";
@@ -34,6 +36,29 @@ export interface SwapOption {
   date: IsoDate;
   shift: Shift;
 }
+
+export interface PendingRequests {
+  leave: LeaveRequest[];
+  swaps: SwapRequest[];
+}
+
+/**
+ * Everything still awaiting a decision, read once per request.
+ *
+ * The panel layout needs the counts for its tab badge and the admin summary
+ * needs the rows themselves; both used to query independently, so a single
+ * admin render hit `listByStatus` twice per entity. `cache()` collapses that to
+ * one pair — per request, so a decision taken in a Server Action is visible to
+ * the render that follows it (the cache is scoped to the flight render, and the
+ * action body runs outside one).
+ */
+export const getPendingRequests = cache(async (): Promise<PendingRequests> => {
+  const [leave, swaps] = await Promise.all([
+    leaveRepository.listByStatus("pending"),
+    swapRepository.listByStatus("pending"),
+  ]);
+  return { leave, swaps };
+});
 
 export interface LeaveBoard {
   viewerRole: SessionUser["role"];

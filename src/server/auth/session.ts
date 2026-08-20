@@ -27,27 +27,31 @@ import { auth } from "./index";
  * Postgres now. The cache is per-request, so a role change still takes effect on
  * the very next navigation.
  */
+const getSessionContext = cache(
+  async (): Promise<{ user: SessionUser; employee: Employee } | null> => {
+    const session = await auth();
+    if (!session?.user?.employeeId) return null;
+
+    // Re-read the employee so a role change or removal takes effect immediately
+    // instead of living on inside an already-issued JWT.
+    const employee = await employeeRepository.findById(session.user.employeeId);
+    if (!employee) return null;
+
+    return {
+      user: {
+        userId: session.user.id,
+        employeeId: employee.id,
+        email: employee.email,
+        role: employee.role,
+        fullName: fullName(employee.firstName, employee.lastName),
+      },
+      employee,
+    };
+  },
+);
+
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
-  const session = await auth();
-  if (!session?.user?.employeeId) return null;
-
-  // Re-read the employee so a role change or removal takes effect immediately
-  // instead of living on inside an already-issued JWT.
-  const employee = await employeeRepository.findById(session.user.employeeId);
-  if (!employee) return null;
-
-  return {
-    userId: session.user.id,
-    employeeId: employee.id,
-    email: employee.email,
-    role: employee.role,
-    fullName: fullName(employee.firstName, employee.lastName),
-  };
-});
-
-/** The full employee row behind the session, deduplicated the same way. */
-const getCurrentEmployee = cache(async (employeeId: string): Promise<Employee | null> => {
-  return employeeRepository.findById(employeeId);
+  return (await getSessionContext())?.user ?? null;
 });
 
 /** Redirects to the login page when there is no valid session. */
@@ -69,10 +73,9 @@ export async function requireCurrentEmployee(): Promise<{
   user: SessionUser;
   employee: Employee;
 }> {
-  const user = await requireSessionUser();
-  const employee = await getCurrentEmployee(user.employeeId);
-  if (!employee) redirect(ROUTES.login);
-  return { user, employee };
+  const context = await getSessionContext();
+  if (!context) redirect(ROUTES.login);
+  return context;
 }
 
 /** Throws instead of redirecting — the right shape for server actions. */

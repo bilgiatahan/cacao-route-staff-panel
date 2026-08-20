@@ -7,6 +7,7 @@ import type {
 } from "@/generated/prisma/models";
 
 import { createId, isPrismaErrorCode, prisma } from "../db/client";
+import { userRepository } from "./user.repository";
 
 export type EmployeeDraft = Omit<Employee, "id" | "archivedAt">;
 export type EmployeePatch = Partial<EmployeeDraft>;
@@ -162,14 +163,28 @@ export const employeeRepository = {
   /**
    * Soft delete: history (shifts, payroll, leave) stays intact and the person
    * simply drops off every active listing.
+   *
+   * The sign-in credential goes with it, in the same transaction. `User.email`
+   * is unique, so a left-behind credential keeps the address claimed and
+   * re-hiring the same person fails with `emailTaken` and no way to resolve it
+   * from inside the panel. Nothing historical points at `users` — shifts, leave,
+   * swaps and notifications all reference `employees` — so the row takes no
+   * history with it. The employee row itself is never deleted: every one of
+   * those relations cascades on it.
    */
   async archive(id: string): Promise<boolean> {
-    // Guarding on `archivedAt: null` in the same statement keeps the
-    // "already archived → false" answer correct without a read-then-write race.
-    const { count } = await prisma.employee.updateMany({
-      where: { id, archivedAt: null },
-      data: { archivedAt: new Date() },
+    return prisma.$transaction(async (tx) => {
+      // Guarding on `archivedAt: null` in the same statement keeps the
+      // "already archived → false" answer correct without a read-then-write race,
+      // and stops a second archive from releasing a credential twice.
+      const { count } = await tx.employee.updateMany({
+        where: { id, archivedAt: null },
+        data: { archivedAt: new Date() },
+      });
+      if (count === 0) return false;
+
+      await userRepository.removeForEmployee(tx, id);
+      return true;
     });
-    return count > 0;
   },
 };

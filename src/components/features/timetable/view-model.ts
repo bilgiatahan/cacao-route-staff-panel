@@ -35,6 +35,11 @@ export interface RosterCellView {
   secondary: string;
   /** Chip label in the person view. */
   compact: string;
+  /**
+   * The cell's state in words, for the accessible name. Colour and a dash are
+   * not a representation a screen reader can use.
+   */
+  stateLabel: string;
   /** Pre-filled editor values. */
   startTime: string;
   endTime: string;
@@ -110,6 +115,7 @@ export function buildRosterRows(
           primary: minutesToTime(cell.shift.startMinutes),
           secondary: minutesToTime(cell.shift.endMinutes),
           compact: formatShiftSpanCompact(cell.shift),
+          stateLabel: formatShiftSpan(cell.shift, dict),
           startTime: minutesToTime(cell.shift.startMinutes),
           endTime: minutesToTime(cell.shift.endMinutes),
         };
@@ -119,9 +125,11 @@ export function buildRosterRows(
       return {
         date: cell.date,
         state: onLeave ? "leave" : "off",
-        primary: onLeave ? dict.timetable.leaveShort : "·",
+        // An en dash reads as "nothing here"; the middot read as a speck of dirt.
+        primary: onLeave ? dict.timetable.leaveShort : "–",
         secondary: "",
-        compact: onLeave ? dict.timetable.leaveInitial : "·",
+        compact: onLeave ? dict.timetable.leaveInitial : "–",
+        stateLabel: onLeave ? dict.timetable.onLeave : dict.timetable.legendOff,
         startTime: DEFAULT_START_TIME,
         endTime: DEFAULT_END_TIME,
       };

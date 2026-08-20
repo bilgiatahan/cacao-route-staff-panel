@@ -53,7 +53,7 @@ export function PayrollTable({ report, dict, locale }: PayrollTableProps) {
                 <div
                   className={cn(
                     "text-2xs",
-                    hasOvertime ? "text-warn-dark" : "text-muted-soft",
+                    hasOvertime ? "text-warn-dark" : "text-muted",
                   )}
                 >
                   {hasOvertime

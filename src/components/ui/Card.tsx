@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/ui/Badge";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
@@ -36,26 +37,52 @@ export function accentForId(id: string): Accent {
   return ACCENT_CYCLE[sum % ACCENT_CYCLE.length];
 }
 
-const SURFACE = "border border-line bg-surface rounded-lg";
+/** The one card surface: hairline border, `lg` radius, white ground. */
+const SURFACE = "rounded-lg border border-line bg-surface";
+
+/**
+ * Padding is opt-in because every existing caller already supplies its own, and
+ * changing that silently would reflow eight screens. New code should prefer
+ * `padding="md"` over hand-rolled `px-*`/`py-*`.
+ */
+const PADDING = {
+  none: "",
+  sm: "p-3",
+  md: "p-3.5",
+} as const;
+
+export type CardPadding = keyof typeof PADDING;
 
 export interface CardProps {
   children: ReactNode;
   /** Renders the card as a link, with the hover state that implies. */
   href?: string;
+  /** Defaults to `none` so existing callers keep the padding they pass. */
+  padding?: CardPadding;
+  /** Lifts the card off the ground — for sheets and things that overlap. */
+  elevated?: boolean;
   className?: string;
 }
 
 /** The summary's base surface: white, hairline border, soft corners. */
-export function Card({ children, href, className }: CardProps) {
+export function Card({
+  children,
+  href,
+  padding = "none",
+  elevated = false,
+  className,
+}: CardProps) {
+  const surface = cn(SURFACE, PADDING[padding], elevated && "shadow-sm", className);
+
   if (href) {
     return (
-      <Link href={href} className={cn(SURFACE, "block hover:border-line-strong", className)}>
+      <Link href={href} className={cn(surface, "block hover:border-line-strong")}>
         {children}
       </Link>
     );
   }
 
-  return <div className={cn(SURFACE, className)}>{children}</div>;
+  return <div className={surface}>{children}</div>;
 }
 
 export interface IconTileProps {
@@ -89,14 +116,28 @@ export interface StatCardProps {
   highlight?: boolean;
 }
 
-/** Icon, eyebrow, number, footnote — the metric tile of the summary grid. */
+/**
+ * Icon, eyebrow, number, footnote — the metric tile of the summary grid.
+ *
+ * `highlight` used to be a warm tint and nothing else, so "this number needs
+ * you" was carried by colour alone. The footnote becomes a `Badge` instead: a
+ * chip is a different shape, not just a different hue.
+ */
 export function StatCard({ icon, accent, label, value, hint, highlight }: StatCardProps) {
   return (
-    <Card className={cn("px-3 py-3", highlight && "border-warn bg-warn-soft")}>
+    <Card padding="sm" className={cn(highlight && "border-warn bg-warn-soft")}>
       <IconTile name={icon} accent={accent} />
       <div className="label-eyebrow mt-2.5 truncate">{label}</div>
       <div className="tabular mt-0.5 text-3xl font-extrabold -tracking-[0.02em]">{value}</div>
-      {hint ? <div className="mt-0.5 truncate text-xs text-muted">{hint}</div> : null}
+      {hint ? (
+        highlight ? (
+          <Badge tone="warning" className="mt-1.5 max-w-full truncate">
+            {hint}
+          </Badge>
+        ) : (
+          <div className="mt-0.5 truncate text-xs text-muted">{hint}</div>
+        )
+      ) : null}
     </Card>
   );
 }

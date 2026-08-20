@@ -9,8 +9,12 @@ import { notificationRepository } from "@/server/repositories/notification.repos
 import { getPendingRequests } from "@/server/services/leave.service";
 
 /**
- * The app shell: a single 560px column with a sticky header and tab bar, which
- * is the frame every panel tab renders inside.
+ * The app shell: a sticky header, the screen, and the four-tab bar.
+ *
+ * The frame is a 560px column on a phone and widens to 960px from `lg` up. The
+ * *content* measure is each screen's own decision, made with `PageShell`, which
+ * is why this layout does not impose one: the roster needs all 960px for seven
+ * day columns, while a form wants a short line whatever the monitor is.
  */
 export default async function PanelLayout({
   children,
@@ -31,7 +35,19 @@ export default async function PanelLayout({
     isAdmin ? getPendingRequests() : Promise.resolve({ leave: [], swaps: [] }),
   ]);
 
+  const pendingCount = pending.leave.length + pending.swaps.length;
+
+  // Summary, Schedule, Leave, Payroll — the employee's four recurring tasks, in
+  // the order they are thought about. Notifications stay in the header bell and
+  // profile stays in the drawer; neither is a primary workflow.
   const navItems: NavItem[] = [
+    {
+      key: "summary",
+      href: ROUTES.summary,
+      label: dict.nav.summary,
+      icon: "summary",
+      badge: 0,
+    },
     {
       key: "timetable",
       href: ROUTES.timetable,
@@ -40,19 +56,14 @@ export default async function PanelLayout({
       badge: 0,
     },
     {
-      key: "summary",
-      href: ROUTES.summary,
-      label: dict.nav.summary,
-      icon: "summary",
-      badge: 0,
-    },
-
-    {
       key: "leave",
       href: ROUTES.leave,
       label: dict.nav.leave,
       icon: "leave",
-      badge: pending.leave.length + pending.swaps.length,
+      // The only tab with a count: an admin has decisions waiting. Staff see 0,
+      // and `CountBadge` renders nothing at 0.
+      badge: pendingCount,
+      badgeLabel: `${pendingCount} ${dict.summary.pendingSuffix}`,
     },
     {
       key: "team",
@@ -65,7 +76,7 @@ export default async function PanelLayout({
 
   return (
     <div className="flex min-h-dvh justify-center bg-canvas">
-      <div className="relative flex min-h-dvh w-full max-w-140 flex-col  shadow-[0_0_0_1px_var(--color-line)]">
+      <div className="relative flex min-h-dvh w-full max-w-panel flex-col shadow-[0_0_0_1px_var(--color-line)] md:max-w-shell">
         <AppHeader
           dict={dict}
           user={user}
@@ -73,14 +84,12 @@ export default async function PanelLayout({
           locale={locale}
           unreadCount={unreadCount}
         />
-        <main className="flex flex-1 flex-col ">
+        <main className="flex flex-1 flex-col">
           {children}
           <div className="h-7" />
         </main>
 
-        <Suspense
-          fallback={<div className="h-14 border-t-2 border-ink bg-surface" />}
-        >
+        <Suspense fallback={<div className="h-14 rounded-t-xl bg-brand" />}>
           <BottomNav items={navItems} />
         </Suspense>
       </div>

@@ -93,7 +93,7 @@ export function SectionHeading({
               "flex size-8 flex-none items-center justify-center rounded-md bg-accent-green-soft text-accent-green",
             )}
           >
-            <Icon name={icon} className="h-4.25 w-4.25" />
+            <Icon name={icon} className="h-4 w-4" />
           </span>
         )}
         <h2 className={cn("truncate", HEADING_TITLE[variant])}>{title}</h2>
@@ -118,6 +118,79 @@ export function RuledList({
   );
 }
 
-export function EmptyState({ children }: { children: ReactNode }) {
-  return <p className="px-4 py-4.5 text-sm text-muted-soft">{children}</p>;
+export interface SectionBlockProps {
+  title: string;
+  /** Short right-aligned detail — a date, a count. */
+  meta?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}
+
+/**
+ * A heading and the block it introduces, kept together as one rhythm unit.
+ *
+ * This is the outside-a-card counterpart to `SectionHeading variant="card"`:
+ * used when the section contains several cards rather than living inside one.
+ */
+export function SectionBlock({ title, meta, children, className }: SectionBlockProps) {
+  return (
+    <div className={cn("flex flex-col gap-2", className)}>
+      <SectionHeading variant="plain" title={title} meta={meta} />
+      {children}
+    </div>
+  );
+}
+
+export interface HintProps {
+  children: ReactNode;
+  /** Small leading glyph, for a hint that explains a whole block. */
+  icon?: IconName;
+  className?: string;
+}
+
+/**
+ * Guidance attached to a group of controls or a card.
+ *
+ * `Field` has its own `hint` for a single control; this is the one that explains
+ * a section — "leave both blank to keep your password", "your manager sets
+ * these". It existed as a bare `<p className="text-xs text-muted">` in four
+ * places, each spelled slightly differently.
+ */
+export function Hint({ children, icon, className }: HintProps) {
+  return (
+    <p className={cn("flex items-start gap-1.5 text-xs text-muted", className)}>
+      {icon ? <Icon name={icon} className="mt-px h-4 w-4 flex-none" /> : null}
+      <span>{children}</span>
+    </p>
+  );
+}
+
+export interface EmptyStateProps {
+  children: ReactNode;
+  /** A glyph makes an empty list read as a state rather than a failure. */
+  icon?: IconName;
+  /** Somewhere to go next: an empty screen should be an invitation to act. */
+  action?: ReactNode;
+  className?: string;
+}
+
+/**
+ * The one empty state. Three near-identical copies of this markup previously
+ * lived inline in the notification list, the roster's day view and the summary's
+ * on-shift list.
+ */
+export function EmptyState({ children, icon, action, className }: EmptyStateProps) {
+  return (
+    <div className={cn("flex flex-col items-start gap-2.5 px-4 py-4.5", className)}>
+      <div className="flex items-center gap-2 text-muted">
+        {icon ? (
+          <span className="flex size-7 flex-none items-center justify-center rounded-md bg-fill-strong">
+            <Icon name={icon} className="h-4 w-4" />
+          </span>
+        ) : null}
+        <p className="text-sm">{children}</p>
+      </div>
+      {action}
+    </div>
+  );
 }

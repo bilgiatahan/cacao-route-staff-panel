@@ -44,6 +44,36 @@ export function toActionResult(error: unknown): ActionResult {
   return actionError("unexpected");
 }
 
+/**
+ * Every error key resolved in one pass.
+ *
+ * Client components that trigger a bare-button action need to turn a key into a
+ * sentence, but must not receive the whole dictionary to do it. This hands them
+ * ~14 short strings instead.
+ */
+export function actionErrorMessages(dict: Dictionary): Record<ActionErrorKey, string> {
+  const keys: ActionErrorKey[] = [
+    "unauthenticated",
+    "forbidden",
+    "notFound",
+    "invalidCredentials",
+    "invalidRange",
+    "invalidTime",
+    "nameRequired",
+    "passwordTooShort",
+    "accountNeedsEmail",
+    "emailTaken",
+    "emailRequired",
+    "currentPasswordRequired",
+    "wrongPassword",
+    "unexpected",
+  ];
+  return Object.fromEntries(keys.map((key) => [key, actionErrorMessage(key, dict)])) as Record<
+    ActionErrorKey,
+    string
+  >;
+}
+
 export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): string {
   switch (error) {
     case "invalidCredentials":

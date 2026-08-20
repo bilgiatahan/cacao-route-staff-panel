@@ -47,7 +47,7 @@ export function WeekShiftList({ cells, dict, today, bare = false }: WeekShiftLis
               <span
                 className={cn(
                   "tabular flex-1 text-base font-semibold",
-                  cell.shift ? "text-ink" : "text-muted-soft",
+                  cell.shift ? "text-ink" : "text-muted",
                 )}
               >
                 {cell.state === "leave"

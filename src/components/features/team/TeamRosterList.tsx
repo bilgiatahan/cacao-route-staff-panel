@@ -53,7 +53,7 @@ export function TeamRosterList({ members, dict, locale, weekStart }: TeamRosterL
                   {member.employee.hourlyRate} {dict.units.perHour}
                 </div>
               </div>
-              <span aria-hidden className="flex-none text-md text-[#bdbaba]">
+              <span aria-hidden className="flex-none text-md text-muted">
                 ›
               </span>
             </Link>

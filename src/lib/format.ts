@@ -75,7 +75,7 @@ export function formatShiftSpan(shift: Shift | null | undefined, dict: Dictionar
 
 /** Compact "8–16" used inside the tiny person-view chips. */
 export function formatShiftSpanCompact(shift: Shift | null | undefined): string {
-  if (!shift) return "·";
+  if (!shift) return "–";
   return `${formatHoursValue(shift.startMinutes / 60)}–${formatHoursValue(shift.endMinutes / 60)}`;
 }
 

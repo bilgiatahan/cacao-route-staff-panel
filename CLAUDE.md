@@ -166,6 +166,43 @@ Hepsi saf fonksiyonlarda, tek yerde. UI'da yeniden hesaplama:
 Tailwind v4, config dosyası yok — tokenlar `src/app/globals.css` içinde `@theme`.
 Yeni bir primitive yazmadan önce `src/components/ui/` içine bak.
 
+### Primitive katmanı
+
+Ekranlar bu primitive'lerin üstüne kurulur; birine paralel ikinci bir sürüm
+yazmak yerine mevcut olanı genişlet.
+
+- **Button** — `rounded-md`, asla pill. Boyutlar `sm` 40px / `md` 44px / `lg`
+  48px; `sm` yalnızca yoğun satır içi kontroller için, ana dokunma hedefi
+  değil. `loading` prop'u tıklamayı kapatır, `aria-busy` verir, spinner gösterir
+  ve **etiketi görünmez tutarak genişliği korur** — bu yüzden children sabit
+  etiket olmalı, "Kaydediliyor" gibi anlık metin `loadingLabel`'a gider.
+  `disabled` görünümü `opacity` değil `bg-fill` + `text-disabled`.
+- **Badge** — semantik tonlar: `neutral` / `info` / `success` / `warning` /
+  `danger`, her biri kendi washına 4.5:1 üstünde. `StatusBadge` bunun domain
+  sarmalayıcısı (`RequestStatus` → ton); yeni bir çip için doğrudan `Badge`.
+- **Card** — kanonik yüzey: `rounded-lg`, hairline `border-line`, beyaz zemin.
+  `padding` opsiyonel (`none` varsayılan, çünkü mevcut çağıranlar kendi
+  padding'ini veriyor); yeni kodda `padding="md"` tercih et. `elevated`
+  `shadow-sm` ekler.
+- **Form kontrolleri** — tek durum modeli: hover, focus, `disabled`,
+  `read-only`, ve **`aria-invalid` ile sürülen invalid** — böylece görünüm ile
+  duyuru asla ayrışmaz. `text-control` (16px) pazarlığa açık değil, iOS zoom'u
+  o yüzden yok. `Field` bir `error` slotu alır ve onu `<label>` **dışına**
+  koyar; içine koymak hatayı kontrolün erişilebilir *adına* karıştırır.
+- **Alert / EmptyState / Skeleton / ConfirmDialog** — geri bildirim katmanı,
+  bkz. `Alert` tonları ve `useActionFeedback`. `FormError` artık `Alert`
+  takma adı.
+- **SegmentedControl** — segmentler link, seçim URL'de. Bir zamanlar `tone`,
+  `bordered`, `variant` prop'ları vardı ve implementasyon hiçbirini okumuyordu;
+  kaldırıldılar.
+
+### Tek gri kuralı
+
+Sadece **bir** ikincil gri var: `--color-muted`. Yanında duran `muted-soft`
+kaldırıldı — ikisi de AA'yı geçmek zorunda kalınca aralarında 0.5 kontrast oranı
+kaldı, bu kimsenin görebileceği bir hiyerarşi değil. Üçüncü seviye vurgu **boyut
+ve ağırlıkla** yapılır, yeni bir açık gri eklenerek değil.
+
 İki ailesi var, karıştırma:
 
 - **Ruled** (program, izin, ekip, bildirim): keskin köşe, 2px ink çizgi,
@@ -183,6 +220,11 @@ ruled sayfalar kök `<section>`'da kendi `bg-surface`'ini boyar.
 
 Aksan paleti (`--color-accent-*`) satır ayırt etmek için; kişi → renk eşlemesi
 `accentForId()` ile deterministik, elle renk seçme.
+
+Durum **hiçbir zaman yalnız renkle** anlatılmaz. Roster'da boş gün buna örnek:
+dolgu (`bg-fill` vs `bg-brand`) görsel hiyerarşiyi kurar, ama hücrenin durumu
+ayrıca `view-model`'deki `stateLabel` ile metne yazılır ve `RosterBoard` onu
+`aria-label`'a koyar. Okunamayan bir glif tek temsil olamaz.
 
 ### İkonlar
 

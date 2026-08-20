@@ -33,19 +33,12 @@ export const en: Dictionary = {
   },
 
   menu: {
-    summary: "Summary",
+
     open: "Menu",
-    close: "Close menu",
     profile: "My Profile",
-    workDetails: "My Work Details",
-    settings: "Settings",
-    notificationPrefs: "Notification Preferences",
-    support: "Help & Support",
-    privacy: "Privacy & Terms",
     language: "Dil / Language",
     signOut: "Sign Out",
     version: "App Version",
-    soon: "Soon",
   },
 
   roles: {
@@ -87,6 +80,7 @@ export const en: Dictionary = {
 
   common: {
     save: "Save",
+    loading: "Loading",
     saving: "Saving…",
     clear: "Clear",
     cancel: "Cancel",
@@ -94,7 +88,6 @@ export const en: Dictionary = {
     back: "Back",
     approve: "Approve",
     reject: "Decline",
-    view: "View",
     remove: "Remove",
     dash: "—",
     optional: "optional",
@@ -167,6 +160,8 @@ export const en: Dictionary = {
     askSwap: "Create Request",
     swapNoShift: "You have no shift to swap this week",
     balance: "Annual leave left",
+    balanceHint: "For reference. Your manager reviews every request.",
+    note: "Note",
     invalidRange: "End date cannot be before the start date.",
     types: {
       annual: "Annual",
@@ -204,7 +199,8 @@ export const en: Dictionary = {
     phone: "Phone",
     email: "Email",
     address: "Address",
-    removeConfirm: "Remove this person from the team?",
+    removeTitle: "Remove person",
+    removeConfirm: "Remove this person from the team? Their shifts and leave history stay, but their sign-in is removed.",
     nameRequired: "First name is required.",
     account: "Sign-in",
     password: "Password",
@@ -233,6 +229,7 @@ export const en: Dictionary = {
     colEarned: "Earned",
     overtime: "overtime",
     myWeeklyEarnings: "My Weekly Earnings",
+    noEarnings: "No shifts worked this week",
     age: "yrs old",
     tenure: "tenure",
     contracts: {
@@ -250,8 +247,6 @@ export const en: Dictionary = {
     employmentHint: "Only the manager can change these.",
     currentPassword: "Current password",
     newPassword: "New password",
-    currentPasswordPlaceholder: "Enter current password",
-    newPasswordPlaceholder: "Enter new password",
     passwordHint: "Leave both blank to keep your current password.",
     saveChanges: "Save Changes",
     saved: "Your details have been saved.",
@@ -261,6 +256,7 @@ export const en: Dictionary = {
   },
 
   notifications: {
+    unread: "unread",
     title: "Notifications",
     markAll: "Mark all read",
     empty: "No notifications",
@@ -291,5 +287,10 @@ export const en: Dictionary = {
       title: "Shift swap updated",
       body: "{day} · {status}",
     },
+  },
+  notFound: {
+    title: "Page not found",
+    body: "The record you were looking for may have moved or been removed.",
+    action: "Back to summary",
   },
 };

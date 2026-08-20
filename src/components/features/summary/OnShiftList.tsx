@@ -1,5 +1,6 @@
 import { Avatar } from "@/components/ui/Avatar";
 import { accentForId, Card, ACCENT_EDGE } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/Section";
 import { employeeDisplayName, employeeInitials, employeePosition } from "@/lib/employee";
 import { formatHours, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
@@ -18,8 +19,8 @@ export interface OnShiftListProps {
 export function OnShiftList({ rows, dict, locale, highlightEmployeeId }: OnShiftListProps) {
   if (rows.length === 0) {
     return (
-      <Card className="px-4 py-4">
-        <p className="text-sm text-muted-soft">{dict.summary.todayEmpty}</p>
+      <Card>
+        <EmptyState>{dict.summary.todayEmpty}</EmptyState>
       </Card>
     );
   }
@@ -33,8 +34,9 @@ export function OnShiftList({ rows, dict, locale, highlightEmployeeId }: OnShift
         return (
           <li key={employee.id}>
             <Card
+              padding="sm"
               className={cn(
-                "flex items-center gap-2.5 border-l-[3px] py-2.5 pl-2.5 pr-3",
+                "flex items-center gap-2.5 border-l-4",
                 ACCENT_EDGE[accent],
                 mine && "bg-brand-faint",
               )}
@@ -42,7 +44,7 @@ export function OnShiftList({ rows, dict, locale, highlightEmployeeId }: OnShift
               <Avatar
                 initials={employeeInitials(employee, locale)}
                 tone={accent}
-                className="rounded-md"
+                className="rounded-full"
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-md font-semibold">

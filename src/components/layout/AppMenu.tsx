@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import { useFocusTrap } from "@/components/ui/use-focus-trap";
 import { cn } from "@/lib/utils";
 import { signOutAction } from "@/server/actions/auth.actions";
 import { toggleLocaleAction } from "@/server/actions/locale.actions";
@@ -14,35 +15,39 @@ export interface MenuEntry {
   key: string;
   label: string;
   icon: IconName;
-  /** Omitted while the destination does not exist yet; the row reads as "soon". */
-  href?: string;
+  href: string;
 }
 
 export interface AppMenuLabels {
   open: string;
-  close: string;
   language: string;
   signOut: string;
   version: string;
-  soon: string;
 }
 
 export interface AppMenuProps {
   labels: AppMenuLabels;
-  /** Rendered in order, with a rule between groups. */
-  groups: MenuEntry[][];
+  /** Secondary destinations only — never the primary tabs. */
+  entries: MenuEntry[];
   profile: { name: string; role: string; email: string; initials: string };
   appVersion: string;
 }
 
 /**
- * The hamburger button and the drawer it opens: who you are signed in as, the
- * account links, and the two account-level actions (language, sign out) that
- * used to sit in the header.
+ * The hamburger and the drawer it opens: who you are signed in as, the secondary
+ * destinations, and the two account-level actions.
+ *
+ * It deliberately holds nothing that the bottom bar already reaches. It used to
+ * repeat Summary — a primary tab — plus five rows marked "soon" that linked
+ * nowhere, which made the drawer look full while offering one real destination.
  */
-export function AppMenu({ labels, groups, profile, appVersion }: AppMenuProps) {
+export function AppMenu({ labels, entries, profile, appVersion }: AppMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const panelRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useFocusTrap(panelRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -55,20 +60,29 @@ export function AppMenu({ labels, groups, profile, appVersion }: AppMenuProps) {
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
 
+    // Move focus into the drawer, or a keyboard user is still on the trigger
+    // behind an `inert` overlay.
+    panelRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+
+    // Captured now: by cleanup time the ref may point somewhere else.
+    const trigger = triggerRef.current;
+
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      trigger?.focus();
     };
   }, [open]);
 
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-label={labels.open}
         aria-expanded={open}
-        className="flex size-9 flex-none items-center justify-center text-ink hover:bg-hover"
+        className="flex size-11 flex-none items-center justify-center rounded-md text-ink hover:bg-hover"
       >
         <Icon name="menu" className="h-5 w-5" />
       </button>
@@ -77,19 +91,21 @@ export function AppMenu({ labels, groups, profile, appVersion }: AppMenuProps) {
         aria-hidden
         onClick={() => setOpen(false)}
         className={cn(
-          "fixed inset-0 z-40 bg-[rgba(32,30,29,0.45)] transition-opacity duration-200",
+          "fixed inset-0 z-40 bg-scrim transition-opacity duration-200",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
 
-      <div className="pointer-events-none fixed inset-y-0 left-1/2 z-[99] w-full max-w-140 -translate-x-1/2">
+      <div className="pointer-events-none fixed inset-y-0 left-1/2 z-[99] w-full max-w-panel -translate-x-1/2">
         <aside
+          ref={panelRef}
           role="dialog"
           aria-modal={open}
           aria-label={labels.open}
           inert={!open}
           className={cn(
-            "pointer-events-auto flex h-full w-75 max-w-[86%] flex-col rounded-tr-[1rem] rounded-br-[1rem] bg-surface transition-transform duration-200 ease-out",
+            "pointer-events-auto flex h-full w-75 max-w-[86%] flex-col rounded-r-xl bg-surface",
+            "motion-safe:transition-transform motion-safe:duration-200 ease-out",
             open ? "translate-x-0" : "-translate-x-[calc(100%+2px)]",
           )}
         >
@@ -98,85 +114,51 @@ export function AppMenu({ labels, groups, profile, appVersion }: AppMenuProps) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-xl font-extrabold">{profile.name}</p>
               <p className="truncate text-sm text-muted">{profile.role}</p>
-              <p className="truncate pt-1 text-xs text-muted-soft">{profile.email}</p>
+              <p className="truncate pt-1 text-xs text-muted">{profile.email}</p>
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-2 px-4">
-            {groups.map((group, index) => (
-              <div
-                key={group[0]?.key ?? index}
-                className={cn("py-1", index > 0 && "border-t border-line")}
-              >
-                {group.map((entry) => {
-                  const active = entry.href ? pathname === entry.href : false;
+          <nav className="flex-1 overflow-y-auto px-4 py-2">
+            {entries.map((entry) => {
+              const active = pathname === entry.href;
 
-                  const body = (
-                    <>
-                      <Icon
-                        name={entry.icon}
-                        className={entry.href ? undefined : "text-muted-soft"}
-                      />
-                      <span className="flex-1 truncate">{entry.label}</span>
-                      {entry.href ? (
-                        <Icon
-                          name="chevronRight"
-                          className="h-3.5 w-3.5 text-muted-soft"
-                        />
-                      ) : (
-                        <span className="flex-none bg-fill-strong px-1.5 py-0.5 text-nano font-extrabold uppercase tracking-[0.08em] text-muted">
-                          {labels.soon}
-                        </span>
-                      )}
-                    </>
-                  );
+              return (
+                <Link
+                  key={entry.key}
+                  href={entry.href}
+                  // Navigating from inside the drawer should leave it behind.
+                  onClick={() => setOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "my-1 flex min-h-11 w-full items-center gap-3 rounded-md px-4 text-left",
+                    "text-base font-semibold hover:bg-hover",
+                    active ? "bg-brand-faint text-brand-dark" : "text-ink",
+                  )}
+                >
+                  <Icon name={entry.icon} />
+                  <span className="flex-1 truncate">{entry.label}</span>
+                  <Icon name="chevronRight" className="h-4 w-4 text-muted" />
+                </Link>
+              );
+            })}
 
-                  const className = cn(
-                    "flex w-full items-center gap-3 px-4 py-3 my-2 text-left text-base font-semibold",
-                    active
-                      ? "bg-brand-faint pl-[14px] text-brand-dark rounded-lg"
-                      : "text-ink",
-                    entry.href ? "hover:bg-hover" : "cursor-default text-muted",
-                  );
-
-                  return entry.href ? (
-                    <Link
-                      key={entry.key}
-                      href={entry.href}
-                      // Navigating from inside the drawer should leave it behind.
-                      onClick={() => setOpen(false)}
-                      aria-current={active ? "page" : undefined}
-                      className={className}
-                    >
-                      {body}
-                    </Link>
-                  ) : (
-                    <div key={entry.key} aria-disabled className={className}>
-                      {body}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-
-            <div className="border-t border-line py-1">
+            <div className="mt-1 border-t border-line pt-2">
               <form action={toggleLocaleAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-base font-semibold hover:bg-hover"
+                  className="flex min-h-11 w-full items-center gap-3 rounded-md px-4 text-left text-base font-semibold hover:bg-hover"
                 >
                   <Icon name="globe" />
                   <span className="flex-1 truncate">{labels.language}</span>
-                  <Icon name="chevronRight" className="h-3.5 w-3.5 text-muted-soft" />
                 </button>
               </form>
             </div>
 
-            <div className="border-t border-line py-1">
+            <div className="mt-1 border-t border-line pt-2">
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-base font-bold text-red-700 hover:bg-hover"
+                  className="flex min-h-11 w-full items-center gap-3 rounded-md px-4 text-left text-base font-bold text-danger hover:bg-danger-soft"
                 >
                   <Icon name="signOut" />
                   <span className="flex-1 truncate">{labels.signOut}</span>
@@ -186,7 +168,7 @@ export function AppMenu({ labels, groups, profile, appVersion }: AppMenuProps) {
           </nav>
 
           <div className="border-t border-line px-4 pb-6 pt-3">
-            <p className="text-2xs text-muted-soft">{labels.version}</p>
+            <p className="text-2xs text-muted">{labels.version}</p>
             <p className="tabular text-xs font-semibold text-muted">{appVersion}</p>
           </div>
         </aside>

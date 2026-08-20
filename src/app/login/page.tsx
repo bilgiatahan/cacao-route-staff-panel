@@ -35,7 +35,7 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-dvh justify-center bg-canvas">
-      <div className="flex min-h-dvh w-full max-w-[560px] flex-col bg-surface shadow-[0_0_0_1px_var(--color-line)]">
+      <div className="flex min-h-dvh w-full max-w-panel flex-col bg-surface shadow-[0_0_0_1px_var(--color-line)]">
         <header className="flex items-center justify-between gap-3 border-b-2 border-ink px-4 pb-3 pt-4">
           <div className="flex flex-col gap-0.5">
             <span className="text-lg font-extrabold leading-none tracking-[0.14em]">
@@ -49,7 +49,7 @@ export default async function LoginPage({
           <form action={toggleLocaleAction}>
             <button
               type="submit"
-              className="border border-line-strong bg-surface px-2.5 py-[7px] text-xs font-bold tracking-[0.08em] text-ink hover:bg-hover"
+              className="inline-flex min-h-11 items-center border border-line-strong bg-surface px-2.5 text-xs font-bold tracking-[0.08em] text-ink hover:bg-hover"
             >
               {dict.common.languageToggle}
             </button>

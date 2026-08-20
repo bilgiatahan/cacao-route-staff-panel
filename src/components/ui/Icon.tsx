@@ -15,6 +15,10 @@ import {
   House,
   Inbox,
   Info,
+  LoaderCircle,
+  RefreshCw,
+  SearchX,
+  TriangleAlert,
   Lock,
   LogOut,
   Mail,
@@ -76,6 +80,10 @@ const ICONS = {
   document: FileText,
   save: Save,
   info: Info,
+  alert: TriangleAlert,
+  spinner: LoaderCircle,
+  retry: RefreshCw,
+  notFound: SearchX,
 } as const satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

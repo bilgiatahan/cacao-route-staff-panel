@@ -1,8 +1,11 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useRef, useState } from "react";
 
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useActionFeedback } from "@/components/ui/use-action-feedback";
 import {
   DateInput,
   Field,
@@ -13,7 +16,12 @@ import {
   TextInput,
 } from "@/components/ui/Field";
 import { cn } from "@/lib/utils";
-import { actionErrorMessage, type ActionResult } from "@/server/actions/action-result";
+import { useFieldErrors } from "@/components/ui/use-field-errors";
+import {
+  actionErrorMessage,
+  actionErrorMessages,
+  type ActionResult,
+} from "@/server/actions/action-result";
 import type { Dictionary } from "@/lib/i18n";
 import type { ContractType } from "@/types/domain";
 
@@ -63,25 +71,40 @@ export function EmployeeForm({
     action,
     null,
   );
-  const [archiving, startArchive] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const archiveFeedback = useActionFeedback(actionErrorMessages(dict));
+  const archiving = archiveFeedback.pending;
 
-  const error = state && !state.ok ? actionErrorMessage(state.error, dict) : null;
+  const formRef = useRef<HTMLFormElement>(null);
+  const fields = useFieldErrors(formRef, state, (key) => actionErrorMessage(key, dict));
   const saved = state?.ok === true;
 
-  const archive = () => {
+  // `window.confirm` was the only guard on the one irreversible action here, and
+  // it could not say what archiving now actually does — it also removes the
+  // person's sign-in. The dialog can.
+  const confirmArchive = () => {
     if (!onArchive) return;
-    if (!window.confirm(dict.team.removeConfirm)) return;
-    startArchive(async () => {
-      await onArchive();
-    });
+    setConfirmOpen(false);
+    archiveFeedback.run(onArchive);
   };
 
   return (
-    <form action={formAction}>
+    <>
+      <form ref={formRef} action={formAction}>
       <h2 className="label-eyebrow px-4 pb-1 pt-3.5">{dict.team.personal}</h2>
       <div className="grid grid-cols-2 gap-2.5 px-4 pb-3">
-        <Field label={dict.team.firstName}>
-          <TextInput name="firstName" defaultValue={values.firstName} required />
+        <Field
+          label={dict.team.firstName}
+          required
+          error={fields.errorFor("firstName")}
+          errorId={fields.errorId("firstName")}
+        >
+          <TextInput
+            name="firstName"
+            defaultValue={values.firstName}
+            required
+            {...fields.controlProps("firstName")}
+          />
         </Field>
         <Field label={dict.team.lastName}>
           <TextInput name="lastName" defaultValue={values.lastName} />
@@ -143,8 +166,17 @@ export function EmployeeForm({
           <Field label={dict.team.phone}>
             <TextInput name="phone" type="tel" defaultValue={values.phone} />
           </Field>
-          <Field label={dict.team.email}>
-            <TextInput name="email" type="email" defaultValue={values.email} />
+          <Field
+          label={dict.team.email}
+          error={fields.errorFor("email")}
+          errorId={fields.errorId("email")}
+        >
+            <TextInput
+              name="email"
+              type="email"
+              defaultValue={values.email}
+              {...fields.controlProps("email")}
+            />
           </Field>
         </div>
         <Field label={dict.team.address}>
@@ -154,34 +186,75 @@ export function EmployeeForm({
 
       <h2 className="label-eyebrow px-4 pb-1 pt-1.5">{dict.team.account}</h2>
       <div className="flex flex-col gap-1 px-4 pb-3.5">
-        <Field label={dict.team.password}>
-          <TextInput name="password" type="password" autoComplete="new-password" />
+        {/* The hint moved inside the field, so an error replaces it in place
+            instead of stacking two paragraphs under one control. */}
+        <Field
+          label={dict.team.password}
+          error={fields.errorFor("password")}
+          errorId={fields.errorId("password")}
+          hint={
+            mode === "create"
+              ? dict.team.passwordNewHint
+              : hasAccount
+                ? dict.team.passwordEditHint
+                : dict.team.passwordNoAccount
+          }
+        >
+          <TextInput
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            {...fields.controlProps("password")}
+          />
         </Field>
-        <p className="text-xs text-muted">
-          {mode === "create"
-            ? dict.team.passwordNewHint
-            : hasAccount
-              ? dict.team.passwordEditHint
-              : dict.team.passwordNoAccount}
-        </p>
       </div>
 
-      {error ? (
+      {fields.formError ? (
         <div className="px-4 pb-2">
-          <FormError>{error}</FormError>
+          <FormError>{fields.formError}</FormError>
+        </div>
+      ) : null}
+
+      {archiveFeedback.error ? (
+        <div className="px-4 pb-2">
+          <Alert>{archiveFeedback.error}</Alert>
         </div>
       ) : null}
 
       <div className="flex gap-2 border-t-2 border-ink p-4">
-        <Button type="submit" size="lg" fullWidth disabled={pending} className="justify-start">
-          {pending ? dict.common.saving : saved ? `${dict.common.save} ✓` : dict.common.save}
+        <Button
+          type="submit"
+          size="lg"
+          fullWidth
+          loading={pending}
+          loadingLabel={dict.common.saving}
+          className="justify-start"
+        >
+          {saved ? `${dict.common.save} ✓` : dict.common.save}
         </Button>
         {onArchive ? (
-          <Button variant="danger" size="lg" disabled={archiving} onClick={archive}>
+          <Button variant="danger" size="lg" loading={archiving} onClick={() => setConfirmOpen(true)}>
             {dict.common.remove}
           </Button>
         ) : null}
       </div>
-    </form>
+      </form>
+
+      {onArchive ? (
+        <ConfirmDialog
+          open={confirmOpen}
+          pending={archiving}
+          labels={{
+            title: dict.team.removeTitle,
+            body: dict.team.removeConfirm,
+            confirm: dict.common.remove,
+            cancel: dict.common.cancel,
+            close: dict.common.close,
+          }}
+          onConfirm={confirmArchive}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      ) : null}
+    </>
   );
 }

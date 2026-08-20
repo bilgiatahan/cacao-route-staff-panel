@@ -1,6 +1,7 @@
-import Link from "next/link";
-
 import { ACCENT_EDGE, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/Section";
+import { Icon } from "@/components/ui/Icon";
 import { employeeDisplayName } from "@/lib/employee";
 import { weekdayIndex } from "@/lib/date";
 import { formatDateRange, formatShiftSpan } from "@/lib/format";
@@ -21,12 +22,21 @@ export interface PendingActionsProps {
 
 interface ActionRow {
   key: string;
+  /** The kind of decision, named rather than implied by an edge colour. */
+  kind: string;
   title: string;
   subtitle: string;
   warn: boolean;
 }
 
-/** Requests waiting on the manager, shown as a short worklist on the summary. */
+/**
+ * Requests waiting on the manager — the one block on this page that is a
+ * worklist rather than a readout.
+ *
+ * Each row is the link, so the whole card is the target instead of a 28px "View"
+ * button sitting next to it, and a `Badge` names the kind of request. Leave and
+ * swap used to be told apart only by the colour of a 3px edge.
+ */
 export function PendingActions({
   leaveRequests,
   swapRequests,
@@ -46,7 +56,8 @@ export function PendingActions({
   const rows: ActionRow[] = [
     ...leaveRequests.slice(0, 3).map((request) => ({
       key: `leave-${request.id}`,
-      title: `${nameOf(request.employeeId)} · ${dict.leave.types[request.type]}`,
+      kind: dict.leave.types[request.type],
+      title: nameOf(request.employeeId),
       subtitle: `${formatDateRange(request.startDate, request.endDate, dict)} · ${dict.summary.requested}`,
       warn: true,
     })),
@@ -58,6 +69,7 @@ export function PendingActions({
 
       return {
         key: `swap-${request.id}`,
+        kind: dict.leave.swaps,
         title: `${nameOf(request.requesterId)} ↔ ${nameOf(request.targetId)}`,
         subtitle: `${dayNameOf(request.date)} · ${formatShiftSpan(shift, dict)}`,
         warn: false,
@@ -67,8 +79,8 @@ export function PendingActions({
 
   if (rows.length === 0) {
     return (
-      <Card className="px-4 py-4">
-        <p className="text-sm text-muted-soft">{dict.summary.needsActionEmpty}</p>
+      <Card>
+        <EmptyState icon="calendarCheck">{dict.summary.needsActionEmpty}</EmptyState>
       </Card>
     );
   }
@@ -78,21 +90,21 @@ export function PendingActions({
       {rows.map((row) => (
         <li key={row.key}>
           <Card
+            href={panelHref(ROUTES.leave, { week: weekStart })}
+            padding="sm"
             className={cn(
-              "flex items-center gap-3 border-l-[3px] py-2.5 pl-3 pr-2.5",
+              "flex items-center gap-3 border-l-4",
               row.warn ? ACCENT_EDGE.amber : ACCENT_EDGE.blue,
             )}
           >
             <div className="min-w-0 flex-1">
-              <div className="truncate text-md font-semibold">{row.title}</div>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-md font-semibold">{row.title}</span>
+                <Badge tone={row.warn ? "warning" : "info"}>{row.kind}</Badge>
+              </div>
               <div className="truncate text-xs text-muted">{row.subtitle}</div>
             </div>
-            <Link
-              href={panelHref(ROUTES.leave, { week: weekStart })}
-              className="flex-none rounded-md border border-line-strong bg-surface px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-hover"
-            >
-              {dict.common.view}
-            </Link>
+            <Icon name="chevronRight" className="h-4 w-4 flex-none text-muted" />
           </Card>
         </li>
       ))}

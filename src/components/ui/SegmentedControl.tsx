@@ -10,37 +10,29 @@ export interface SegmentOption {
   active: boolean;
 }
 
-export type SegmentTone = "ink" | "brand";
-
 export interface SegmentedControlProps {
   options: SegmentOption[];
-  tone?: SegmentTone;
-  /** Draws the hairline frame; the roster tab strip sits flush instead. */
-  bordered?: boolean;
-  /**
-   * `flush` is the squared strip the ruled views use. `pill` is the soft track
-   * with a raised active segment, for the card views.
-   */
-  variant?: "flush" | "pill";
   className?: string;
   ariaLabel: string;
 }
 
 /**
- * Navigation-driven segmented control: each segment is a link, so the choice
- * ends up in the URL and the page stays a server component.
+ * Navigation-driven tab strip: each segment is a link, so the choice lands in
+ * the URL and the page stays a Server Component.
+ *
+ * `tone`, `bordered` and `variant` used to be declared here and were never read
+ * by the implementation — three props callers could pass with no effect. They
+ * are gone; no call site passed them.
+ *
+ * The track scrolls rather than squeezing, so adding a fourth view later cannot
+ * crush the labels below a readable width.
  */
-export function SegmentedControl({
-  options,
-  className,
-  ariaLabel,
-}: SegmentedControlProps) {
-
+export function SegmentedControl({ options, className, ariaLabel }: SegmentedControlProps) {
   return (
     <nav
       aria-label={ariaLabel}
       className={cn(
-        "flex rounded-md border border-line bg-surface",
+        "flex overflow-x-auto rounded-md border border-line bg-surface",
         className,
       )}
     >
@@ -50,13 +42,19 @@ export function SegmentedControl({
           href={option.href}
           aria-current={option.active ? "page" : undefined}
           className={cn(
-            "flex-1 text-center transition-colors rounded-md rounded-md px-2 py-2 text-md font-bold",
+            // 44px tall, and `min-w-0 flex-1` lets a long label truncate instead
+            // of forcing the strip wider than its container.
+            "flex min-h-11 min-w-24 flex-1 items-center justify-center rounded-md px-3",
+            "text-base font-bold transition-colors",
+            // The global focus ring is clipped by the track's own rounding, so
+            // pull it inside.
+            "focus-visible:outline-offset-[-3px]",
             option.active
-              ?  "bg-brand text-white"
-              :  "text-muted hover:text-ink bg-surface"
+              ? "bg-brand text-white hover:bg-brand-dark"
+              : "text-muted hover:bg-hover hover:text-ink",
           )}
         >
-          {option.label}
+          <span className="truncate">{option.label}</span>
         </Link>
       ))}
     </nav>

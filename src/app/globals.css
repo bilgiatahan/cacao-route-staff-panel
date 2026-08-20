@@ -2,7 +2,10 @@
 
 /* ---------------------------------------------------------------------------
    Cacao Route design tokens
-   Editorial / neo-brutalist: square corners, heavy rules, tabular numerals.
+   Card family: English Green on white, hairline borders, a short radius ladder,
+   tabular numerals. Ratified as the canonical language — the Ruled family
+   (square corners, 2px ink rules) is being migrated out component by component,
+   so both still appear in the tree.
 --------------------------------------------------------------------------- */
 @theme {
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
@@ -26,6 +29,12 @@
   --color-warn-soft: #fbf0d3;
   --color-warn-dark: #6b5312;
   --color-danger: #7c1405;
+  --color-danger-soft: #fdeceb;
+  --color-success: #2b7253;
+  --color-success-soft: #e3f1e9;
+
+  /* The dim behind the drawer and the bottom sheet. */
+  --color-scrim: rgba(32, 30, 29, 0.45);
 
   /*
    * Accent tints. Used by the summary's cards and roster stripes, where one
@@ -45,13 +54,24 @@
   --color-accent-rose-soft: #f7e6e4;
 
   /* Neutrals */
-  --color-muted: #7d7979;
-  --color-muted-soft: #9b9797;
+  /*
+   * One secondary grey, not two. `muted-soft` used to sit beside this at
+   * #726e6e — but once both had to clear WCAG AA they landed 0.5 of a contrast
+   * ratio apart, which is not a hierarchy anyone can see. Tertiary emphasis now
+   * comes from size and weight, which is legible at any contrast.
+   *
+   * #6b6767 is the lightest value that still clears 4.5:1 on every surface it
+   * renders on, including `fill-strong` where the muted chips sit.
+   */
+  --color-muted: #6b6767;
   --color-line: #e4e2e2;
   --color-line-strong: #cfcccc;
   --color-fill: #f7f6f6;
   --color-fill-strong: #edebeb;
-  --color-disabled: #c4c1c1;
+  /* Only the off-day glyph in the roster. Deliberately below AA: raising it
+     further would make empty days as loud as scheduled ones. The real fix is
+     to stop encoding "off" in a low-contrast character at all. */
+  --color-disabled: #949090;
   --color-hover: #f0efef;
 
   /*
@@ -60,10 +80,11 @@
    * card surfaces use — nothing between these steps exists.
    */
   --radius-*: initial;
-  --radius-sm: 0.375rem; /* 6  — chips, avatars */
-  --radius-md: 0.5rem; /* 8  — icon tiles, segments */
+  --radius-sm: 0.375rem; /* 6  — chips, badges */
+  --radius-md: 0.5rem; /* 8  — inputs, buttons, icon tiles, segments */
   --radius-lg: 0.75rem; /* 12 — cards */
-  --radius-full: 9999px;
+  --radius-xl: 1rem; /* 16 — sheets, drawer, the nav's top edge */
+  --radius-full: 9999px; /* avatars and count badges only */
 
   /* Explicit type scale lifted from the prototype. */
   --text-*: initial;
@@ -93,6 +114,28 @@
   --text-4xl--line-height: 1.15;
   --text-5xl: 1.625rem; /* 26 */
   --text-5xl--line-height: 1.15;
+
+  /*
+   * Form controls only. iOS Safari zooms the viewport when a focused input is
+   * under 16px and never zooms back out, so every control is pinned here
+   * regardless of the reading scale above.
+   */
+  --text-control: 1rem; /* 16 */
+  --text-control--line-height: 1.4;
+
+  /* Card family elevation. Nothing below a resting card needs one. */
+  --shadow-sm: 0 1px 2px rgba(32, 30, 29, 0.06);
+  --shadow-md: 0 2px 8px rgba(32, 30, 29, 0.08);
+  --shadow-lg: 0 -8px 24px rgba(32, 30, 29, 0.12);
+
+  /* The single-column panel width, previously spelled two different ways. */
+  --container-panel: 35rem; /* 560 — the canonical reading measure */
+  /*
+   * The desktop shell. The panel is mobile-first and stays that way, but the
+   * roster grid and payroll table are desk work and need room; the frame widens
+   * here so a screen can opt into it during its own migration.
+   */
+  --container-shell: 60rem; /* 960 */
 }
 
 /* --------------------------------------------------------------------------

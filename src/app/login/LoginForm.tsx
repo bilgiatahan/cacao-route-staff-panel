@@ -20,13 +20,16 @@ export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
     null,
   );
 
+  // Deliberately form-level: the server does not say whether the address or the
+  // password was wrong, and pinning it to either would invent information it
+  // withheld on purpose.
   const error = state && !state.ok ? actionErrorMessage(state.error, dict) : null;
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
-      <Field label={dict.auth.email}>
+      <Field label={dict.auth.email} required>
         <TextInput
           name="email"
           type="email"
@@ -36,14 +39,21 @@ export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
         />
       </Field>
 
-      <Field label={dict.auth.password}>
+      <Field label={dict.auth.password} required>
         <TextInput name="password" type="password" autoComplete="current-password" required />
       </Field>
 
       {error ? <FormError>{error}</FormError> : null}
 
-      <Button type="submit" size="lg" fullWidth disabled={pending} className="mt-1">
-        {pending ? dict.auth.submitting : dict.auth.submit}
+      <Button
+        type="submit"
+        size="lg"
+        fullWidth
+        loading={pending}
+        loadingLabel={dict.auth.submitting}
+        className="mt-1"
+      >
+        {dict.auth.submit}
       </Button>
     </form>
   );

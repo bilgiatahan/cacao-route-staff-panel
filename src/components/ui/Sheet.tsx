@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+
+import { useFocusTrap } from "@/components/ui/use-focus-trap";
 
 export interface SheetProps {
   open: boolean;
@@ -16,6 +18,10 @@ export interface SheetProps {
  * on Escape or a click on the scrim.
  */
 export function Sheet({ open, onClose, title, subtitle, closeLabel, children }: SheetProps) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(panelRef, open);
   useEffect(() => {
     if (!open) return;
 
@@ -40,16 +46,18 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel, children }: 
       <div
         aria-hidden
         onClick={onClose}
-        className="fixed inset-0 z-40 bg-[rgba(32,30,29,0.45)]"
+        className="fixed inset-0 z-40 bg-scrim"
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
-        className="fixed bottom-0 left-1/2 z-50 w-full max-w-[560px] -translate-x-1/2 border-t-2 border-ink bg-surface px-4 pb-6 pt-4"
+        aria-labelledby={titleId}
+        className="fixed bottom-0 left-1/2 z-50 w-full max-w-panel -translate-x-1/2 border-t-2 border-ink bg-surface px-4 pb-6 pt-4"
       >
         <div className="mb-3.5 flex items-baseline justify-between gap-2.5">
           <div className="min-w-0">
-            <div className="text-2xl font-extrabold -tracking-[0.01em]">{title}</div>
+            <div id={titleId} className="text-2xl font-extrabold -tracking-[0.01em]">{title}</div>
             {subtitle ? <div className="text-xs text-muted">{subtitle}</div> : null}
           </div>
           <button

@@ -35,19 +35,12 @@ export const tr = {
   },
 
   menu: {
-    summary: "Özet",
+
     open: "Menü",
-    close: "Menüyü kapat",
     profile: "Profilim",
-    workDetails: "Çalışma Bilgilerim",
-    settings: "Ayarlar",
-    notificationPrefs: "Bildirim Tercihleri",
-    support: "Yardım & Destek",
-    privacy: "Gizlilik & Koşullar",
     language: "Dil / Language",
     signOut: "Çıkış Yap",
     version: "Uygulama Sürümü",
-    soon: "Yakında",
   },
 
   roles: {
@@ -89,6 +82,7 @@ export const tr = {
 
   common: {
     save: "Kaydet",
+    loading: "Yükleniyor",
     saving: "Kaydediliyor…",
     clear: "Temizle",
     cancel: "Vazgeç",
@@ -96,7 +90,6 @@ export const tr = {
     back: "Geri",
     approve: "Onayla",
     reject: "Reddet",
-    view: "Bak",
     remove: "Çıkar",
     dash: "—",
     optional: "opsiyonel",
@@ -169,6 +162,8 @@ export const tr = {
     askSwap: "Talep Oluştur",
     swapNoShift: "Bu hafta değiştirebileceğin vardiya yok",
     balance: "Kalan yıllık izin",
+    balanceHint: "Bilgi amaçlı. Her talebi yöneticin değerlendirir.",
+    note: "Not",
     invalidRange: "Bitiş tarihi başlangıçtan önce olamaz.",
     types: {
       annual: "Yıllık",
@@ -206,7 +201,8 @@ export const tr = {
     phone: "Telefon",
     email: "E-posta",
     address: "Adres",
-    removeConfirm: "Bu kişiyi ekipten çıkarmak istediğine emin misin?",
+    removeTitle: "Kişiyi çıkar",
+    removeConfirm: "Bu kişiyi ekipten çıkarmak istediğine emin misin? Geçmiş vardiyaları ve izinleri kalır, ama panele girişi kaldırılır.",
     nameRequired: "Ad alanı zorunlu.",
     account: "Giriş Bilgileri",
     password: "Şifre",
@@ -235,6 +231,7 @@ export const tr = {
     colEarned: "Kazanç",
     overtime: "fazla mesai",
     myWeeklyEarnings: "Bu Haftaki Kazancım",
+    noEarnings: "Bu hafta çalışılan vardiya yok",
     age: "yaş",
     tenure: "kıdem",
     contracts: {
@@ -252,8 +249,6 @@ export const tr = {
     employmentHint: "Bu alanları yalnızca işletme müdürü değiştirebilir.",
     currentPassword: "Mevcut Şifre",
     newPassword: "Yeni Şifre",
-    currentPasswordPlaceholder: "Mevcut şifreni gir",
-    newPasswordPlaceholder: "Yeni şifreni gir",
     passwordHint: "Şifreni değiştirmek istemiyorsan bu iki alanı boş bırak.",
     saveChanges: "Değişiklikleri Kaydet",
     saved: "Bilgilerin kaydedildi.",
@@ -263,6 +258,7 @@ export const tr = {
   },
 
   notifications: {
+    unread: "okunmamış",
     title: "Bildirimler",
     markAll: "Tümünü okundu işaretle",
     empty: "Bildirim yok",
@@ -293,5 +289,10 @@ export const tr = {
       title: "Vardiya değişimi güncellendi",
       body: "{day} · {status}",
     },
+  },
+  notFound: {
+    title: "Sayfa bulunamadı",
+    body: "Aradığın kayıt taşınmış ya da silinmiş olabilir.",
+    action: "Özete dön",
   },
 };

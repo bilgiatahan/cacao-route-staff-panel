@@ -114,7 +114,7 @@ export function RuledList({
   className?: string;
 }) {
   return (
-    <div className={cn("border-t-2 border-ink", className)}>{children}</div>
+    <div className={cn("border-t-2 border-line", className)}>{children}</div>
   );
 }
 

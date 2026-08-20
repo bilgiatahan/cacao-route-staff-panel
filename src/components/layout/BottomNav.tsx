@@ -56,17 +56,6 @@ export function BottomNav({ items }: { items: NavItem[] }) {
                 "focus-visible:outline-offset-[-3px]",
               )}
             >
-              {/*
-                The active tab is marked by a bar as well as by brightness, so
-                the state does not depend on telling two whites apart.
-              */}
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute inset-x-3 top-0 h-0.5 rounded-full",
-                  active ? "bg-white" : "bg-transparent",
-                )}
-              />
               <Icon
                 name={item.icon}
                 className={active ? "text-white" : "text-white/75"}

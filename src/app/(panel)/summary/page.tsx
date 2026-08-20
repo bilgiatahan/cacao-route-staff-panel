@@ -259,7 +259,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
         <Card className="overflow-hidden">
           <Link
             href={panelHref(ROUTES.timetable, { week: weekStart })}
-            className="flex min-h-11 items-center gap-2.5 border-b border-line px-3.5 py-3 text-ink hover:bg-hover"
+            className="flex min-h-11 items-center gap-2.5 px-3.5 py-3 text-ink hover:bg-hover"
           >
             <IconTile name="timetable" accent="blue" />
             <span className="flex-1 truncate text-md font-bold">{dict.summary.myWeek}</span>

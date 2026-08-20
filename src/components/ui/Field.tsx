@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
  */
 export const CONTROL_CLASS =
   "w-full border border-line-strong bg-surface px-2.5 py-2.5 text-control text-ink " +
-  "placeholder:text-muted hover:border-ink " +
+  "placeholder:text-muted" +
   "disabled:cursor-not-allowed disabled:border-line disabled:bg-fill disabled:text-disabled " +
   "read-only:bg-fill read-only:text-muted " +
   // `invalid` is driven by `aria-invalid`, so the styling and the announcement

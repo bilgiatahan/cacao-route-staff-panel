@@ -16,7 +16,9 @@ const { getEmployeeDetail, getTeamOverview } = await import(
   "@/server/services/team.service"
 );
 const { calculateWeeklyPay, isOvertime } = await import("@/lib/domain/payroll");
-const { formatHours, formatMoney, formatHoursValue } = await import("@/lib/format");
+const { formatHourlyRate, formatHours, formatMoney, formatHoursValue } = await import(
+  "@/lib/format",
+);
 const { mondaysInMonth } = await import("@/lib/date");
 const { getDictionary } = await import("@/lib/i18n");
 const { prisma } = await import("@/server/db/client");
@@ -190,7 +192,9 @@ describe("formatting the screen relies on", () => {
   it("keeps hours and currency visually distinct", async () => {
     const dict = getDictionary("en");
     expect(formatHours(8, dict)).toBe(`8${dict.units.hourSuffix}`);
-    expect(formatMoney(1040)).toContain("₺");
+    expect(formatMoney(1040)).toBe("£1,040.00");
+    expect(formatMoney(2972.5)).toBe("£2,972.50");
+    expect(formatHourlyRate(13, dict)).toBe("£13.00/h");
     expect(formatHoursValue(8.5)).toBe("8.5");
     expect(formatHoursValue(8)).toBe("8");
   });

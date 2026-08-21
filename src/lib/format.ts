@@ -1,4 +1,4 @@
-import { CURRENCY_SYMBOL } from "@/lib/constants";
+import { CURRENCY_SYMBOL, MONEY_LOCALE } from "@/lib/constants";
 import { fromIsoDate, weekDates } from "@/lib/date";
 import type { Dictionary } from "@/lib/i18n";
 import type { IsoDate, Shift } from "@/types/domain";
@@ -31,8 +31,29 @@ export function formatHours(hours: number, dict: Dictionary): string {
   return `${formatHoursValue(hours)}${dict.units.hourSuffix}`;
 }
 
+/**
+ * 1040 → "£1,040.00".
+ *
+ * Always two decimals: pence are a meaningful part of a GBP payroll figure, so
+ * the value is shown in full rather than rounded to whole pounds. The number
+ * itself is untouched — this only decides how it reads.
+ */
 export function formatMoney(amount: number): string {
-  return `${CURRENCY_SYMBOL}${Math.round(amount).toLocaleString("tr-TR")}`;
+  return `${CURRENCY_SYMBOL}${amount.toLocaleString(MONEY_LOCALE, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * 13 → "£13.00/h".
+ *
+ * The symbol leads the amount in en-GB, which a bare `"13 £/h"` cannot express,
+ * so the unit is a suffix in the dictionary and the currency comes from
+ * `formatMoney`.
+ */
+export function formatHourlyRate(hourlyRate: number, dict: Dictionary): string {
+  return `${formatMoney(hourlyRate)}${dict.units.perHour}`;
 }
 
 /** "2026-08-03" → "3 Ağu" */

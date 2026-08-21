@@ -13,6 +13,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force && prisma db seed",
+    "db:seed:real": "tsx scripts/reset-and-seed-real-roster.ts",
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest"

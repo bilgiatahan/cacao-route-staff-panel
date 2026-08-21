@@ -159,6 +159,13 @@ describe("swap options offered to staff", () => {
     expect(ids).not.toContain(STAFF_ID);
     expect(ids).toContain(MATE_ID);
   });
+
+  it("never offers the admin as a swap target", async () => {
+    // An admin has no roster row, so a shift handed to one would vanish from
+    // the timetable rather than change hands.
+    const board = await getLeaveBoard(STAFF, MONDAY);
+    expect(board.colleagues.map((c) => c.id)).not.toContain(ADMIN_ID);
+  });
 });
 
 describe("creating a leave request", () => {

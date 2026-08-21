@@ -10,7 +10,14 @@ import {
   TableTotal,
 } from "@/components/ui/TableCard";
 import { fromIsoDate, tenureMonths, weekdayIndex } from "@/lib/date";
-import { formatFullDate, formatHours, formatHoursValue, formatMoney, formatShiftSpan } from "@/lib/format";
+import {
+  formatFullDate,
+  formatHourlyRate,
+  formatHours,
+  formatHoursValue,
+  formatMoney,
+  formatShiftSpan,
+} from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "@/server/services/team.service";
@@ -67,7 +74,7 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
       key: "wage",
       icon: "pay",
       label: dict.team.wage,
-      value: `${employee.hourlyRate} ${dict.units.perHour}`,
+      value: formatHourlyRate(employee.hourlyRate, dict),
     },
     {
       key: "leave",

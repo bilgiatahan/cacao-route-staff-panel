@@ -73,7 +73,7 @@ export const tr = {
 
   units: {
     hourSuffix: "sa",
-    perHour: "₺/sa",
+    perHour: "/sa",
     days: "gün",
     weeks: "hafta",
     years: "yıl",

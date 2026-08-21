@@ -57,16 +57,31 @@ afterAll(async () => {
 
 describe("admin branch", () => {
   it("reports headcount, hours and cost for the week", async () => {
+    // Admins are not roster members, so the 4h below is deliberately ignored:
+    // headcount, hours and cost all describe the people who work the shifts.
     await createShift(STAFF, MONDAY, 9 * 60, 17 * 60); // 8h @ 130
-    await createShift(ADMIN, MONDAY, 9 * 60, 13 * 60); // 4h @ 130
+    await createShift(ADMIN, MONDAY, 9 * 60, 13 * 60); // 4h @ 130, excluded
 
     const summary = await getAdminSummary(MONDAY, "week");
 
     expect(summary.kind).toBe("admin");
-    expect(summary.headcount).toBe(2);
-    expect(summary.payroll.totalHours).toBe(12);
-    expect(summary.payroll.totalCost).toBe(12 * 130);
+    expect(summary.headcount).toBe(1);
+    expect(summary.payroll.totalHours).toBe(8);
+    expect(summary.payroll.totalCost).toBe(8 * 130);
     expect(summary.weeksInPeriod).toBe(1);
+  });
+
+  it("gives the admin no roster row, empty or otherwise", async () => {
+    await createShift(STAFF, MONDAY, 9 * 60, 17 * 60);
+
+    const summary = await getAdminSummary(MONDAY, "week");
+    const ids = summary.roster.rows.map((row) => row.employee.id);
+
+    expect(ids).toEqual([STAFF]);
+    expect(summary.roster.staffRows.map((row) => row.employee.id)).toEqual([STAFF]);
+    expect(summary.payroll.lines.map((line) => line.employee.id)).toEqual([STAFF]);
+    // The directory keeps them: pending requests still need a name to show.
+    expect(summary.roster.employees.map((e) => e.id)).toContain(ADMIN);
   });
 
   it("projects onto the month without changing the week's shifts", async () => {
@@ -106,8 +121,13 @@ describe("admin branch", () => {
   });
 
   it("excludes task rows from headcount", async () => {
+    // Two real people, so the assertion is about the task row and not about the
+    // admin — who no longer pads the count either way.
+    await createEmployee("emp-cleaning", "Cleaning", { sortOrder: 2 });
+    expect((await getAdminSummary(MONDAY, "week")).headcount).toBe(2);
+
     await prisma.employee.update({
-      where: { id: STAFF },
+      where: { id: "emp-cleaning" },
       data: { isTaskRow: true },
     });
 

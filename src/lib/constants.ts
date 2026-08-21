@@ -16,7 +16,14 @@ export const OVERTIME_THRESHOLD_HOURS = 45;
 /** Multiplier applied to the hourly rate for overtime hours. */
 export const OVERTIME_MULTIPLIER = 1.5;
 
-export const CURRENCY_SYMBOL = "₺";
+export const CURRENCY_SYMBOL = "£";
+
+/**
+ * Locale for money and other numeric formatting. The panel runs in London, so
+ * grouping and the decimal separator follow en-GB regardless of the UI
+ * language — a price is not translated, it is localised to where it is paid.
+ */
+export const MONEY_LOCALE = "en-GB";
 
 /** Shown at the foot of the side menu. Bump it with package.json. */
 export const APP_VERSION = "1.2.0";

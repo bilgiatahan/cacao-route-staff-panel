@@ -13,6 +13,7 @@ import { PageHeader, SectionBlock } from "@/components/ui/Section";
 import { weekdayIndex } from "@/lib/date";
 import {
   formatDayMonth,
+  formatHourlyRate,
   formatHours,
   formatMoney,
   formatMonthLabel,
@@ -258,9 +259,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             accent="green"
             label={isMonth ? dict.summary.statMonthlyPay : dict.summary.statMyPay}
             value={formatMoney(summary.myPay)}
-            hint={
-              isMonth ? periodLabel : `${summary.employee.hourlyRate} ${dict.units.perHour}`
-            }
+            hint={isMonth ? periodLabel : formatHourlyRate(summary.employee.hourlyRate, dict)}
           />
           <StatCard
             icon="calendarCheck"

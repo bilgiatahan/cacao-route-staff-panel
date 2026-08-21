@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { DetailList, type DetailItem } from "@/components/ui/DetailList";
 import { Hint, PageHeader, SectionHeading } from "@/components/ui/Section";
 import { employeePosition } from "@/lib/employee";
-import { formatFullDate } from "@/lib/format";
+import { formatFullDate, formatHourlyRate } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { requireCurrentEmployee } from "@/server/auth/session";
 import { updateProfileAction } from "@/server/actions/profile.actions";
@@ -55,7 +55,7 @@ export default async function ProfilePage() {
       key: "wage",
       icon: "pay",
       label: dict.team.wage,
-      value: `${employee.hourlyRate} ${dict.units.perHour}`,
+      value: formatHourlyRate(employee.hourlyRate, dict),
     },
     {
       key: "leave",

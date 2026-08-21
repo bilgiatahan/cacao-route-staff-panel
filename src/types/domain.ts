@@ -32,7 +32,7 @@ export interface Employee {
   displayName: Localized | null;
   /** Job title, translated. */
   position: Localized;
-  /** Hourly wage in TRY. */
+  /** Hourly wage in GBP. */
   hourlyRate: number;
   contract: ContractType;
   birthDate: IsoDate | null;

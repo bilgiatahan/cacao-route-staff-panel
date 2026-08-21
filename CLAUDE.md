@@ -160,6 +160,10 @@ Hepsi saf fonksiyonlarda, tek yerde. UI'da yeniden hesaplama:
 - Tarih/saat → `lib/date.ts`, `lib/format.ts`. `IsoDate` string, saat = gece
   yarısından itibaren **dakika**. Ad-hoc `new Date()` aritmetiği yapma.
 - Görev satırları (`isTaskRow`) headcount, bordro ve izinden **hariç**.
+- Admin **roster satırı almaz** → `isRosterMember` (`lib/employee.ts`), tek uygulama
+  yeri `getRosterWeek`. `rows`/`staffRows`/bordro/kapsama hepsi oradan türediği için
+  filtre bir kez yazılır. `RosterWeek.employees` ve `leave.service`'teki `byId`
+  filtrelenmez — onlar isim sözlüğü, roster değil.
 
 ## Görsel dil
 

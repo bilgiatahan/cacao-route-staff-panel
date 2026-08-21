@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { accentForId, Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { employeeFullName, employeeInitials, employeePosition } from "@/lib/employee";
-import { formatHours } from "@/lib/format";
+import { formatHourlyRate, formatHours } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { panelHref, ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ export interface TeamRosterListProps {
  * removes an element from the accessibility tree, not just from the page.
  *
  * No column headers: `formatHours` carries its unit and the rate carries
- * "₺/hr", so every column already states what it is.
+ * "£/h", so every column already states what it is.
  */
 export function TeamRosterList({ members, dict, locale, weekStart }: TeamRosterListProps) {
   return (
@@ -49,11 +49,7 @@ export function TeamRosterList({ members, dict, locale, weekStart }: TeamRosterL
         const position = employeePosition(employee, locale);
         const contract = dict.team.contracts[employee.contract];
         const hours = formatHours(member.weeklyHours, dict);
-        const rate = (
-          <>
-            {employee.hourlyRate} {dict.units.perHour}
-          </>
-        );
+        const rate = formatHourlyRate(employee.hourlyRate, dict);
         const hoursTone = overtime ? "text-warn-dark" : "text-ink";
 
         const badges = (

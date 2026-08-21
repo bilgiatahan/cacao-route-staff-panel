@@ -14,6 +14,8 @@ import type {
   SwapRequest,
 } from "@/types/domain";
 
+import { isRosterMember } from "@/lib/employee";
+
 import { getRosterWeek } from "./roster.service";
 
 export interface LeaveRow {
@@ -124,7 +126,12 @@ export async function getLeaveBoard(
     swapRows,
     pendingLeaveCount,
     mySwapOptions,
-    colleagues: employees.filter((employee) => employee.id !== viewer.employeeId),
+    // Roster members only. An admin has no row on the timetable, so a shift
+    // swapped onto them would disappear from the schedule entirely. `byId` above
+    // stays unfiltered — it only resolves names on existing requests.
+    colleagues: employees.filter(
+      (employee) => employee.id !== viewer.employeeId && isRosterMember(employee),
+    ),
     leaveBalance: myRow?.employee.leaveBalance ?? 0,
   };
 }

@@ -71,7 +71,7 @@ export const en: Dictionary = {
 
   units: {
     hourSuffix: "h",
-    perHour: "₺/h",
+    perHour: "/h",
     days: "days",
     weeks: "weeks",
     years: "y",

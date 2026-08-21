@@ -129,10 +129,11 @@ describe("admin summary still renders the same data", () => {
     expect(summary.kind).toBe("admin");
     expect(summary.pendingLeave.map((r) => r.id)).toEqual(["leave-1"]);
     expect(summary.pendingSwaps.map((r) => r.id)).toEqual(["swap-1"]);
-    // Unrelated fields must be untouched by this change.
-    expect(summary.headcount).toBe(3);
+    // Unrelated fields must be untouched by this change. Three employees are
+    // created, but one is the admin and admins hold no roster row.
+    expect(summary.headcount).toBe(2);
     expect(summary.roster.dates).toHaveLength(7);
-    expect(summary.payroll.lines).toHaveLength(3);
+    expect(summary.payroll.lines).toHaveLength(2);
   });
 
   it("agrees with the badge count the layout renders", async () => {

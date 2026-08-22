@@ -14,7 +14,6 @@ import {
   formatFullDate,
   formatHourlyRate,
   formatHours,
-  formatHoursValue,
   formatMoney,
   formatShiftSpan,
 } from "@/lib/format";
@@ -60,7 +59,6 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
   const { employee, row } = detail;
   const payRows = (row?.cells ?? []).filter((cell) => cell.shift);
   const weeklyTotal = detail.weeklyPay.total;
-  const overtimeHours = detail.weeklyPay.overtimeHours;
 
   // The terms of employment — read-only, and someone else's decision.
   const terms: DetailItem[] = [
@@ -106,17 +104,9 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
       <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
         <StatCard
           icon="timetable"
-          accent={detail.overtime ? "amber" : "green"}
+          accent="green"
           label={dict.team.thisWeek}
           value={formatHours(detail.weeklyHours, dict)}
-          // Overtime is the one number that has to catch the eye — and it says
-          // so in words, not only in a warm tint.
-          highlight={detail.overtime}
-          hint={
-            detail.overtime
-              ? `+${formatHoursValue(overtimeHours)}${dict.units.hourSuffix} ${dict.team.overtime}`
-              : undefined
-          }
         />
         <StatCard
           icon="wallet"

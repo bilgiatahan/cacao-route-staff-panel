@@ -27,10 +27,6 @@ function toEmployee(row: EmployeeRow): Employee {
     id: row.id,
     firstName: row.firstName,
     lastName: row.lastName,
-    displayName:
-      row.displayNameTr !== null && row.displayNameEn !== null
-        ? { tr: row.displayNameTr, en: row.displayNameEn }
-        : null,
     position: { tr: row.positionTr, en: row.positionEn },
     hourlyRate: Number(row.hourlyRate),
     contract: row.contract,
@@ -51,8 +47,6 @@ function draftToColumns(draft: EmployeeDraft) {
   return {
     firstName: draft.firstName,
     lastName: draft.lastName,
-    displayNameTr: draft.displayName?.tr ?? null,
-    displayNameEn: draft.displayName?.en ?? null,
     positionTr: draft.position.tr,
     positionEn: draft.position.en,
     hourlyRate: draft.hourlyRate,
@@ -70,13 +64,10 @@ function draftToColumns(draft: EmployeeDraft) {
 
 /** Same mapping, but only for the keys actually present on the patch. */
 function patchToColumns(patch: EmployeePatch) {
-  const { displayName, position, ...rest } = patch;
+  const { position, ...rest } = patch;
 
   return {
     ...rest,
-    ...(displayName !== undefined
-      ? { displayNameTr: displayName?.tr ?? null, displayNameEn: displayName?.en ?? null }
-      : {}),
     ...(position !== undefined ? { positionTr: position.tr, positionEn: position.en } : {}),
   };
 }

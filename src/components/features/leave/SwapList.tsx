@@ -9,14 +9,12 @@ import { cn } from "@/lib/utils";
 import { actionErrorMessages } from "@/server/actions/action-result";
 import { decideSwapAction } from "@/server/actions/swap.actions";
 import type { SwapRow } from "@/server/services/leave.service";
-import type { Locale } from "@/types/domain";
 
 import { DecisionButtons } from "./DecisionButtons";
 
 export interface SwapListProps {
   rows: SwapRow[];
   dict: Dictionary;
-  locale: Locale;
 }
 
 /**
@@ -27,7 +25,7 @@ export interface SwapListProps {
  * two names either side of the arrow are what distinguishes one row from
  * another.
  */
-export function SwapList({ rows, dict, locale }: SwapListProps) {
+export function SwapList({ rows, dict }: SwapListProps) {
   const errorMessages = actionErrorMessages(dict);
 
   if (rows.length === 0) {
@@ -54,8 +52,8 @@ export function SwapList({ rows, dict, locale }: SwapListProps) {
               <div className="flex items-start justify-between gap-2.5">
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-md font-semibold">
-                    {requester ? employeeDisplayName(requester, locale) : dict.common.dash} ↔{" "}
-                    {target ? employeeDisplayName(target, locale) : dict.common.dash}
+                    {requester ? employeeDisplayName(requester) : dict.common.dash} ↔{" "}
+                    {target ? employeeDisplayName(target) : dict.common.dash}
                   </div>
                   <div className="tabular text-sm text-muted">
                     {dayName} {date.getDate()} · {formatShiftSpan(shift, dict)}

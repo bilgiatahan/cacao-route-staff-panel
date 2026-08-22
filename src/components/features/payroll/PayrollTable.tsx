@@ -5,7 +5,7 @@ import {
   TableTotal,
 } from "@/components/ui/TableCard";
 import { employeeDisplayName, employeePosition } from "@/lib/employee";
-import { formatHours, formatHoursValue, formatMoney } from "@/lib/format";
+import { formatHours, formatMoney } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { PayrollReport } from "@/server/services/payroll.service";
@@ -43,44 +43,28 @@ export function PayrollTable({ report, dict, locale }: PayrollTableProps) {
       </TableHead>
 
       <ul>
-        {report.lines.map((line) => {
-          const hasOvertime = line.overtimeHours > 0;
-
-          return (
-            <li
-              key={line.employee.id}
-              className={cn(
-                COLUMNS,
-                TABLE_ROW,
-                "py-2.5",
-                hasOvertime ? "bg-surface-warn" : "bg-surface",
-              )}
-            >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">
-                  {employeeDisplayName(line.employee, locale)}
-                </div>
-                <div
-                  className={cn(
-                    "text-2xs",
-                    hasOvertime ? "text-warn-dark" : "text-muted",
-                  )}
-                >
-                  {hasOvertime
-                    ? `+${formatHoursValue(line.overtimeHours)}${dict.units.hourSuffix} ${dict.team.overtime}`
-                    : employeePosition(line.employee, locale)}
-                </div>
+        {report.lines.map((line) => (
+          <li
+            key={line.employee.id}
+            className={cn(COLUMNS, TABLE_ROW, "py-2.5", "bg-surface")}
+          >
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">
+                {employeeDisplayName(line.employee)}
               </div>
-              <span className="tabular text-right text-sm">
-                {formatHours(line.hours, dict)}
-              </span>
-              <span className="tabular text-right text-sm text-muted">{line.hourlyRate}</span>
-              <span className="tabular text-right text-sm font-bold">
-                {formatMoney(line.total)}
-              </span>
-            </li>
-          );
-        })}
+              <div className="text-2xs text-muted">
+                {employeePosition(line.employee, locale)}
+              </div>
+            </div>
+            <span className="tabular text-right text-sm">
+              {formatHours(line.hours, dict)}
+            </span>
+            <span className="tabular text-right text-sm text-muted">{line.hourlyRate}</span>
+            <span className="tabular text-right text-sm font-bold">
+              {formatMoney(line.total)}
+            </span>
+          </li>
+        ))}
       </ul>
 
       <TableTotal label={totalLabel} value={formatMoney(report.totalCost)} />

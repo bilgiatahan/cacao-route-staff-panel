@@ -42,13 +42,13 @@ export function OnShiftList({ rows, dict, locale, highlightEmployeeId }: OnShift
               )}
             >
               <Avatar
-                initials={employeeInitials(employee, locale)}
+                initials={employeeInitials(employee)}
                 tone={accent}
                 className="rounded-full"
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-md font-semibold">
-                  {employeeDisplayName(employee, locale)}
+                  {employeeDisplayName(employee)}
                 </div>
                 <div className="truncate text-xs text-muted">
                   {employeePosition(employee, locale)}

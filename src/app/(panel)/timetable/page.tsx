@@ -31,7 +31,7 @@ interface TimetablePageProps {
 export default async function TimetablePage({
   searchParams,
 }: TimetablePageProps) {
-  const [{ locale, dict }, user, params] = await Promise.all([
+  const [{ dict }, user, params] = await Promise.all([
     getTranslations(),
     requireSessionUser(),
     searchParams,
@@ -50,13 +50,8 @@ export default async function TimetablePage({
 
   const canEdit = user.role === "admin";
   const columns = buildDayColumns(roster.dates, dict, todayInWeek);
-  const rows = buildRosterRows(roster.rows, dict, locale);
-  const { onShift, off } = buildDayRows(
-    roster.rows,
-    roster.dates[dayIndex],
-    dict,
-    locale,
-  );
+  const rows = buildRosterRows(roster.rows, dict);
+  const { onShift, off } = buildDayRows(roster.rows, roster.dates[dayIndex], dict);
 
   const viewOptions = (["grid", "person", "day"] as const).map((key) => ({
     key,

@@ -140,7 +140,7 @@ describe("roster data behind the three views", () => {
     await createShift(STAFF, MONDAY, 9 * 60, 17 * 60);
 
     const roster = await getRosterWeek(MONDAY);
-    const rows = buildRosterRows(roster.rows, getDictionary("en"), "en");
+    const rows = buildRosterRows(roster.rows, getDictionary("en"));
 
     expect(rows).toHaveLength(2);
     expect(rows[rows.length - 1].isTaskRow).toBe(true);
@@ -170,7 +170,7 @@ describe("roster data behind the three views", () => {
     await createShift(TASK, MONDAY, 8 * 60, 10 * 60);
 
     const roster = await getRosterWeek(MONDAY);
-    const { onShift, off } = buildDayRows(roster.rows, MONDAY, getDictionary("en"), "en");
+    const { onShift, off } = buildDayRows(roster.rows, MONDAY, getDictionary("en"));
 
     expect(onShift.map((r) => r.employeeId)).toEqual([TASK, STAFF]);
     expect(off).toHaveLength(0);
@@ -178,7 +178,7 @@ describe("roster data behind the three views", () => {
 
   it("lists everyone as off on an empty day", async () => {
     const roster = await getRosterWeek(MONDAY);
-    const { onShift, off } = buildDayRows(roster.rows, MONDAY, getDictionary("en"), "en");
+    const { onShift, off } = buildDayRows(roster.rows, MONDAY, getDictionary("en"));
 
     expect(onShift).toHaveLength(0);
     expect(off).toHaveLength(2);
@@ -195,7 +195,7 @@ describe("off-day state stays accessible", () => {
 
     const dict = getDictionary("en");
     const roster = await getRosterWeek(MONDAY);
-    const cells = buildRosterRows(roster.rows, dict, "en")[0].cells;
+    const cells = buildRosterRows(roster.rows, dict)[0].cells;
 
     const worked = cells.find((c) => c.state === "shift")!;
     const idle = cells.find((c) => c.state === "off")!;

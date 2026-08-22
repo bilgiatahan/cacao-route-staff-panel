@@ -4,8 +4,8 @@
  * The migration was presentational — StatCard, DetailList and Badge replacing
  * hand-rolled markup — so every assertion here is about the arithmetic and
  * scoping underneath staying byte-identical: weekly hours and pay, the monthly
- * projection, the overtime split, the per-day earning the table renders, and the
- * role scoping that decides who sees whose numbers.
+ * projection, the per-day earning the table renders, and the role scoping that
+ * decides who sees whose numbers.
  */
 
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +15,7 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 const { getEmployeeDetail, getTeamOverview } = await import(
   "@/server/services/team.service"
 );
-const { calculateWeeklyPay, isOvertime } = await import("@/lib/domain/payroll");
+const { calculateWeeklyPay } = await import("@/lib/domain/payroll");
 const { formatHourlyRate, formatHours, formatMoney, formatHoursValue } = await import(
   "@/lib/format",
 );
@@ -53,30 +53,16 @@ describe("weekly figures", () => {
     expect(detail?.weeklyPay.hourlyRate).toBe(RATE);
   });
 
-  it("reports no overtime under the threshold", async () => {
-    await createShift(ME, MONDAY, 9 * 60, 17 * 60);
-
-    const detail = await getEmployeeDetail(ME, MONDAY);
-
-    expect(detail?.overtime).toBe(false);
-    expect(detail?.weeklyPay.overtimeHours).toBe(0);
-    expect(detail?.weeklyPay.baseHours).toBe(8);
-  });
-
-  it("splits base and overtime past 45 hours at 1.5x", async () => {
-    // 5 × 10h = 50h → 45 base + 5 overtime.
+  it("pays every hour at the base rate, however long the week", async () => {
+    // 5 × 10h = 50h — no threshold, no multiplier.
     for (const date of WEEK) await createShift(ME, date, 8 * 60, 18 * 60);
 
     const detail = await getEmployeeDetail(ME, MONDAY);
 
     expect(detail?.weeklyHours).toBe(50);
-    expect(detail?.overtime).toBe(true);
-    expect(detail?.weeklyPay.baseHours).toBe(45);
-    expect(detail?.weeklyPay.overtimeHours).toBe(5);
-    expect(detail?.weeklyPay.total).toBe(45 * RATE + 5 * RATE * 1.5);
+    expect(detail?.weeklyPay.total).toBe(50 * RATE);
     // The same rule the pure helper applies.
     expect(detail?.weeklyPay.total).toBe(calculateWeeklyPay(50, RATE).total);
-    expect(isOvertime(50)).toBe(true);
   });
 });
 
@@ -92,7 +78,7 @@ describe("monthly projection", () => {
     expect(detail?.monthlyPay).toBe(8 * RATE * weeks);
   });
 
-  it("projects an overtime week without re-applying the threshold", async () => {
+  it("projects a long week straight through", async () => {
     for (const date of WEEK) await createShift(ME, date, 8 * 60, 18 * 60);
 
     const detail = await getEmployeeDetail(ME, MONDAY);
@@ -115,8 +101,7 @@ describe("the daily rows the table renders", () => {
     expect(worked.map((c) => c.date)).toEqual([WEEK[0], WEEK[2]]);
   });
 
-  it("earns hours x rate per day, with no overtime applied per row", async () => {
-    // Overtime is a weekly rule; a single day is always at the base rate.
+  it("earns hours x rate per day", async () => {
     await createShift(ME, MONDAY, 9 * 60, 13 * 60); // 4h
 
     const detail = await getEmployeeDetail(ME, MONDAY);
@@ -179,7 +164,6 @@ describe("role scoping is unchanged", () => {
     const mine = overview.members.find((m) => m.employee.id === ME);
     expect(mine?.weeklyHours).toBe(8);
     expect(mine?.weeklyPay.total).toBe(8 * RATE);
-    expect(mine?.overtime).toBe(false);
   });
 
   it("excludes task rows from the admin overview", async () => {

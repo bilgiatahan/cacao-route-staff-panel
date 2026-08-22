@@ -32,7 +32,6 @@ function employee(overrides: Partial<Employee> = {}): Employee {
     id: "emp-1",
     firstName: "Ayse",
     lastName: "Test",
-    displayName: null,
     position: { tr: "Barista", en: "Barista" },
     hourlyRate: 130,
     contract: "part",
@@ -71,7 +70,7 @@ function row(overrides: Partial<ScheduleRow> = {}): ScheduleRow {
 }
 
 function cellOf(state: RosterCellView["state"]): RosterCellView {
-  const rows = buildRosterRows([row()], getDictionary("tr"), "tr");
+  const rows = buildRosterRows([row()], getDictionary("tr"));
   const found = rows[0].cells.find((cell) => cell.state === state);
   if (!found) throw new Error(`no ${state} cell`);
   return found;
@@ -105,7 +104,7 @@ describe("off-day styling", () => {
 
 describe("cell state is carried as text, not only as colour", () => {
   it("gives every cell a non-empty state label", () => {
-    const rows = buildRosterRows([row()], getDictionary("tr"), "tr");
+    const rows = buildRosterRows([row()], getDictionary("tr"));
     for (const cell of rows[0].cells) {
       expect(cell.stateLabel, cell.state).toBeTruthy();
     }
@@ -118,7 +117,7 @@ describe("cell state is carried as text, not only as colour", () => {
   it("labels leave and off distinctly, in the active locale", () => {
     for (const locale of ["tr", "en"] as const) {
       const dict = getDictionary(locale);
-      const rows = buildRosterRows([row()], dict, locale);
+      const rows = buildRosterRows([row()], dict);
       const leave = rows[0].cells.find((c) => c.state === "leave")!;
       const off = rows[0].cells.find((c) => c.state === "off")!;
 

@@ -10,7 +10,7 @@ import { DetailList, type DetailItem } from "@/components/ui/DetailList";
 import { PageHeader, SectionBlock } from "@/components/ui/Section";
 import { todayIso } from "@/lib/date";
 import { employeeFullName, employeeInitials, employeePosition } from "@/lib/employee";
-import { formatHours, formatHoursValue, formatMoney } from "@/lib/format";
+import { formatHours, formatMoney } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
 import { resolveWeekStart } from "@/lib/week-params";
@@ -96,14 +96,14 @@ export default async function EmployeeDetailPage({
             the same colour they carry in the team list and on the summary. */}
         <Card padding="md" className="flex items-center gap-3">
           <Avatar
-            initials={employeeInitials(employee, locale)}
+            initials={employeeInitials(employee)}
             tone={accentForId(employee.id)}
             size="lg"
             className="rounded-full"
           />
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-2xl font-extrabold">
-              {employeeFullName(employee, locale)}
+              {employeeFullName(employee)}
             </h1>
             <p className="truncate text-xs text-muted">{employeePosition(employee, locale)}</p>
           </div>
@@ -141,15 +141,9 @@ export default async function EmployeeDetailPage({
               <div className="grid grid-cols-2 gap-2">
                 <StatCard
                   icon="timetable"
-                  accent={detail.overtime ? "amber" : "green"}
+                  accent="green"
                   label={dict.team.thisWeek}
                   value={formatHours(detail.weeklyHours, dict)}
-                  highlight={detail.overtime}
-                  hint={
-                    detail.overtime
-                      ? `+${formatHoursValue(detail.weeklyPay.overtimeHours)}${dict.units.hourSuffix} ${dict.team.overtime}`
-                      : undefined
-                  }
                 />
                 <StatCard
                   icon="wallet"

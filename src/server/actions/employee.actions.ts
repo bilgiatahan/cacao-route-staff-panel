@@ -44,7 +44,6 @@ function readDraft(formData: FormData): EmployeeDraft | null {
   return {
     firstName,
     lastName: text(formData, "lastName"),
-    displayName: null,
     // A single position field feeds both locales; translating job titles per
     // language is an editorial job, not something to guess at here.
     position: { tr: position, en: position },
@@ -139,7 +138,6 @@ export async function updateEmployeeAction(
     // Role and task-row status are not editable from this form.
     const updated = await employeeRepository.update(employeeId, {
       ...draft,
-      displayName: existing.displayName,
       role: existing.role,
       isTaskRow: existing.isTaskRow,
     });

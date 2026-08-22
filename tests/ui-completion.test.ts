@@ -168,7 +168,7 @@ describe("A2 — roster grid semantics", () => {
     await createShift("emp-staff", MONDAY, 9 * 60, 17 * 60);
     const dict = getDictionary("en");
     const roster = await getRosterWeek(MONDAY);
-    const rows = buildRosterRows(roster.rows, dict, "en");
+    const rows = buildRosterRows(roster.rows, dict);
 
     expect(rows).toHaveLength(1);
     expect(rows[0].cells).toHaveLength(7);

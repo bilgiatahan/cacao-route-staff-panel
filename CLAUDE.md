@@ -153,7 +153,7 @@ Client component sayısı bilinçli olarak az (14 tane). Yeni bir tanesini eklem
 
 Hepsi saf fonksiyonlarda, tek yerde. UI'da yeniden hesaplama:
 
-- Fazla mesai → `lib/domain/payroll.ts` (45 saat üstü 1.5×)
+- Bordro → `lib/domain/payroll.ts` (her saat taban ücretten; fazla mesai kuralı yok)
 - Kapsama boşluğu → `lib/domain/coverage.ts` (07:00 + 60 dk tolerans, 19:00)
 - İzin gölgelemesi → `lib/domain/schedule.ts` (onaylı taleplerden türetilir)
 - Sabitler → `lib/constants.ts`

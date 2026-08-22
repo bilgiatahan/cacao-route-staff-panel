@@ -170,7 +170,6 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               employees={summary.roster.employees}
               shifts={summary.roster.shifts}
               dict={dict}
-              locale={locale}
               weekStart={weekStart}
             />
           </SectionBlock>

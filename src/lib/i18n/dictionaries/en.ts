@@ -227,7 +227,6 @@ export const en: Dictionary = {
     colTime: "Time",
     colWorked: "Worked",
     colEarned: "Earned",
-    overtime: "overtime",
     myWeeklyEarnings: "My Weekly Earnings",
     noEarnings: "No shifts worked this week",
     age: "yrs old",

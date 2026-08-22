@@ -120,7 +120,7 @@ export default async function PanelLayout({
             name: user.fullName,
             role: user.role === "admin" ? dict.brand.managerTitle : employee.position[locale],
             email: user.email,
-            initials: employeeInitials(employee, locale),
+            initials: employeeInitials(employee),
           }}
           labels={{
             navigation: dict.brand.panel,
@@ -132,7 +132,7 @@ export default async function PanelLayout({
         />
       </Suspense>
 
-      <div className="relative flex min-h-dvh w-full max-w-panel flex-col shadow-[0_0_0_1px_var(--color-line)] md:max-w-shell lg:max-w-none lg:flex-1 lg:shadow-none">
+      <div className="bg-fill relative flex min-h-dvh w-full max-w-panel flex-col shadow-[0_0_0_1px_var(--color-line)] md:max-w-shell lg:max-w-none lg:flex-1 lg:shadow-none">
         <AppHeader
           dict={dict}
           user={user}

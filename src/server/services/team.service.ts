@@ -1,7 +1,7 @@
 import "server-only";
 
 import { mondaysInMonth } from "@/lib/date";
-import { calculateWeeklyPay, isOvertime, type PayBreakdown } from "@/lib/domain/payroll";
+import { calculateWeeklyPay, type PayBreakdown } from "@/lib/domain/payroll";
 import type { ScheduleRow } from "@/lib/domain/schedule";
 import { employeeRepository } from "@/server/repositories/employee.repository";
 import { userRepository } from "@/server/repositories/user.repository";
@@ -13,7 +13,6 @@ export interface TeamMemberSummary {
   employee: Employee;
   weeklyHours: number;
   weeklyPay: PayBreakdown;
-  overtime: boolean;
 }
 
 export interface TeamOverview {
@@ -29,7 +28,6 @@ export interface EmployeeDetail {
   monthlyHours: number;
   monthlyPay: number;
   weeksInMonth: number;
-  overtime: boolean;
   /** Whether this person can sign in. Never exposes the credentials themselves. */
   hasAccount: boolean;
 }
@@ -41,7 +39,6 @@ export async function getTeamOverview(weekStart: IsoDate): Promise<TeamOverview>
     employee: row.employee,
     weeklyHours: row.hours,
     weeklyPay: calculateWeeklyPay(row.hours, row.employee.hourlyRate),
-    overtime: isOvertime(row.hours),
   }));
 
   return { weekStart, members };
@@ -72,7 +69,6 @@ export async function getEmployeeDetail(
     monthlyHours: weeklyHours * weeksInMonth,
     monthlyPay: weeklyPay.total * weeksInMonth,
     weeksInMonth,
-    overtime: isOvertime(weeklyHours),
     hasAccount: account !== null,
   };
 }

@@ -2,17 +2,15 @@ import { fullName, initials } from "@/lib/format";
 import type { Employee, Locale } from "@/types/domain";
 
 /**
- * Task rows ("Cleaning") carry a translated label; real people are shown by
- * name. Everything user-facing goes through these helpers so the two cases
- * never have to be special-cased at the call site.
+ * Everything user-facing goes through these helpers, so a change to how a
+ * person is labelled lands in one place rather than at every call site.
  */
 
-export function employeeDisplayName(employee: Employee, locale: Locale): string {
-  return employee.displayName?.[locale] ?? employee.firstName;
+export function employeeDisplayName(employee: Employee): string {
+  return employee.firstName;
 }
 
-export function employeeFullName(employee: Employee, locale: Locale): string {
-  if (employee.displayName) return employee.displayName[locale];
+export function employeeFullName(employee: Employee): string {
   return fullName(employee.firstName, employee.lastName);
 }
 
@@ -28,7 +26,7 @@ export function employeePosition(employee: Employee, locale: Locale): string {
  * counts towards headcount, payroll and coverage — a manager costing the wage
  * bill nothing and showing seven blank days.
  *
- * Task rows ("Cleaning") deliberately stay: they are scheduled work that simply
+ * Task rows ("Temizlik") deliberately stay: they are scheduled work that simply
  * is not a person, and `isTaskRow` already excludes them from headcount and pay.
  *
  * This is the only definition of the rule; `getRosterWeek` applies it once for
@@ -39,7 +37,6 @@ export function isRosterMember(employee: Employee): boolean {
   return employee.role !== "admin";
 }
 
-export function employeeInitials(employee: Employee, locale: Locale): string {
-  if (employee.displayName) return employee.displayName[locale].slice(0, 2).toUpperCase();
+export function employeeInitials(employee: Employee): string {
   return initials(employee.firstName, employee.lastName);
 }

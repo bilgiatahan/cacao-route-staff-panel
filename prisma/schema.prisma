@@ -61,11 +61,6 @@ model Employee {
   firstName String @map("first_name")
   lastName  String @map("last_name")
 
-  /// Set only for task rows such as "Cleaning", which need a translated label
-  /// instead of a person's name.
-  displayNameTr String? @map("display_name_tr")
-  displayNameEn String? @map("display_name_en")
-
   /// Job title, translated.
   positionTr String @map("position_tr")
   positionEn String @map("position_en")

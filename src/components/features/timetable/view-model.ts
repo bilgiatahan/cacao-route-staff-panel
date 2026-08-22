@@ -2,7 +2,6 @@ import { CLOSING_MINUTES, OPENING_MINUTES } from "@/lib/constants";
 import { fromIsoDate } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
 import type { ScheduleRow } from "@/lib/domain/schedule";
-import { isOvertime } from "@/lib/domain/payroll";
 import {
   formatHours,
   formatShiftSpan,
@@ -10,7 +9,7 @@ import {
   minutesToTime,
 } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
-import type { IsoDate, Locale } from "@/types/domain";
+import type { IsoDate } from "@/types/domain";
 
 /**
  * The roster views are interactive, so the data crossing into the client is
@@ -50,7 +49,6 @@ export interface RosterRowView {
   name: string;
   hoursLabel: string;
   isTaskRow: boolean;
-  overtime: boolean;
   cells: RosterCellView[];
 }
 
@@ -96,17 +94,12 @@ export function buildDayColumns(
   }));
 }
 
-export function buildRosterRows(
-  rows: ScheduleRow[],
-  dict: Dictionary,
-  locale: Locale,
-): RosterRowView[] {
+export function buildRosterRows(rows: ScheduleRow[], dict: Dictionary): RosterRowView[] {
   return rows.map((row) => ({
     employeeId: row.employee.id,
-    name: employeeDisplayName(row.employee, locale) + (row.employee.isTaskRow ? " ·" : ""),
+    name: employeeDisplayName(row.employee) + (row.employee.isTaskRow ? " ·" : ""),
     hoursLabel: row.employee.isTaskRow ? dict.timetable.task : formatHours(row.hours, dict),
     isTaskRow: row.employee.isTaskRow,
-    overtime: !row.employee.isTaskRow && isOvertime(row.hours),
     cells: row.cells.map<RosterCellView>((cell) => {
       if (cell.shift) {
         return {
@@ -141,14 +134,13 @@ export function buildDayRows(
   rows: ScheduleRow[],
   date: IsoDate,
   dict: Dictionary,
-  locale: Locale,
 ): { onShift: DayRowView[]; off: DayOffView[] } {
   const onShift: DayRowView[] = [];
   const off: DayOffView[] = [];
 
   for (const row of rows) {
     const cell = row.cells.find((item) => item.date === date);
-    const name = employeeDisplayName(row.employee, locale);
+    const name = employeeDisplayName(row.employee);
 
     if (cell?.shift) {
       const left = ((cell.shift.startMinutes - TIMELINE_START) / TIMELINE_SPAN) * 100;

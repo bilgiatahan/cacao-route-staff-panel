@@ -25,10 +25,15 @@ import { updateProfileAction } from "@/server/actions/profile.actions";
  *    manager controls are a `DetailList`, not a disabled input.
  */
 export default async function ProfilePage() {
-  const [{ locale, dict }, { employee }] = await Promise.all([
+  const [{ locale, dict }, { user, employee }] = await Promise.all([
     getTranslations(),
     requireCurrentEmployee(),
   ]);
+
+  // "What am I on?" is a staff question. An admin sets these terms rather than
+  // being subject to them and never takes a roster row, so wage, contract and
+  // leave balance would be figures about nobody.
+  const showsEmployment = user.role !== "admin";
 
   // Everything the person cannot set for themselves — shown so the page still
   // answers "what am I on?", but read-only because it is the manager's call.
@@ -83,15 +88,17 @@ export default async function ProfilePage() {
           action={updateProfileAction}
         />
 
-        <Card padding="md">
-          <SectionHeading variant="card" icon="briefcase" title={dict.profile.employment} />
-          <DetailList items={workRows} />
-          {/* The hint explains this card, so it lives in it rather than floating
-              under the page as an unattached paragraph. */}
-          <Hint icon="info" className="pt-2.5">
-            {dict.profile.employmentHint}
-          </Hint>
-        </Card>
+        {showsEmployment && (
+          <Card padding="md">
+            <SectionHeading variant="card" icon="briefcase" title={dict.profile.employment} />
+            <DetailList items={workRows} />
+            {/* The hint explains this card, so it lives in it rather than floating
+                under the page as an unattached paragraph. */}
+            <Hint icon="info" className="pt-2.5">
+              {dict.profile.employmentHint}
+            </Hint>
+          </Card>
+        )}
       </section>
     </PageShell>
   );

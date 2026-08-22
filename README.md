@@ -112,7 +112,7 @@ paketine hiç girmez.
 
 | Kural             | Yer                      | Değer                                        |
 | ----------------- | ------------------------ | -------------------------------------------- |
-| Fazla mesai       | `lib/domain/payroll.ts`  | Haftada 45 saat üstü **1.5×**                |
+| Bordro            | `lib/domain/payroll.ts`  | Her saat taban ücretten (fazla mesai yok)    |
 | Kapsama boşluğu   | `lib/domain/coverage.ts` | Açılış 07:00 (60 dk tolerans), kapanış 19:00 |
 | Aylık projeksiyon | `lib/date.ts`            | Haftalık program × aydaki pazartesi sayısı   |
 | İzin gösterimi    | `lib/domain/schedule.ts` | **Onaylanmış** izin talebinden türetilir     |

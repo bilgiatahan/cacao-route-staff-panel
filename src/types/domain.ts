@@ -25,11 +25,6 @@ export interface Employee {
   id: string;
   firstName: string;
   lastName: string;
-  /**
-   * Set only for task rows such as "Cleaning", which need a translated label
-   * instead of a person's name.
-   */
-  displayName: Localized | null;
   /** Job title, translated. */
   position: Localized;
   /** Hourly wage in GBP. */

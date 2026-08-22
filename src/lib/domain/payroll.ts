@@ -1,4 +1,3 @@
-import { OVERTIME_MULTIPLIER, OVERTIME_THRESHOLD_HOURS } from "@/lib/constants";
 import type { Employee, Shift } from "@/types/domain";
 
 /**
@@ -16,40 +15,23 @@ export function sumHours(shifts: Shift[]): number {
 export interface PayBreakdown {
   /** Hours worked in the period. */
   hours: number;
-  /** Portion paid at the base rate. */
-  baseHours: number;
-  /** Portion paid at the overtime multiplier. */
-  overtimeHours: number;
   hourlyRate: number;
   total: number;
 }
 
-/**
- * Weekly pay: everything up to the threshold at the base rate, the remainder
- * at the overtime multiplier.
- */
+/** Weekly pay: every hour at the base rate. */
 export function calculateWeeklyPay(hours: number, hourlyRate: number): PayBreakdown {
-  const baseHours = Math.min(hours, OVERTIME_THRESHOLD_HOURS);
-  const overtimeHours = Math.max(0, hours - OVERTIME_THRESHOLD_HOURS);
-
   return {
     hours,
-    baseHours,
-    overtimeHours,
     hourlyRate,
-    total: baseHours * hourlyRate + overtimeHours * hourlyRate * OVERTIME_MULTIPLIER,
+    total: hours * hourlyRate,
   };
-}
-
-export function isOvertime(hours: number): boolean {
-  return hours > OVERTIME_THRESHOLD_HOURS;
 }
 
 export interface PayrollLine {
   employee: Employee;
   /** Hours in the selected period (week, or the monthly projection). */
   hours: number;
-  overtimeHours: number;
   hourlyRate: number;
   total: number;
 }
@@ -65,7 +47,6 @@ export function buildPayrollLine(
   return {
     employee,
     hours: weekly.hours * weeksInPeriod,
-    overtimeHours: weekly.overtimeHours * weeksInPeriod,
     hourlyRate: employee.hourlyRate,
     total: weekly.total * weeksInPeriod,
   };

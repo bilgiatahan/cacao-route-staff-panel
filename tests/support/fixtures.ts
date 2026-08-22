@@ -30,8 +30,6 @@ export async function createEmployee(
       id,
       firstName,
       lastName: "Test",
-      displayNameTr: null,
-      displayNameEn: null,
       positionTr: "Barista",
       positionEn: "Barista",
       hourlyRate: 130,

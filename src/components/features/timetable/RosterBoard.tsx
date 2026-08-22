@@ -211,14 +211,7 @@ function GridView({
               >
                 {row.name}
               </div>
-              <div
-                className={cn(
-                  "tabular text-2xs",
-                  row.overtime ? "text-warn-dark" : "text-muted",
-                )}
-              >
-                {row.hoursLabel}
-              </div>
+              <div className="tabular text-2xs text-muted">{row.hoursLabel}</div>
             </div>
 
             {row.cells.map((cell) => {
@@ -305,12 +298,7 @@ function PersonView({
             >
               {row.name}
             </span>
-            <span
-              className={cn(
-                "tabular flex-none text-xs font-bold",
-                row.overtime ? "text-warn-dark" : "text-muted",
-              )}
-            >
+            <span className="tabular flex-none text-xs font-bold text-muted">
               {row.hoursLabel}
             </span>
           </div>

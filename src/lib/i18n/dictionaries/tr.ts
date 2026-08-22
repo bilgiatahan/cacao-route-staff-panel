@@ -229,7 +229,6 @@ export const tr = {
     colTime: "Saat",
     colWorked: "Çalışma Süresi",
     colEarned: "Kazanç",
-    overtime: "fazla mesai",
     myWeeklyEarnings: "Bu Haftaki Kazancım",
     noEarnings: "Bu hafta çalışılan vardiya yok",
     age: "yaş",

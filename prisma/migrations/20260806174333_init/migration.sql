@@ -18,8 +18,6 @@ CREATE TABLE "employees" (
     "id" TEXT NOT NULL,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
-    "display_name_tr" TEXT,
-    "display_name_en" TEXT,
     "position_tr" TEXT NOT NULL,
     "position_en" TEXT NOT NULL,
     "hourly_rate" DECIMAL(10,2) NOT NULL,

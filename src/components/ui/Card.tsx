@@ -72,17 +72,20 @@ export function Card({
   elevated = false,
   className,
 }: CardProps) {
-  const surface = cn(SURFACE, PADDING[padding], elevated && "shadow-sm", className);
+  const surface = cn(SURFACE, PADDING[padding], elevated && "shadow-sm");
 
+  // `className` goes last in both branches: `cn` is tailwind-merge, so the final
+  // class in a group wins. With the defaults after it, a caller passing `flex`
+  // lost to this `block` and a caller tinting the surface lost to `bg-surface`.
   if (href) {
     return (
-      <Link href={href} className={cn(surface, "block hover:border-line-strong")}>
+      <Link href={href} className={cn(surface, "block hover:border-line-strong", className)}>
         {children}
       </Link>
     );
   }
 
-  return <div className={surface}>{children}</div>;
+  return <div className={cn(surface, className)}>{children}</div>;
 }
 
 export interface IconTileProps {

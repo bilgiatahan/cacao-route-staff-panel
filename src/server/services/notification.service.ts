@@ -1,6 +1,7 @@
 import "server-only";
 
 import { weekdayIndex } from "@/lib/date";
+import { employeeDisplayName } from "@/lib/employee";
 import { formatDateRange } from "@/lib/format";
 import { getDictionary, interpolate, LOCALES } from "@/lib/i18n";
 import { notificationRepository } from "@/server/repositories/notification.repository";
@@ -35,9 +36,9 @@ function localize(
   return { title, body };
 }
 
-function displayName(employee: Employee | null, locale: Locale): string {
+function displayName(employee: Employee | null): string {
   if (!employee) return "—";
-  return employee.displayName?.[locale] ?? employee.firstName;
+  return employeeDisplayName(employee);
 }
 
 function dayName(date: IsoDate, locale: Locale): string {
@@ -59,7 +60,7 @@ export const notificationService = {
     await push("leaveRequested", { kind: "admins" }, (locale) => {
       const dict = getDictionary(locale);
       return {
-        name: displayName(employee, locale),
+        name: displayName(employee),
         range: formatDateRange(request.startDate, request.endDate, dict),
         type: dict.leave.types[request.type],
       };
@@ -69,7 +70,7 @@ export const notificationService = {
   async leaveDecided(employee: Employee, request: LeaveRequest): Promise<void> {
     const event: EventKey = request.status === "approved" ? "leaveApproved" : "leaveRejected";
     await push(event, { kind: "employee", employeeId: employee.id }, (locale) => ({
-      name: displayName(employee, locale),
+      name: displayName(employee),
       range: formatDateRange(request.startDate, request.endDate, getDictionary(locale)),
     }));
   },
@@ -80,9 +81,9 @@ export const notificationService = {
     request: SwapRequest,
   ): Promise<void> {
     await push("swapRequested", { kind: "admins" }, (locale) => ({
-      name: displayName(requester, locale),
+      name: displayName(requester),
       day: dayName(request.date, locale),
-      target: displayName(target, locale),
+      target: displayName(target),
     }));
   },
 

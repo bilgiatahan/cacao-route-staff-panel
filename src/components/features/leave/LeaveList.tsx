@@ -9,14 +9,12 @@ import { cn } from "@/lib/utils";
 import { actionErrorMessages } from "@/server/actions/action-result";
 import { decideLeaveAction } from "@/server/actions/leave.actions";
 import type { LeaveRow } from "@/server/services/leave.service";
-import type { Locale } from "@/types/domain";
 
 import { DecisionButtons } from "./DecisionButtons";
 
 export interface LeaveListProps {
   rows: LeaveRow[];
   dict: Dictionary;
-  locale: Locale;
 }
 
 /**
@@ -27,7 +25,7 @@ export interface LeaveListProps {
  * leave type used to be plain text glued to the name with a middot; it is a
  * `Badge` now, which is what makes a list of mixed types scannable.
  */
-export function LeaveList({ rows, dict, locale }: LeaveListProps) {
+export function LeaveList({ rows, dict }: LeaveListProps) {
   const errorMessages = actionErrorMessages(dict);
 
   if (rows.length === 0) {
@@ -53,7 +51,7 @@ export function LeaveList({ rows, dict, locale }: LeaveListProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="truncate text-md font-semibold">
-                      {employee ? employeeDisplayName(employee, locale) : dict.common.dash}
+                      {employee ? employeeDisplayName(employee) : dict.common.dash}
                     </span>
                     <Badge tone={isPending ? "warning" : "neutral"}>
                       {dict.leave.types[request.type]}

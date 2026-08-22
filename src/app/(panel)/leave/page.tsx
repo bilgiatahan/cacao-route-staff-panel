@@ -22,7 +22,7 @@ interface LeavePageProps {
 const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
 
 export default async function LeavePage({ searchParams }: LeavePageProps) {
-  const [{ locale, dict }, user, params] = await Promise.all([
+  const [{ dict }, user, params] = await Promise.all([
     getTranslations(),
     requireSessionUser(),
     searchParams,
@@ -45,7 +45,7 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
 
   const colleagueOptions = board.colleagues.map((employee) => ({
     value: employee.id,
-    label: employeeDisplayName(employee, locale),
+    label: employeeDisplayName(employee),
   }));
 
   return (
@@ -117,11 +117,11 @@ export default async function LeavePage({ searchParams }: LeavePageProps) {
               ) : null
             }
           >
-            <LeaveList rows={board.leaveRows} dict={dict} locale={locale} />
+            <LeaveList rows={board.leaveRows} dict={dict} />
           </SectionBlock>
 
           <SectionBlock className="lg:min-w-0 lg:flex-1" title={dict.leave.swaps}>
-            <SwapList rows={board.swapRows} dict={dict} locale={locale} />
+            <SwapList rows={board.swapRows} dict={dict} />
           </SectionBlock>
         </div>
 

@@ -10,12 +10,6 @@ export const CLOSING_MINUTES = 19 * 60;
  */
 export const OPENING_GRACE_MINUTES = 60;
 
-/** Weekly hours after which overtime pay kicks in. */
-export const OVERTIME_THRESHOLD_HOURS = 45;
-
-/** Multiplier applied to the hourly rate for overtime hours. */
-export const OVERTIME_MULTIPLIER = 1.5;
-
 export const CURRENCY_SYMBOL = "£";
 
 /**

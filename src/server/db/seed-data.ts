@@ -19,8 +19,6 @@ export interface EmployeeBlueprint {
   address: string;
   role: UserRole;
   isTaskRow?: boolean;
-  /** Task rows show a translated label instead of a person's name. */
-  displayNameEn?: string;
   /** Recurring weekly pattern, Monday → Sunday. */
   template: ShiftTemplate[];
 }
@@ -230,7 +228,6 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     address: "",
     role: "staff",
     isTaskRow: true,
-    displayNameEn: "Cleaning",
     template: [null, null, [6, 8], null, null, [6, 8], null],
   },
 ];

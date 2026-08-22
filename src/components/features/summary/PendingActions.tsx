@@ -8,7 +8,7 @@ import { formatDateRange, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { panelHref, ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import type { Employee, IsoDate, LeaveRequest, Locale, Shift, SwapRequest } from "@/types/domain";
+import type { Employee, IsoDate, LeaveRequest, Shift, SwapRequest } from "@/types/domain";
 
 export interface PendingActionsProps {
   leaveRequests: LeaveRequest[];
@@ -16,7 +16,6 @@ export interface PendingActionsProps {
   employees: Employee[];
   shifts: Shift[];
   dict: Dictionary;
-  locale: Locale;
   weekStart: IsoDate;
 }
 
@@ -43,13 +42,12 @@ export function PendingActions({
   employees,
   shifts,
   dict,
-  locale,
   weekStart,
 }: PendingActionsProps) {
   const byId = new Map(employees.map((employee) => [employee.id, employee]));
   const nameOf = (id: string) => {
     const employee = byId.get(id);
-    return employee ? employeeDisplayName(employee, locale) : dict.common.dash;
+    return employee ? employeeDisplayName(employee) : dict.common.dash;
   };
   const dayNameOf = (date: IsoDate) => dict.calendar.daysLong[weekdayIndex(date)];
 

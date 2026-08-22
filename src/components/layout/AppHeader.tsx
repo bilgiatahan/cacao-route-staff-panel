@@ -61,7 +61,7 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
             name: user.fullName,
             role: roleTitle,
             email: user.email,
-            initials: employeeInitials(employee, locale),
+            initials: employeeInitials(employee),
           }}
           appVersion={APP_VERSION}
         />

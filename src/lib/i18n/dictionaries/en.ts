@@ -28,6 +28,7 @@ export const en: Dictionary = {
     timetable: "Roster",
     leave: "Leave",
     team: "Team",
+    reports: "Reports",
     pay: "Pay",
     notifications: "Alerts",
   },
@@ -36,6 +37,7 @@ export const en: Dictionary = {
 
     open: "Menu",
     profile: "My Profile",
+    reports: "Monthly Cost Report",
     language: "Dil / Language",
     signOut: "Sign Out",
     version: "App Version",
@@ -236,6 +238,61 @@ export const en: Dictionary = {
       full: "Full-time",
       part: "Part-time",
     },
+  },
+
+  reports: {
+    title: "Monthly Cost Report",
+    subtitle: "Personnel cost from the shifts actually worked",
+    pickMonth: "Pick Month",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+
+    statCost: "Total Cost",
+    statHours: "Total Hours Worked",
+    statRate: "Avg. Hourly Cost",
+    statGaps: "Coverage Gaps",
+    statStaff: "Staff Count",
+
+    weeklyChart: "Weekly Cost Comparison",
+    monthlyAverage: "Monthly avg.",
+    weekDetail: "Week Detail Comparison",
+    thisWeek: "This Week",
+    weekTable: "Cost by Week",
+    distribution: "Employee Cost Distribution",
+    total: "Total",
+
+    colWeek: "Week",
+    colRange: "Date Range",
+    colCost: "Total Cost",
+    colHours: "Hours",
+    colRate: "Avg. Hourly",
+    colGaps: "Coverage Gaps",
+    colStaff: "Staff Rostered",
+    colShare: "Share",
+
+    rowCost: "Total Cost",
+    rowHours: "Total Hours",
+    rowRate: "Average Hourly Cost",
+    rowGaps: "Coverage Gaps",
+    rowStaff: "Staff Rostered",
+
+    weekPrefix: "W",
+    partial: "partial",
+    partialFull: "full week",
+    partialDay: "day in this month",
+    partialDays: "days in this month",
+    weeksWithData: "weeks with data",
+    ofWeeks: "of",
+
+    comparisonNote: "Comparisons are against the previous month.",
+    partialNote:
+      "Partial weeks at the month's edges count only their days inside this month; the weekly average divides by the weeks that carried data.",
+    rateNote:
+      "Historical months are priced at each employee's current hourly rate — rate history is not stored yet.",
+
+    noPrevious: "no previous month data",
+    empty: "No shifts recorded this month.",
+    emptyWeek: "No shifts recorded this week.",
   },
 
   profile: {

@@ -1,5 +1,5 @@
 import { fullName, initials } from "@/lib/format";
-import type { Employee, Locale } from "@/types/domain";
+import type { Employee, Locale, Localized } from "@/types/domain";
 
 /**
  * Everything user-facing goes through these helpers, so a change to how a
@@ -14,8 +14,19 @@ export function employeeFullName(employee: Employee): string {
   return fullName(employee.firstName, employee.lastName);
 }
 
+/**
+ * Picks a locale out of a `Localized`, falling back to Turkish.
+ *
+ * Turkish is the fallback because `tr.ts` is the source dictionary and job
+ * titles are entered once for both locales — an empty English string means "not
+ * translated yet", not "blank".
+ */
+export function localizedText(value: Localized, locale: Locale): string {
+  return value[locale] || value.tr;
+}
+
 export function employeePosition(employee: Employee, locale: Locale): string {
-  return employee.position[locale] || employee.position.tr;
+  return localizedText(employee.position, locale);
 }
 
 /**

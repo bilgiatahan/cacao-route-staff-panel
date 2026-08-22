@@ -1,4 +1,4 @@
-import type { IsoDate } from "@/types/domain";
+import type { IsoDate, IsoMonth } from "@/types/domain";
 
 /**
  * Date helpers built on ISO `YYYY-MM-DD` strings.
@@ -79,6 +79,74 @@ export function isDateInRange(iso: IsoDate, start: IsoDate, end: IsoDate): boole
 export function countDaysInclusive(start: IsoDate, end: IsoDate): number {
   const ms = fromIsoDate(end).getTime() - fromIsoDate(start).getTime();
   return Math.floor(ms / 86_400_000) + 1;
+}
+
+/**
+ * Calendar-month helpers.
+ *
+ * Deliberately separate from `mondaysInMonth` below. That one counts Mondays in
+ * order to multiply a single week up to a month — a projection. These describe
+ * a month's real extent, which is what a report over actual shifts needs. The
+ * two answers differ: August 2026 has five Mondays but six Monday–Sunday weeks
+ * touching it.
+ */
+
+export function toIsoMonth(date: Date): IsoMonth {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+/**
+ * Validates `YYYY-MM`.
+ *
+ * The month's first day is round-tripped through `isValidIsoDate`, so "2026-13"
+ * and "2026-00" fall out without a second range check.
+ */
+export function isValidIsoMonth(value: unknown): value is IsoMonth {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}$/.test(value)) return false;
+  return isValidIsoDate(`${value}-01`);
+}
+
+/** The month a date belongs to: "2026-08-31" → "2026-08". */
+export function monthOfIsoDate(iso: IsoDate): IsoMonth {
+  return toIsoMonth(fromIsoDate(iso));
+}
+
+export function currentMonthIso(): IsoMonth {
+  return toIsoMonth(new Date());
+}
+
+/** First day of the month: "2026-08" → "2026-08-01". */
+export function startOfMonthIso(month: IsoMonth): IsoDate {
+  return `${month}-01`;
+}
+
+/**
+ * The month before this one: "2027-01" → "2026-12".
+ *
+ * Derived from the day before the first, so the year rolls over without a
+ * modulo and December needs no special case.
+ */
+export function previousIsoMonth(month: IsoMonth): IsoMonth {
+  return monthOfIsoDate(addIsoDays(startOfMonthIso(month), -1));
+}
+
+/**
+ * Last day of the month: "2026-08" → "2026-08-31".
+ *
+ * Day 0 of the following month is the last day of this one, so February and
+ * leap years need no special case. December rolls into the next January because
+ * `new Date(y, 12, 0)` normalises the overflow.
+ */
+export function endOfMonthIso(month: IsoMonth): IsoDate {
+  const first = fromIsoDate(startOfMonthIso(month));
+  return toIsoDate(new Date(first.getFullYear(), first.getMonth() + 1, 0));
+}
+
+/** The month after this one: "2026-12" → "2027-01". */
+export function nextIsoMonth(month: IsoMonth): IsoMonth {
+  return monthOfIsoDate(addIsoDays(endOfMonthIso(month), 1));
 }
 
 /**

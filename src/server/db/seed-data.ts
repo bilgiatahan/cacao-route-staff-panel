@@ -9,6 +9,12 @@ export interface EmployeeBlueprint {
   lastName: string;
   positionTr: string;
   positionEn: string;
+  /**
+   * Pounds per hour, as a decimal — £10.25 is `10.25`, never `1025` and
+   * never `1025 / 100`. The column is `Decimal(10, 2)` and every consumer
+   * (`calculateWeeklyPay`, `formatMoney`) treats it as pounds already, so
+   * there is no unit conversion anywhere in the application.
+   */
   hourlyRate: number;
   contract: ContractType;
   birthDate: string | null;
@@ -26,6 +32,20 @@ export interface EmployeeBlueprint {
 /** Shared credential for every demo account. */
 export const DEMO_PASSWORD = "cacao123";
 
+/**
+ * The demo roster.
+ *
+ * Rates are deliberately flat placeholders in the £10.00–£10.50 band: this is a
+ * London café, and the numbers exist to make the payroll screens legible, not to
+ * model a real wage structure. Keep them deterministic — the seed is re-run and
+ * diffed, and a random rate makes every report incomparable with the last one.
+ *
+ * They were Turkish lira until the panel moved to London (`40b7cf7` swapped
+ * `CURRENCY_SYMBOL` from `₺` to `£` and added `MONEY_LOCALE = "en-GB"` but left
+ * this file behind), which is why a barista briefly appeared to earn £145 an
+ * hour. Nothing scaled the value: it was simply the wrong currency's magnitude
+ * under a new symbol.
+ */
 export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
   {
     id: "emp-1",
@@ -33,7 +53,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Karim",
     positionTr: "Barista",
     positionEn: "Barista",
-    hourlyRate: 145,
+    hourlyRate: 10,
     contract: "full",
     birthDate: "1998-04-12",
     hiredAt: "2024-02-05",
@@ -58,7 +78,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Shrestha",
     positionTr: "Vardiya Amiri",
     positionEn: "Shift Lead",
-    hourlyRate: 185,
+    hourlyRate: 10.5,
     contract: "full",
     birthDate: "1993-09-30",
     hiredAt: "2022-06-01",
@@ -83,7 +103,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Thapa",
     positionTr: "Barista",
     positionEn: "Barista",
-    hourlyRate: 135,
+    hourlyRate: 10,
     contract: "part",
     birthDate: "2001-01-22",
     hiredAt: "2025-11-17",
@@ -100,7 +120,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Novak",
     positionTr: "Kasiyer",
     positionEn: "Cashier",
-    hourlyRate: 130,
+    hourlyRate: 10,
     contract: "part",
     birthDate: "2000-07-08",
     hiredAt: "2025-03-24",
@@ -125,7 +145,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Ilić",
     positionTr: "Pastane",
     positionEn: "Pastry",
-    hourlyRate: 155,
+    hourlyRate: 10.25,
     contract: "part",
     birthDate: "1995-12-03",
     hiredAt: "2023-09-11",
@@ -142,7 +162,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Fischer",
     positionTr: "Barista",
     positionEn: "Barista",
-    hourlyRate: 135,
+    hourlyRate: 10,
     contract: "part",
     birthDate: "1999-05-19",
     hiredAt: "2025-07-02",
@@ -159,7 +179,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "O'Connor",
     positionTr: "Barista",
     positionEn: "Barista",
-    hourlyRate: 138,
+    hourlyRate: 10,
     contract: "part",
     birthDate: "2002-10-27",
     hiredAt: "2026-01-19",
@@ -176,7 +196,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Ahmed",
     positionTr: "Vardiya Amiri",
     positionEn: "Shift Lead",
-    hourlyRate: 180,
+    hourlyRate: 10.5,
     contract: "full",
     birthDate: "1994-03-15",
     hiredAt: "2023-01-09",
@@ -201,7 +221,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     lastName: "Perera",
     positionTr: "Pastane",
     positionEn: "Pastry",
-    hourlyRate: 150,
+    hourlyRate: 10.25,
     contract: "full",
     birthDate: "1997-08-01",
     hiredAt: "2024-10-14",

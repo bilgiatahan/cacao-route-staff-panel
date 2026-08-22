@@ -110,7 +110,12 @@ interface StaffBlueprint {
   lastName: string;
   position: string;
   contract: ContractType;
-  /** GBP per hour, stored in `Decimal(10, 2)` like every other rate. */
+  /**
+   * Pounds per hour, as a decimal — £10.25 is `10.25`, not `1025`. Stored in
+   * `Decimal(10, 2)` like every other rate. Deliberately flat placeholders in
+   * the £10.00–£10.50 band, matching `src/server/db/seed-data.ts` person for
+   * person so the two seeds cannot disagree about what anyone earns.
+   */
   hourlyRate: number;
   phone: string;
   email: string;
@@ -130,7 +135,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Hassan",
     position: "Barista",
     contract: "full",
-    hourlyRate: 14.5,
+    hourlyRate: 10,
     phone: "+44 7700 900101",
     email: "ahmed@seed.cacaoroute.co.uk",
     address: "12 Camden High Street, London, NW1 0JH",
@@ -144,7 +149,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Shrestha",
     position: "Shift Lead",
     contract: "full",
-    hourlyRate: 15.5,
+    hourlyRate: 10.5,
     phone: "+44 7700 900102",
     email: "anima@seed.cacaoroute.co.uk",
     address: "48 Green Lanes, London, N16 9EJ",
@@ -158,7 +163,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Rai",
     position: "Barista",
     contract: "part",
-    hourlyRate: 13,
+    hourlyRate: 10,
     phone: "+44 7700 900103",
     email: "angila@seed.cacaoroute.co.uk",
     address: "7 Mare Street, London, E8 4RP",
@@ -172,7 +177,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Whitfield",
     position: "Cashier",
     contract: "part",
-    hourlyRate: 13,
+    hourlyRate: 10,
     phone: "+44 7700 900104",
     email: "ella@seed.cacaoroute.co.uk",
     address: "21 Brixton Road, London, SW9 6BU",
@@ -186,7 +191,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Adeyemi",
     position: "Barista",
     contract: "part",
-    hourlyRate: 13,
+    hourlyRate: 10.25,
     phone: "+44 7700 900105",
     email: "veronica@seed.cacaoroute.co.uk",
     address: "65 Holloway Road, London, N7 8JL",
@@ -200,7 +205,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Fletcher",
     position: "Staff Member",
     contract: "part",
-    hourlyRate: 12.5,
+    hourlyRate: 10,
     phone: "+44 7700 900106",
     email: "annabel@seed.cacaoroute.co.uk",
     address: "9 Bethnal Green Road, London, E1 6LA",
@@ -214,7 +219,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Doherty",
     position: "Staff Member",
     contract: "part",
-    hourlyRate: 12.5,
+    hourlyRate: 10,
     phone: "+44 7700 900107",
     email: "erin@seed.cacaoroute.co.uk",
     address: "33 Kingsland High Street, London, E8 2JS",
@@ -228,7 +233,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Iqbal",
     position: "Barista",
     contract: "part",
-    hourlyRate: 13,
+    hourlyRate: 10.5,
     phone: "+44 7700 900108",
     email: "bushra@seed.cacaoroute.co.uk",
     address: "14 Peckham Rye, London, SE15 4JR",
@@ -242,7 +247,7 @@ const STAFF_BLUEPRINTS: StaffBlueprint[] = [
     lastName: "Perera",
     position: "Kitchen Porter",
     contract: "part",
-    hourlyRate: 13,
+    hourlyRate: 10.25,
     phone: "+44 7700 900109",
     email: "rumesh@seed.cacaoroute.co.uk",
     address: "52 Whitechapel Road, London, E1 1JX",
@@ -257,7 +262,7 @@ const ADMIN_DEFAULTS = {
   userId: "user-admin",
   position: "Manager",
   contract: "full" as ContractType,
-  hourlyRate: 18,
+  hourlyRate: 10.5,
   phone: "+44 7700 900100",
   address: "1 Shoreditch High Street, London, E1 6PG",
   birthDate: "1988-05-21",

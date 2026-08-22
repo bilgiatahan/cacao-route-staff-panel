@@ -30,9 +30,20 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
   const roleTitle =
     user.role === "admin" ? dict.brand.managerTitle : employee.position[locale];
 
-  // Secondary destinations only, and only ones that exist. Profile is the sole
-  // real one today; settings, support and legal get rows when they get pages.
+  // Secondary destinations only, and only ones that exist. The monthly cost
+  // report is admin-only, so it appears here rather than in the tab bar every
+  // barista sees; settings, support and legal get rows when they get pages.
   const menuEntries: MenuEntry[] = [
+    ...(user.role === "admin"
+      ? [
+          {
+            key: "reports",
+            label: dict.menu.reports,
+            icon: "summary" as const,
+            href: ROUTES.reports,
+          },
+        ]
+      : []),
     { key: "profile", label: dict.menu.profile, icon: "user", href: ROUTES.profile },
   ];
 

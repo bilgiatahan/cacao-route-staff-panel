@@ -28,7 +28,7 @@ const WIDTHS: Record<PageWidth, string> = {
   /** 560 → 720. Forms and reading columns: Profile, new employee, notifications. */
   medium: "max-w-panel lg:max-w-form",
   /** 560 → 1216. Data-heavy screens that compose into columns on a desk. */
-  data: "max-w-panel lg:max-w-data",
+  data: "max-w-panel lg:max-w-full",
   /** `wide` below `lg`, then the whole workspace. The roster, and only it. */
   board: "max-w-panel md:max-w-shell lg:max-w-none",
 };

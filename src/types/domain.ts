@@ -9,6 +9,9 @@
 /** `YYYY-MM-DD` */
 export type IsoDate = string;
 
+/** `YYYY-MM` — a calendar month, the reporting period. */
+export type IsoMonth = string;
+
 /** Full ISO-8601 timestamp. */
 export type IsoDateTime = string;
 

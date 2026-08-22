@@ -89,6 +89,20 @@ export default async function PanelLayout({
   // On a phone they are deliberately not tabs; on a desk there is room to list
   // them without crowding the four that matter, one divider down.
   const secondaryItems: NavItem[] = [
+    // Admin-only, and secondary on purpose: the monthly cost report is a
+    // management question, not one of the four recurring tasks the tab bar
+    // holds. Adding a fifth tab would demote every one of them.
+    ...(isAdmin
+      ? [
+          {
+            key: "reports",
+            href: ROUTES.reports,
+            label: dict.nav.reports,
+            icon: "summary" as const,
+            badge: 0,
+          },
+        ]
+      : []),
     {
       key: "notifications",
       href: ROUTES.notifications,

@@ -1,7 +1,7 @@
 import { CURRENCY_SYMBOL, MONEY_LOCALE } from "@/lib/constants";
-import { fromIsoDate, weekDates } from "@/lib/date";
+import { fromIsoDate, startOfMonthIso, weekDates } from "@/lib/date";
 import type { Dictionary } from "@/lib/i18n";
-import type { IsoDate, Shift } from "@/types/domain";
+import type { IsoDate, IsoMonth, Shift } from "@/types/domain";
 
 /** 480 → "08:00" */
 export function minutesToTime(minutes: number): string {
@@ -82,10 +82,74 @@ export function formatWeekLabel(weekStart: IsoDate, dict: Dictionary): string {
   return `${first.getDate()}–${last.getDate()} ${monthLabel}`;
 }
 
+/**
+ * "10–16 Ağu" for a week inside one month, "27 Tem – 2 Ağu" for one that crosses.
+ *
+ * `formatWeekLabel` above cannot answer this: it labels a whole week from its
+ * Monday and always names the *last* day's month, which for 27 July – 2 August
+ * reads "27–2 Ağu" — a range that appears to run backwards inside August. The
+ * monthly report lists exactly those boundary weeks, so it needs the honest form.
+ */
+export function formatWeekSpan(start: IsoDate, end: IsoDate, dict: Dictionary): string {
+  const from = fromIsoDate(start);
+  const to = fromIsoDate(end);
+
+  if (from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth()) {
+    return `${from.getDate()}–${to.getDate()} ${dict.calendar.months[to.getMonth()]}`;
+  }
+  return formatDateRange(start, end, dict);
+}
+
 /** "Ağu 2026" for the month containing the middle of the week. */
 export function formatMonthLabel(weekStart: IsoDate, dict: Dictionary): string {
   const middle = fromIsoDate(weekDates(weekStart)[3]);
   return `${dict.calendar.months[middle.getMonth()]} ${middle.getFullYear()}`;
+}
+
+/**
+ * "Ağu 2026" for a calendar month.
+ *
+ * Distinct from `formatMonthLabel`, which takes a *week start* and reports the
+ * month its midpoint falls in. That is the right answer for a week-scoped screen
+ * and the wrong one for a month-scoped report, which already knows its month.
+ */
+export function formatMonthName(month: IsoMonth, dict: Dictionary): string {
+  const date = fromIsoDate(startOfMonthIso(month));
+  return `${dict.calendar.months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/**
+ * "+12.4%" / "-5.7%", or the em dash when there is no percentage to show.
+ *
+ * A `null` percent means the baseline was zero, so the change is undefined
+ * rather than infinite — the dash says that, where "0%" or "∞" would both lie.
+ */
+export function formatSignedPercent(
+  percent: number | null,
+  dict: Dictionary,
+): string {
+  if (percent === null) return dict.common.dash;
+  const rounded = Math.round(percent * 10) / 10;
+  // -0 renders as "-0.0%", which reads as a fall that did not happen.
+  const value = rounded === 0 ? 0 : rounded;
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+}
+
+/** "+£343.75" / "-£1,534.25" — a money difference, sign always shown. */
+export function formatSignedMoney(amount: number): string {
+  const value = amount === 0 ? 0 : amount;
+  return `${value > 0 ? "+" : value < 0 ? "-" : ""}${formatMoney(Math.abs(value))}`;
+}
+
+/** "+34sa" / "-10sa" — an hours difference, sign always shown. */
+export function formatSignedHours(hours: number, dict: Dictionary): string {
+  const value = hours === 0 ? 0 : hours;
+  return `${value > 0 ? "+" : value < 0 ? "-" : ""}${formatHours(Math.abs(value), dict)}`;
+}
+
+/** "9" for a whole average, "8.5" otherwise — a headcount mean. */
+export function formatCount(value: number): string {
+  return formatHoursValue(value);
 }
 
 /** "08:00–16:00", or the em dash when there is no shift. */

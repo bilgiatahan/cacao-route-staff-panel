@@ -117,6 +117,13 @@ export interface StatCardProps {
   hint?: ReactNode;
   /** Tints the whole card — used when a number needs attention. */
   highlight?: boolean;
+  /**
+   * Right-aligned chip on the hint row: how this figure moved against another
+   * period. Separate from `hint` because the hint truncates and a delta must not.
+   */
+  delta?: ReactNode;
+  /** A second footnote line — typically the baseline the delta is measured from. */
+  comparison?: ReactNode;
 }
 
 /**
@@ -126,20 +133,44 @@ export interface StatCardProps {
  * you" was carried by colour alone. The footnote becomes a `Badge` instead: a
  * chip is a different shape, not just a different hue.
  */
-export function StatCard({ icon, accent, label, value, hint, highlight }: StatCardProps) {
+export function StatCard({
+  icon,
+  accent,
+  label,
+  value,
+  hint,
+  highlight,
+  delta,
+  comparison,
+}: StatCardProps) {
   return (
     <Card padding="sm" className={cn(highlight && "border-warn bg-warn-soft")}>
       <IconTile name={icon} accent={accent} />
       <div className="label-eyebrow mt-2.5 truncate">{label}</div>
       <div className="tabular mt-0.5 text-3xl font-extrabold -tracking-[0.02em]">{value}</div>
-      {hint ? (
-        highlight ? (
-          <Badge tone="warning" className="mt-1.5 max-w-full truncate">
-            {hint}
-          </Badge>
-        ) : (
-          <div className="mt-0.5 truncate text-xs text-muted">{hint}</div>
-        )
+      {hint || delta ? (
+        // One row, so a delta sits beside the period it belongs to rather than
+        // below it. `min-w-0 flex-1` keeps the truncation on the hint alone.
+        <div
+          className={cn(
+            "flex items-center gap-1.5",
+            highlight ? "mt-1.5" : "mt-0.5",
+          )}
+        >
+          {hint ? (
+            highlight ? (
+              <Badge tone="warning" className="min-w-0 max-w-full truncate">
+                {hint}
+              </Badge>
+            ) : (
+              <span className="min-w-0 flex-1 truncate text-xs text-muted">{hint}</span>
+            )
+          ) : null}
+          {delta}
+        </div>
+      ) : null}
+      {comparison ? (
+        <div className="mt-1 truncate text-xs text-muted">{comparison}</div>
       ) : null}
     </Card>
   );

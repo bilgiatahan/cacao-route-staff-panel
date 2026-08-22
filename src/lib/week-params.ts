@@ -1,5 +1,12 @@
-import { currentWeekStartIso, isValidIsoDate, startOfWeekIso } from "@/lib/date";
-import type { IsoDate } from "@/types/domain";
+import {
+  currentMonthIso,
+  currentWeekStartIso,
+  isValidIsoDate,
+  isValidIsoMonth,
+  monthOfIsoDate,
+  startOfWeekIso,
+} from "@/lib/date";
+import type { IsoDate, IsoMonth } from "@/types/domain";
 
 export type Period = "week" | "month";
 export type RosterView = "grid" | "person" | "day";
@@ -12,6 +19,22 @@ export type RosterView = "grid" | "person" | "day";
 export function resolveWeekStart(value: string | undefined): IsoDate {
   if (value && isValidIsoDate(value)) return startOfWeekIso(value);
   return currentWeekStartIso();
+}
+
+/**
+ * `?month=` for the calendar-month report.
+ *
+ * Accepts `YYYY-MM`, or a full `YYYY-MM-DD` which is narrowed to its month —
+ * the same "snap anything valid to the canonical form, otherwise fall back to
+ * now" shape as `resolveWeekStart`, so a link that already carries a date can
+ * point at a month without being rewritten.
+ */
+export function resolveMonth(value: string | undefined): IsoMonth {
+  if (value) {
+    if (isValidIsoMonth(value)) return value;
+    if (isValidIsoDate(value)) return monthOfIsoDate(value);
+  }
+  return currentMonthIso();
 }
 
 export function resolvePeriod(value: string | undefined): Period {

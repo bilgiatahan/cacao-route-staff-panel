@@ -30,6 +30,7 @@ export const tr = {
     timetable: "Program",
     leave: "İzin",
     team: "Ekip",
+    reports: "Rapor",
     pay: "Bordro",
     notifications: "Bildirim",
   },
@@ -38,6 +39,7 @@ export const tr = {
 
     open: "Menü",
     profile: "Profilim",
+    reports: "Aylık Maliyet Raporu",
     language: "Dil / Language",
     signOut: "Çıkış Yap",
     version: "Uygulama Sürümü",
@@ -238,6 +240,61 @@ export const tr = {
       full: "Tam zamanlı",
       part: "Yarı zamanlı",
     },
+  },
+
+  reports: {
+    title: "Aylık Maliyet Raporu",
+    subtitle: "Gerçekleşen vardiyalara göre personel maliyeti",
+    pickMonth: "Ay Seç",
+    previousMonth: "Önceki ay",
+    nextMonth: "Sonraki ay",
+
+    statCost: "Toplam Maliyet",
+    statHours: "Toplam Çalışma Saati",
+    statRate: "Ort. Saat Ücreti",
+    statGaps: "Kapsama Boşluğu",
+    statStaff: "Çalışan Sayısı",
+
+    weeklyChart: "Haftalık Maliyet Karşılaştırması",
+    monthlyAverage: "Aylık Ort.",
+    weekDetail: "Hafta Detay Karşılaştırması",
+    thisWeek: "Bu Hafta",
+    weekTable: "Hafta Bazlı Maliyet Tablosu",
+    distribution: "Çalışan Maliyet Dağılımı",
+    total: "Toplam",
+
+    colWeek: "Hafta",
+    colRange: "Tarih Aralığı",
+    colCost: "Toplam Maliyet",
+    colHours: "Saat",
+    colRate: "Ort. Saat Ücreti",
+    colGaps: "Kapsama Boşluğu",
+    colStaff: "Planlanan Kişi",
+    colShare: "Pay",
+
+    rowCost: "Toplam Maliyet",
+    rowHours: "Toplam Saat",
+    rowRate: "Ortalama Saat Ücreti",
+    rowGaps: "Kapsama Boşluğu",
+    rowStaff: "Planlanan Kişi",
+
+    weekPrefix: "H",
+    partial: "kısmi",
+    partialFull: "tam hafta",
+    partialDay: "gün bu ayda",
+    partialDays: "gün bu ayda",
+    weeksWithData: "veri olan hafta",
+    ofWeeks: "haftanın",
+
+    comparisonNote: "Karşılaştırmalar bir önceki aya göre yapılmaktadır.",
+    partialNote:
+      "Ay başındaki ve sonundaki kısmi haftalar yalnızca bu aya düşen günleriyle sayılır; haftalık ortalama veri olan haftalara bölünür.",
+    rateNote:
+      "Geçmiş aylar, çalışanın bugünkü saat ücretiyle hesaplanır — ücret geçmişi henüz saklanmıyor.",
+
+    noPrevious: "önceki ay verisi yok",
+    empty: "Bu ayda kayıtlı vardiya yok.",
+    emptyWeek: "Bu haftada kayıtlı vardiya yok.",
   },
 
   profile: {

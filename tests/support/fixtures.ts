@@ -23,7 +23,13 @@ export async function resetDatabase(): Promise<void> {
 export async function createEmployee(
   id: string,
   firstName: string,
-  overrides: { role?: "admin" | "staff"; sortOrder?: number } = {},
+  overrides: {
+    role?: "admin" | "staff";
+    sortOrder?: number;
+    /** Additive; every default below is unchanged when omitted. */
+    isTaskRow?: boolean;
+    hourlyRate?: number;
+  } = {},
 ): Promise<string> {
   await prisma.employee.create({
     data: {
@@ -32,7 +38,7 @@ export async function createEmployee(
       lastName: "Test",
       positionTr: "Barista",
       positionEn: "Barista",
-      hourlyRate: 130,
+      hourlyRate: overrides.hourlyRate ?? 130,
       contract: "part",
       birthDate: null,
       hiredAt: null,
@@ -41,7 +47,7 @@ export async function createEmployee(
       email: `${id}@example.test`,
       address: "",
       role: overrides.role ?? "staff",
-      isTaskRow: false,
+      isTaskRow: overrides.isTaskRow ?? false,
       sortOrder: overrides.sortOrder ?? 0,
       archivedAt: null,
     },

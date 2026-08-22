@@ -1,4 +1,4 @@
-import type { IsoDate } from "@/types/domain";
+import type { IsoDate, IsoMonth } from "@/types/domain";
 
 export const ROUTES = {
   login: "/login",
@@ -10,6 +10,7 @@ export const ROUTES = {
   teamNew: "/team/new",
   notifications: "/notifications",
   profile: "/profile",
+  reports: "/reports",
 } as const;
 
 /** Every path that requires an authenticated session. */
@@ -20,6 +21,7 @@ export const PROTECTED_PREFIXES = [
   ROUTES.team,
   ROUTES.notifications,
   ROUTES.profile,
+  ROUTES.reports,
 ];
 
 export type PanelSearchParams = {
@@ -27,6 +29,8 @@ export type PanelSearchParams = {
   view?: string;
   day?: string;
   period?: string;
+  /** `YYYY-MM` — the calendar month the report is scoped to. */
+  month?: IsoMonth;
 };
 
 /** Builds a panel URL that carries the current week and view state. */
@@ -36,6 +40,7 @@ export function panelHref(pathname: string, params: PanelSearchParams = {}): str
   if (params.view) search.set("view", params.view);
   if (params.day) search.set("day", params.day);
   if (params.period) search.set("period", params.period);
+  if (params.month) search.set("month", params.month);
   const query = search.toString();
   return query ? `${pathname}?${query}` : pathname;
 }

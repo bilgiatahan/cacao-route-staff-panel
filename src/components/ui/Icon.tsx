@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarDays,
   ChartColumn,
+  ChevronLeft,
   ChevronRight,
   Clock,
   FileText,
@@ -26,8 +27,11 @@ import {
   Plus,
   Save,
   ShieldCheck,
+  Scale,
   SlidersHorizontal,
   Smartphone,
+  TrendingDown,
+  TrendingUp,
   User,
   Users,
   Wallet,
@@ -63,6 +67,7 @@ const ICONS = {
   menu: Menu,
   plus: Plus,
   chevronRight: ChevronRight,
+  chevronLeft: ChevronLeft,
   user: User,
   briefcase: Briefcase,
   // Sliders rather than a gear: a cog reads as mush at 18px in this stroke.
@@ -86,6 +91,10 @@ const ICONS = {
   spinner: LoaderCircle,
   retry: RefreshCw,
   notFound: SearchX,
+  // Reporting: a rising or falling figure, and the blended-rate scale.
+  trendUp: TrendingUp,
+  trendDown: TrendingDown,
+  rate: Scale,
 } as const satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

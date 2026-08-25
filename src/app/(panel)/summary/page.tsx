@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageShell } from "@/components/layout/PageShell";
+import { WeekSwitcher } from "@/components/layout/WeekSwitcher";
 
 import { OnShiftList } from "@/components/features/summary/OnShiftList";
 import { PendingActions } from "@/components/features/summary/PendingActions";
@@ -8,28 +9,26 @@ import { WeekShiftList } from "@/components/features/summary/WeekShiftList";
 import { PayrollTable } from "@/components/features/payroll/PayrollTable";
 import { Card, IconTile, StatCard } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PageHeader, SectionBlock } from "@/components/ui/Section";
-import { weekdayIndex } from "@/lib/date";
+import { addIsoDays, weekdayIndex } from "@/lib/date";
 import {
   formatDayMonth,
   formatHourlyRate,
   formatHours,
   formatMoney,
-  formatMonthLabel,
   formatShiftSpan,
   formatWeekLabel,
 } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
-import { resolvePeriod, resolveWeekStart } from "@/lib/week-params";
+import { resolveWeekStart } from "@/lib/week-params";
 import { requireSessionUser } from "@/server/auth/session";
 import { getAdminSummary, getStaffSummary } from "@/server/services/summary.service";
 import type { Dictionary } from "@/lib/i18n";
 import type { IsoDate } from "@/types/domain";
 
 interface SummaryPageProps {
-  searchParams: Promise<{ week?: string; period?: string }>;
+  searchParams: Promise<{ week?: string }>;
 }
 
 /**
@@ -40,26 +39,13 @@ interface SummaryPageProps {
  */
 const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
 
-function periodOptions(
-  dict: Dictionary,
-  weekStart: IsoDate,
-  active: "week" | "month",
-) {
-  return [
-    {
-      key: "week",
-      label: dict.calendar.thisWeek,
-      href: panelHref(ROUTES.summary, { week: weekStart, period: "week" }),
-      active: active === "week",
-    },
-    {
-      key: "month",
-      label: dict.calendar.thisMonth,
-      href: panelHref(ROUTES.summary, { week: weekStart, period: "month" }),
-      active: active === "month",
-    },
-  ];
-}
+/**
+ * Summary reports a single week, the same week the roster is showing. The
+ * week/month switch that used to sit here is gone: the header now steps weeks
+ * like Timetable does, so the two pages answer to the same `?week=` and the
+ * nav carries it between them.
+ */
+const PERIOD = "week" as const;
 
 function dayLabel(date: IsoDate, dict: Dictionary): string {
   const dayName = dict.calendar.daysLong[weekdayIndex(date)];
@@ -74,58 +60,52 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   ]);
 
   const weekStart = resolveWeekStart(params.week);
-  const period = resolvePeriod(params.period);
-  const isMonth = period === "month";
-  const periodLabel = isMonth
-    ? formatMonthLabel(weekStart, dict)
-    : formatWeekLabel(weekStart, dict);
+  const weekLabel = formatWeekLabel(weekStart, dict);
 
-  const segments = (
-    <SegmentedControl
+  // Summary carries nothing but the week, so stepping it is the whole URL.
+  const weekHref = (offsetWeeks: number) =>
+    panelHref(ROUTES.summary, { week: addIsoDays(weekStart, offsetWeeks * 7) });
+
+  // The switcher's label already states the range, so the header drops the
+  // subtitle that used to repeat it.
+  const weekSwitcher = (
+    <WeekSwitcher
+      previousHref={weekHref(-1)}
+      nextHref={weekHref(1)}
+      label={weekLabel}
+      previousLabel={dict.calendar.previousWeek}
+      nextLabel={dict.calendar.nextWeek}
       ariaLabel={dict.calendar.thisWeek}
-      options={periodOptions(dict, weekStart, period)}
     />
   );
 
   if (user.role === "admin") {
-    const summary = await getAdminSummary(weekStart, period);
+    const summary = await getAdminSummary(weekStart, PERIOD);
     const pendingCount = summary.pendingLeave.length + summary.pendingSwaps.length;
 
     return (
       <PageShell width="data">
         <section className={PAGE}>
-          {/*
-            `contents` below `lg`: the wrapper has no box, so the heading and the
-            period switch stay two stacked children of this column exactly as
-            they are on a phone. From `lg` it becomes the row they belong on.
-          */}
-          <div className="contents lg:flex lg:items-center lg:justify-between lg:gap-3">
-            <PageHeader
-              variant="plain"
-              title={dict.summary.title}
-              subtitle={`${formatWeekLabel(weekStart, dict)}`}
-            />
-            {segments}
-          </div>
+          <PageHeader
+            variant="plain"
+            title={dict.summary.title}
+            action={weekSwitcher}
+          />
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <StatCard
               icon="clock"
               accent="blue"
-              label={isMonth ? dict.summary.statMonthlyHours : dict.summary.statTotalHours}
+              label={dict.summary.statTotalHours}
               value={formatHours(summary.payroll.totalHours, dict)}
-              hint={
-                isMonth
-                  ? `${summary.weeksInPeriod} ${dict.units.weeks}`
-                  : `${summary.headcount} ${dict.summary.staffSuffix}`
-              }
+              hint={`${summary.headcount} ${dict.summary.staffSuffix}`}
             />
             <StatCard
               icon="pay"
               accent="green"
               label={dict.summary.statCost}
               value={formatMoney(summary.payroll.totalCost)}
-              hint={periodLabel}
+              hint={weekLabel}
             />
             <StatCard
               icon="calendarCheck"
@@ -175,7 +155,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           </SectionBlock>
           </div>
 
-          <SectionBlock title={isMonth ? dict.team.payrollMonthly : dict.team.payrollWeekly}>
+          <SectionBlock title={dict.team.payrollWeekly}>
             <PayrollTable report={summary.payroll} dict={dict} locale={locale} />
           </SectionBlock>
         </section>
@@ -183,7 +163,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     );
   }
 
-  const summary = await getStaffSummary(user.employeeId, weekStart, period);
+  const summary = await getStaffSummary(user.employeeId, weekStart, PERIOD);
   if (!summary) {
     return (
       <PageShell width="data">
@@ -204,14 +184,11 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   return (
     <PageShell width="data">
       <section className={PAGE}>
-        <div className="contents lg:flex lg:items-center lg:justify-between lg:gap-3">
-          <PageHeader
-            variant="plain"
-            title={dict.summary.title}
-            subtitle={`${formatWeekLabel(weekStart, dict)}`}
-          />
-          {segments}
-        </div>
+        <PageHeader
+          variant="plain"
+          title={dict.summary.title}
+          action={weekSwitcher}
+        />
 
         {/*
           The next shift keeps its lead, but on a desk it no longer runs the
@@ -245,20 +222,16 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           <StatCard
             icon="clock"
             accent="blue"
-            label={isMonth ? dict.summary.statMonthlyHours : dict.summary.statMyHours}
+            label={dict.summary.statMyHours}
             value={formatHours(summary.myHours, dict)}
-            hint={
-              isMonth
-                ? `${summary.weeksInPeriod} ${dict.units.weeks}`
-                : `${shiftDays} ${dict.summary.shiftsSuffix}`
-            }
+            hint={`${shiftDays} ${dict.summary.shiftsSuffix}`}
           />
           <StatCard
             icon="pay"
             accent="green"
-            label={isMonth ? dict.summary.statMonthlyPay : dict.summary.statMyPay}
+            label={dict.summary.statMyPay}
             value={formatMoney(summary.myPay)}
-            hint={isMonth ? periodLabel : formatHourlyRate(summary.employee.hourlyRate, dict)}
+            hint={formatHourlyRate(summary.employee.hourlyRate, dict)}
           />
           <StatCard
             icon="calendarCheck"

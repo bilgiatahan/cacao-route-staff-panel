@@ -30,6 +30,5 @@ export const SEARCH_PARAM = {
   week: "week",
   view: "view",
   day: "day",
-  period: "period",
   month: "month",
 } as const;

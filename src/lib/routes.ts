@@ -28,7 +28,6 @@ export type PanelSearchParams = {
   week?: IsoDate;
   view?: string;
   day?: string;
-  period?: string;
   /** `YYYY-MM` — the calendar month the report is scoped to. */
   month?: IsoMonth;
 };
@@ -39,7 +38,6 @@ export function panelHref(pathname: string, params: PanelSearchParams = {}): str
   if (params.week) search.set("week", params.week);
   if (params.view) search.set("view", params.view);
   if (params.day) search.set("day", params.day);
-  if (params.period) search.set("period", params.period);
   if (params.month) search.set("month", params.month);
   const query = search.toString();
   return query ? `${pathname}?${query}` : pathname;

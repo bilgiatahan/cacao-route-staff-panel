@@ -37,10 +37,6 @@ export function resolveMonth(value: string | undefined): IsoMonth {
   return currentMonthIso();
 }
 
-export function resolvePeriod(value: string | undefined): Period {
-  return value === "month" ? "month" : "week";
-}
-
 export function resolveRosterView(value: string | undefined): RosterView {
   if (value === "person" || value === "day") return value;
   return "grid";

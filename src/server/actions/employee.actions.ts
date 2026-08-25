@@ -4,7 +4,8 @@ import { hash } from "bcryptjs";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isValidIsoDate } from "@/lib/date";
+import { checkPersonFields, readIsoDate } from "@/lib/forms/person-fields";
+import { PASSWORD_RULE, passwordByteLength } from "@/lib/forms/rules";
 import { ROUTES } from "@/lib/routes";
 import { assertAdmin } from "@/server/auth/session";
 import { employeeRepository, type EmployeeDraft } from "@/server/repositories/employee.repository";
@@ -13,16 +14,8 @@ import type { ContractType } from "@/types/domain";
 
 import { ACTION_OK, actionError, toActionResult, type ActionResult } from "./action-result";
 
-/** Short enough to stay usable for a café team, long enough not to be trivial. */
-const MIN_PASSWORD_LENGTH = 8;
-
 function text(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
-}
-
-function optionalIsoDate(formData: FormData, key: string): string | null {
-  const value = text(formData, key);
-  return isValidIsoDate(value) ? value : null;
 }
 
 function positiveNumber(formData: FormData, key: string, fallback = 0): number {
@@ -34,29 +27,54 @@ function contractType(formData: FormData): ContractType {
   return formData.get("contract") === "full" ? "full" : "part";
 }
 
-/** Shared shape for the create and update forms. */
-function readDraft(formData: FormData): EmployeeDraft | null {
-  const firstName = text(formData, "firstName");
-  if (!firstName) return null;
+/** Either the draft, or the first rule the submission broke. */
+type DraftResult = { draft: EmployeeDraft } | { error: ActionResult };
 
+/**
+ * Shared shape for the create and update forms, validated.
+ *
+ * The validation goes through `checkPersonFields`, the same function
+ * `updateProfileAction` uses. Before that, this form checked only that a first
+ * name was present — so a manager could save a phone number, an email address or
+ * a birth date that the person's own profile form would then refuse, leaving them
+ * unable to edit their own record until someone fixed it here.
+ *
+ * `email` is optional on this form and required on the profile one, which is the
+ * one real difference: a roster row can legitimately have no account — a task row
+ * like "Cleaning", or someone whose login is set up later.
+ */
+function readDraft(formData: FormData): DraftResult {
   const position = text(formData, "position");
 
-  return {
-    firstName,
+  const fields = {
+    firstName: text(formData, "firstName"),
     lastName: text(formData, "lastName"),
-    // A single position field feeds both locales; translating job titles per
-    // language is an editorial job, not something to guess at here.
-    position: { tr: position, en: position },
-    hourlyRate: positiveNumber(formData, "hourlyRate", 130),
-    contract: contractType(formData),
-    birthDate: optionalIsoDate(formData, "birthDate"),
-    hiredAt: optionalIsoDate(formData, "hiredAt"),
-    leaveBalance: positiveNumber(formData, "leaveBalance"),
-    phone: text(formData, "phone"),
+    position,
     email: text(formData, "email").toLowerCase(),
+    phone: text(formData, "phone"),
     address: text(formData, "address"),
-    role: "staff",
-    isTaskRow: false,
+    birthDate: readIsoDate(text(formData, "birthDate")),
+  };
+
+  const invalid = checkPersonFields(fields, { emailRequired: false });
+  if (invalid) return { error: invalid };
+
+  return {
+    draft: {
+      ...fields,
+      // A single position field feeds both locales; translating job titles per
+      // language is an editorial job, not something to guess at here.
+      position: { tr: position, en: position },
+      // No fallback rate: the old one was 130, a lira figure left behind by the
+      // move to London, and a plausible-looking wrong number is worse than a
+      // visible zero.
+      hourlyRate: positiveNumber(formData, "hourlyRate"),
+      contract: contractType(formData),
+      hiredAt: readIsoDate(text(formData, "hiredAt")),
+      leaveBalance: positiveNumber(formData, "leaveBalance"),
+      role: "staff",
+      isTaskRow: false,
+    },
   };
 }
 
@@ -72,8 +90,13 @@ function readPassword(
   const password = text(formData, "password");
   if (!password) return null;
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
+  if (password.length < PASSWORD_RULE.minLength) {
     return { error: actionError("passwordTooShort") };
+  }
+  // Bytes, not characters: bcrypt stops at 72 bytes and silently ignores the
+  // rest, so a longer password would only appear to have been accepted.
+  if (passwordByteLength(password) > PASSWORD_RULE.maxLength) {
+    return { error: actionError("passwordTooLong") };
   }
   if (!draft.email) {
     // The email is the login identifier, so an account cannot exist without one.
@@ -91,8 +114,9 @@ export async function createEmployeeAction(
   try {
     await assertAdmin();
 
-    const draft = readDraft(formData);
-    if (!draft) return actionError("nameRequired");
+    const parsed = readDraft(formData);
+    if ("error" in parsed) return parsed.error;
+    const { draft } = parsed;
 
     const credentials = readPassword(formData, draft);
     if (credentials && "error" in credentials) return credentials.error;
@@ -120,8 +144,9 @@ export async function updateEmployeeAction(
   try {
     await assertAdmin();
 
-    const draft = readDraft(formData);
-    if (!draft) return actionError("nameRequired");
+    const parsed = readDraft(formData);
+    if ("error" in parsed) return parsed.error;
+    const { draft } = parsed;
 
     const existing = await employeeRepository.findById(employeeId);
     if (!existing) return actionError("notFound");

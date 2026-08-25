@@ -34,8 +34,10 @@ import {
   TrendingUp,
   User,
   Users,
+  X,
   Wallet,
   type IconNode,
+  LayoutDashboard,
 } from "lucide";
 
 import { cn } from "@/lib/utils";
@@ -68,6 +70,7 @@ const ICONS = {
   plus: Plus,
   chevronRight: ChevronRight,
   chevronLeft: ChevronLeft,
+  close: X,
   user: User,
   briefcase: Briefcase,
   // Sliders rather than a gear: a cog reads as mush at 18px in this stroke.
@@ -95,6 +98,7 @@ const ICONS = {
   trendUp: TrendingUp,
   trendDown: TrendingDown,
   rate: Scale,
+  layoutDashboard: LayoutDashboard
 } as const satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

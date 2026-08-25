@@ -2,7 +2,6 @@
 
 import { useActionState, useRef, useState } from "react";
 
-import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -10,12 +9,15 @@ import { useActionFeedback } from "@/components/ui/use-action-feedback";
 import {
   Field,
   FieldLabel,
-  FormError,
   SoftInput,
   SoftTextArea,
 } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { SectionHeading } from "@/components/ui/Section";
+import { Toast } from "@/components/ui/Toast";
+import { useSubmitCount } from "@/components/ui/use-submit-count";
+import { birthDateBounds, inputProps, PASSWORD_RULE, PERSON_RULES } from "@/lib/forms/rules";
 import { cn } from "@/lib/utils";
 import { useFieldErrors } from "@/components/ui/use-field-errors";
 import {
@@ -94,6 +96,12 @@ export function EmployeeForm({
   const formRef = useRef<HTMLFormElement>(null);
   const fields = useFieldErrors(formRef, state, (key) => actionErrorMessage(key, dict));
   const saved = state?.ok === true;
+  // Either control finishing is a new outcome to report.
+  const attempt = useSubmitCount(pending || archiving);
+
+  // Read at render, not at module load: a tab left open overnight would keep
+  // yesterday's bounds. The action re-derives them from its own clock anyway.
+  const birth = birthDateBounds();
 
   // `window.confirm` was the only guard on the one irreversible action here, and
   // it could not say what archiving now actually does — it also removes the
@@ -120,7 +128,7 @@ export function EmployeeForm({
                 name="firstName"
                 autoComplete="given-name"
                 defaultValue={values.firstName}
-                required
+                {...inputProps(PERSON_RULES.firstName)}
                 {...fields.controlProps("firstName")}
               />
             </Field>
@@ -129,15 +137,25 @@ export function EmployeeForm({
                 name="lastName"
                 autoComplete="family-name"
                 defaultValue={values.lastName}
+                {...inputProps(PERSON_RULES.lastName)}
               />
             </Field>
-            <Field label={dict.team.birth}>
+            <Field
+              label={dict.team.birth}
+              error={fields.errorFor("birthDate")}
+              errorId={fields.errorId("birthDate")}
+            >
               <SoftInput
                 name="birthDate"
                 type="date"
                 icon="timetable"
                 className="tabular"
                 defaultValue={values.birthDate}
+                // The picker refuses an implausible year outright, so the typo
+                // the action guards against mostly never gets typed.
+                min={birth.min}
+                max={birth.max}
+                {...fields.controlProps("birthDate")}
               />
             </Field>
             <Field label={dict.team.hired}>
@@ -160,6 +178,7 @@ export function EmployeeForm({
                 name="position"
                 defaultValue={values.position}
                 placeholder={dict.team.positionPlaceholder}
+                {...inputProps(PERSON_RULES.position)}
               />
             </Field>
 
@@ -206,7 +225,11 @@ export function EmployeeForm({
                   className="tabular"
                   defaultValue={values.hourlyRate}
                   min={0}
-                  step={5}
+                  // Was 5. With `min={0}` that made the valid grid 0, 5, 10, 15
+                  // — so £10.25 and £10.50, the rates this deployment actually
+                  // uses, raised `stepMismatch` and the form would not submit.
+                  // Stepping by 5 made sense in lira and is unusable in pounds.
+                  step={0.25}
                 />
               </Field>
               <Field label={dict.team.leaveBalance}>
@@ -226,13 +249,18 @@ export function EmployeeForm({
         <Card padding="md">
           <SectionHeading variant="card" icon="mail" title={dict.team.contact} />
           <div className="grid grid-cols-1 gap-x-2.5 gap-y-3 sm:grid-cols-2">
-            <Field label={dict.team.phone}>
-              <SoftInput
+            <Field
+              label={dict.team.phone}
+              error={fields.errorFor("phone")}
+              errorId={fields.errorId("phone")}
+            >
+              {/* Same mask and same rule as the person's own profile form, so a
+                  number a manager can save is one its owner can save too. */}
+              <PhoneInput
                 name="phone"
-                type="tel"
                 icon="phone"
-                autoComplete="tel"
                 defaultValue={values.phone}
+                {...fields.controlProps("phone")}
               />
             </Field>
             <Field
@@ -244,12 +272,21 @@ export function EmployeeForm({
                 name="email"
                 type="email"
                 icon="mail"
+                inputMode="email"
+                autoComplete="email"
                 defaultValue={values.email}
+                // Not `required`: a roster row can have no account at all.
+                maxLength={PERSON_RULES.email.maxLength}
                 {...fields.controlProps("email")}
               />
             </Field>
             <Field label={dict.team.address} className="sm:col-span-2">
-              <SoftTextArea name="address" rows={2} defaultValue={values.address} />
+              <SoftTextArea
+                name="address"
+                rows={2}
+                defaultValue={values.address}
+                maxLength={PERSON_RULES.address.maxLength}
+              />
             </Field>
           </div>
         </Card>
@@ -275,16 +312,25 @@ export function EmployeeForm({
               type="password"
               icon="lock"
               autoComplete="new-password"
+              minLength={PASSWORD_RULE.minLength}
+              maxLength={PASSWORD_RULE.maxLength}
               {...fields.controlProps("password")}
             />
           </Field>
         </Card>
 
-        {fields.formError ? <FormError>{fields.formError}</FormError> : null}
-        {archiveFeedback.error ? <Alert>{archiveFeedback.error}</Alert> : null}
-        {saved && !fields.formError ? (
-          <Alert tone="success">{dict.team.saved}</Alert>
-        ) : null}
+        <Toast
+          message={fields.formError ?? archiveFeedback.error}
+          nonce={attempt}
+          tone="danger"
+          closeLabel={dict.common.close}
+        />
+        <Toast
+          message={saved && !fields.formError ? dict.team.saved : null}
+          nonce={attempt}
+          tone="success"
+          closeLabel={dict.common.close}
+        />
 
         <div className="flex gap-2">
           <Button

@@ -19,6 +19,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { EMPLOYEE_BLUEPRINTS } from "@/server/db/seed-data";
 import { calculateWeeklyPay } from "@/lib/domain/payroll";
 import { formatMoney } from "@/lib/format";
+import { formatUkPhone, isValidUkPhone } from "@/lib/forms/phone-uk";
 
 const { employeeRepository } = await import("@/server/repositories/employee.repository");
 const { prisma } = await import("@/server/db/client");
@@ -131,6 +132,35 @@ describe("seeded demo rates", () => {
       // Decimal(10, 2) would silently round a third decimal place away.
       expect(person.hourlyRate * 100).toBeCloseTo(Math.round(person.hourlyRate * 100), 9);
     }
+  });
+
+  it("gives everyone a dialable UK number", () => {
+    // The profile form masks and validates UK numbers, so a seeded `+90` would
+    // make every seeded profile unsaveable the moment anyone edited it.
+    for (const person of people) {
+      expect(isValidUkPhone(person.phone), `${person.firstName}: ${person.phone}`).toBe(
+        true,
+      );
+    }
+  });
+
+  it("stores numbers already in canonical grouping", () => {
+    // Not the exact string the form now posts — the control puts `+44` in front
+    // — but a settled national spelling that round-trips rather than drifting.
+    for (const person of people) {
+      expect(formatUkPhone(person.phone), person.firstName).toBe(person.phone);
+    }
+  });
+
+  it("uses the range reserved for fiction, so no seeded number can ring anyone", () => {
+    for (const person of people) {
+      expect(person.phone, person.firstName).toMatch(/^07700 9000?\d\d\d$/);
+    }
+  });
+
+  it("leaves the task row without a phone number", () => {
+    const task = EMPLOYEE_BLUEPRINTS.filter((blueprint) => blueprint.isTaskRow);
+    expect(task[0].phone).toBe("");
   });
 
   it("leaves the task row unpaid", () => {

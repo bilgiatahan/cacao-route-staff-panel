@@ -141,11 +141,13 @@ export const CONTROL_CLASS_SOFT =
 export interface SoftInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Seated inside the left edge; the control makes room for it itself. */
   icon?: IconName;
+  /** Needed by `PhoneInput`, which has to put the caret back after reformatting. */
+  ref?: Ref<HTMLInputElement>;
 }
 
-export function SoftInput({ icon, className, ...props }: SoftInputProps) {
+export function SoftInput({ icon, className, ref, ...props }: SoftInputProps) {
   const control = (
-    <input className={cn(CONTROL_CLASS_SOFT, icon && "pl-9", className)} {...props} />
+    <input ref={ref} className={cn(CONTROL_CLASS_SOFT, icon && "pl-9", className)} {...props} />
   );
   if (!icon) return control;
 

@@ -222,3 +222,21 @@
     background: #c9c6c6;
   }
 }
+
+/*
+ * The toast's entrance: in from the left edge it is anchored to.
+ *
+ * Applied through `motion-safe:`, so someone who has asked their system to
+ * reduce motion gets the message without the movement — the toast still appears,
+ * it simply does not travel.
+ */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

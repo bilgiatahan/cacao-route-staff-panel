@@ -45,6 +45,12 @@ export const DEMO_PASSWORD = "cacao123";
  * this file behind), which is why a barista briefly appeared to earn £145 an
  * hour. Nothing scaled the value: it was simply the wrong currency's magnitude
  * under a new symbol.
+ *
+ * Phone numbers are drawn from 07700 900000–900999, the range Ofcom reserves for
+ * drama and fiction — a seeded number can never ring a real person. They used to
+ * be Turkish mobiles, from the same pre-London commit that left the rates in
+ * lira; the profile form now masks and validates UK numbers, so a `+90` here
+ * would make every seeded profile unsaveable.
  */
 export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
   {
@@ -58,7 +64,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1998-04-12",
     hiredAt: "2024-02-05",
     leaveBalance: 11,
-    phone: "+90 532 118 4407",
+    phone: "07700 900101",
     email: "ahmed@cacaoroute.co",
     address: "Caferağa Mah. Dr. Esat Işık Cad. 42/5, Kadıköy, İstanbul",
     role: "staff",
@@ -83,7 +89,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1993-09-30",
     hiredAt: "2022-06-01",
     leaveBalance: 6,
-    phone: "+90 533 204 9912",
+    phone: "07700 900102",
     email: "anima@cacaoroute.co",
     address: "Osmanağa Mah. Söğütlüçeşme Cad. 9/3, Kadıköy, İstanbul",
     role: "admin",
@@ -108,7 +114,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "2001-01-22",
     hiredAt: "2025-11-17",
     leaveBalance: 4,
-    phone: "+90 545 771 3028",
+    phone: "07700 900103",
     email: "angila@cacaoroute.co",
     address: "Rasimpaşa Mah. Uzunhafız Sok. 17/2, Kadıköy, İstanbul",
     role: "staff",
@@ -125,7 +131,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "2000-07-08",
     hiredAt: "2025-03-24",
     leaveBalance: 9,
-    phone: "+90 537 610 5583",
+    phone: "07700 900104",
     email: "ella@cacaoroute.co",
     address: "Fenerbahçe Mah. Fener Kalamış Cad. 88/7, Kadıköy, İstanbul",
     role: "staff",
@@ -150,7 +156,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1995-12-03",
     hiredAt: "2023-09-11",
     leaveBalance: 13,
-    phone: "+90 531 442 7719",
+    phone: "07700 900105",
     email: "veronica@cacaoroute.co",
     address: "Göztepe Mah. Bağdat Cad. 214/4, Kadıköy, İstanbul",
     role: "staff",
@@ -167,7 +173,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1999-05-19",
     hiredAt: "2025-07-02",
     leaveBalance: 7,
-    phone: "+90 546 903 2264",
+    phone: "07700 900106",
     email: "annabel@cacaoroute.co",
     address: "Zühtüpaşa Mah. Şair Nefi Sok. 6/1, Kadıköy, İstanbul",
     role: "staff",
@@ -184,7 +190,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "2002-10-27",
     hiredAt: "2026-01-19",
     leaveBalance: 3,
-    phone: "+90 539 337 1145",
+    phone: "07700 900107",
     email: "erin@cacaoroute.co",
     address: "Koşuyolu Mah. Kuzu Sok. 31/9, Kadıköy, İstanbul",
     role: "staff",
@@ -201,7 +207,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1994-03-15",
     hiredAt: "2023-01-09",
     leaveBalance: 8,
-    phone: "+90 542 556 8830",
+    phone: "07700 900108",
     email: "bushra@cacaoroute.co",
     address: "Acıbadem Mah. Sarımeşe Sok. 12/6, Kadıköy, İstanbul",
     role: "staff",
@@ -226,7 +232,7 @@ export const EMPLOYEE_BLUEPRINTS: EmployeeBlueprint[] = [
     birthDate: "1997-08-01",
     hiredAt: "2024-10-14",
     leaveBalance: 12,
-    phone: "+90 535 228 6674",
+    phone: "07700 900109",
     email: "rumesh@cacaoroute.co",
     address: "Merdivenköy Mah. Ressam Salih Erimez Cad. 55/3, Kadıköy, İstanbul",
     role: "staff",

@@ -5,29 +5,55 @@ import { cn } from "@/lib/utils";
 
 export type AlertTone = "danger" | "warning" | "success" | "info";
 
+export interface AlertToneStyle {
+  /** Border, ground and ink. */
+  box: string;
+  icon: IconName;
+  /**
+   * `danger` and `warning` interrupt — a failed action is news the user did not
+   * ask for. `success` and `info` are polite, so they never talk over whatever
+   * the screen reader is already saying.
+   */
+  role: "alert" | "status";
+  live: "assertive" | "polite";
+}
+
 /**
- * Card-family message block: tinted ground, hairline border, soft corners.
+ * Card-family message treatment: tinted ground, hairline border, soft corners.
  *
  * Every tone pairs an ink with its own wash at 4.5:1 or better, so the text is
  * readable without relying on the icon or the colour alone.
+ *
+ * Exported because `Toast` is the same message in a different shape — a corner
+ * popup rather than an inline block — and a success that were a different green
+ * or announced differently depending on where it appeared would be two designs
+ * wearing one name.
  */
-const TONES: Record<AlertTone, { box: string; icon: IconName }> = {
-  danger: { box: "border-danger/25 bg-danger-soft text-danger", icon: "alert" },
-  warning: { box: "border-warn/40 bg-warn-soft text-warn-dark", icon: "alert" },
-  success: { box: "border-success/25 bg-success-soft text-success", icon: "calendarCheck" },
-  info: { box: "border-brand/20 bg-brand-faint text-brand-dark", icon: "info" },
-};
-
-/**
- * `danger` and `warning` interrupt — a failed action is news the user did not
- * ask for. `success` and `info` are polite, so they never talk over whatever the
- * screen reader is already saying.
- */
-const LIVE: Record<AlertTone, { role: "alert" | "status"; live: "assertive" | "polite" }> = {
-  danger: { role: "alert", live: "assertive" },
-  warning: { role: "alert", live: "assertive" },
-  success: { role: "status", live: "polite" },
-  info: { role: "status", live: "polite" },
+export const TONES: Record<AlertTone, AlertToneStyle> = {
+  danger: {
+    box: "border-danger/25 bg-danger-soft text-danger",
+    icon: "alert",
+    role: "alert",
+    live: "assertive",
+  },
+  warning: {
+    box: "border-warn/40 bg-warn-soft text-warn-dark",
+    icon: "alert",
+    role: "alert",
+    live: "assertive",
+  },
+  success: {
+    box: "border-success/25 bg-success-soft text-success",
+    icon: "calendarCheck",
+    role: "status",
+    live: "polite",
+  },
+  info: {
+    box: "border-brand/20 bg-brand-faint text-brand-dark",
+    icon: "info",
+    role: "status",
+    live: "polite",
+  },
 };
 
 export interface AlertProps {
@@ -40,9 +66,17 @@ export interface AlertProps {
   className?: string;
 }
 
+/**
+ * The inline message block: sits in the flow, next to what it is about.
+ *
+ * `Field` renders one under a control to say what is wrong with it, so this
+ * deliberately does not float, dismiss itself or move — a validation message
+ * that left for the corner of the screen would be describing a control the
+ * reader can no longer see it beside. Feedback about a completed action goes in
+ * a `Toast` instead.
+ */
 export function Alert({ children, tone = "danger", icon, id, className }: AlertProps) {
-  const { box, icon: defaultIcon } = TONES[tone];
-  const { role, live } = LIVE[tone];
+  const { box, icon: defaultIcon, role, live } = TONES[tone];
 
   return (
     <div

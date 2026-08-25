@@ -41,6 +41,7 @@ export default async function NotificationsPage() {
               label={dict.notifications.markAll}
               disabled={unread === 0}
               errorMessages={actionErrorMessages(dict)}
+              closeLabel={dict.common.close}
             />
           }
         />

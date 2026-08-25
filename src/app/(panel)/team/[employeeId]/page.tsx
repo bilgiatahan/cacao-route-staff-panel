@@ -133,7 +133,7 @@ export default async function EmployeeDetailPage({
             />
           </div>
 
-          <div className="contents lg:flex lg:min-w-0 lg:basis-0 lg:grow-[5] lg:flex-col lg:gap-3.5">
+          <div className="contents lg:flex lg:min-w-0 lg:basis-0 lg:grow-5 lg:flex-col lg:gap-3.5">
             {/* One block for the week: what it came to, then the days it came
                 from. Two headings saying "This Week" would be one heading too
                 many. */}

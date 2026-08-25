@@ -16,10 +16,17 @@ export type FieldMap = Partial<Record<ActionErrorKey, string | null>>;
 
 export const DEFAULT_FIELD_MAP: FieldMap = {
   nameRequired: "firstName",
+  nameTooShort: "firstName",
   emailRequired: "email",
   emailTaken: "email",
+  invalidEmail: "email",
   accountNeedsEmail: "email",
+  invalidPhone: "phone",
+  invalidBirthDate: "birthDate",
   passwordTooShort: "password",
+  passwordTooLong: "password",
+  passwordMismatch: "confirmPassword",
+  passwordUnchanged: "newPassword",
   currentPasswordRequired: "currentPassword",
   wrongPassword: "currentPassword",
   invalidRange: "startDate",
@@ -40,6 +47,11 @@ export const FORM_LEVEL_KEYS: readonly ActionErrorKey[] = [
   "forbidden",
   "notFound",
   "unexpected",
+  // Native `maxLength` already stops this in the browser, so reaching it means a
+  // crafted POST — there is no field the reader was editing to point at.
+  "valueTooLong",
+  // About the account, not about any control on the form.
+  "noAccount",
 ];
 
 /** The control an error belongs to, or `null` when it belongs to the form. */

@@ -68,6 +68,13 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
             version: dict.menu.version,
           }}
           entries={menuEntries}
+          locale={{
+            current: locale,
+            labels: {
+              group: dict.menu.language,
+              names: { tr: dict.menu.localeTr, en: dict.menu.localeEn },
+            },
+          }}
           profile={{
             name: user.fullName,
             role: roleTitle,

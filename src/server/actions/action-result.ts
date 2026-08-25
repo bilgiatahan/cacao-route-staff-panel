@@ -13,10 +13,19 @@ export type ActionErrorKey =
   | "invalidRange"
   | "invalidTime"
   | "nameRequired"
+  | "nameTooShort"
   | "passwordTooShort"
+  | "passwordTooLong"
+  | "passwordMismatch"
+  | "passwordUnchanged"
   | "accountNeedsEmail"
+  | "noAccount"
   | "emailTaken"
   | "emailRequired"
+  | "invalidEmail"
+  | "invalidPhone"
+  | "invalidBirthDate"
+  | "valueTooLong"
   | "currentPasswordRequired"
   | "wrongPassword"
   | "unexpected";
@@ -45,33 +54,52 @@ export function toActionResult(error: unknown): ActionResult {
 }
 
 /**
+ * Every key in the union, as a value.
+ *
+ * A record checked with `satisfies` rather than a hand-kept array: an array is
+ * typed `ActionErrorKey[]`, so leaving a key out of it compiles cleanly and the
+ * key then silently vanishes from `actionErrorMessages`. This way, adding a
+ * member to the union without listing it here is a compile error.
+ */
+const ERROR_KEYS = {
+  unauthenticated: true,
+  forbidden: true,
+  notFound: true,
+  invalidCredentials: true,
+  invalidRange: true,
+  invalidTime: true,
+  nameRequired: true,
+  nameTooShort: true,
+  passwordTooShort: true,
+  passwordTooLong: true,
+  passwordMismatch: true,
+  passwordUnchanged: true,
+  accountNeedsEmail: true,
+  noAccount: true,
+  emailTaken: true,
+  emailRequired: true,
+  invalidEmail: true,
+  invalidPhone: true,
+  invalidBirthDate: true,
+  valueTooLong: true,
+  currentPasswordRequired: true,
+  wrongPassword: true,
+  unexpected: true,
+} as const satisfies Record<ActionErrorKey, true>;
+
+export const ALL_ERROR_KEYS = Object.keys(ERROR_KEYS) as ActionErrorKey[];
+
+/**
  * Every error key resolved in one pass.
  *
  * Client components that trigger a bare-button action need to turn a key into a
  * sentence, but must not receive the whole dictionary to do it. This hands them
- * ~14 short strings instead.
+ * a couple of dozen short strings instead.
  */
 export function actionErrorMessages(dict: Dictionary): Record<ActionErrorKey, string> {
-  const keys: ActionErrorKey[] = [
-    "unauthenticated",
-    "forbidden",
-    "notFound",
-    "invalidCredentials",
-    "invalidRange",
-    "invalidTime",
-    "nameRequired",
-    "passwordTooShort",
-    "accountNeedsEmail",
-    "emailTaken",
-    "emailRequired",
-    "currentPasswordRequired",
-    "wrongPassword",
-    "unexpected",
-  ];
-  return Object.fromEntries(keys.map((key) => [key, actionErrorMessage(key, dict)])) as Record<
-    ActionErrorKey,
-    string
-  >;
+  return Object.fromEntries(
+    ALL_ERROR_KEYS.map((key) => [key, actionErrorMessage(key, dict)]),
+  ) as Record<ActionErrorKey, string>;
 }
 
 export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): string {
@@ -84,10 +112,28 @@ export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): str
       return dict.timetable.editorInvalid;
     case "nameRequired":
       return dict.team.nameRequired;
+    case "nameTooShort":
+      return dict.profile.nameTooShort;
     case "passwordTooShort":
       return dict.team.passwordTooShort;
+    case "passwordTooLong":
+      return dict.profile.passwordTooLong;
+    case "passwordMismatch":
+      return dict.profile.passwordMismatch;
+    case "passwordUnchanged":
+      return dict.profile.passwordUnchanged;
     case "accountNeedsEmail":
       return dict.team.accountNeedsEmail;
+    case "noAccount":
+      return dict.profile.noAccount;
+    case "invalidEmail":
+      return dict.profile.invalidEmail;
+    case "invalidPhone":
+      return dict.profile.invalidPhone;
+    case "invalidBirthDate":
+      return dict.profile.invalidBirthDate;
+    case "valueTooLong":
+      return dict.profile.valueTooLong;
     case "emailTaken":
       return dict.team.emailTaken;
     case "emailRequired":

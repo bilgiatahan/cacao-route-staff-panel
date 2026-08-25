@@ -27,10 +27,25 @@ import type { ActionErrorKey } from "@/server/actions/action-result";
 
 const ALL_KEYS = Object.keys(actionErrorMessages(getDictionary("tr"))) as ActionErrorKey[];
 
-/** The override ProfileForm applies: its password box is `newPassword`. */
-const PROFILE_MAP: FieldMap = {
+/**
+ * The override `PasswordForm` applies: its box is `newPassword`, where the
+ * employee form calls the same control `password`.
+ */
+const PASSWORD_MAP: FieldMap = {
   ...DEFAULT_FIELD_MAP,
   passwordTooShort: "newPassword",
+  passwordTooLong: "newPassword",
+};
+
+/**
+ * The override `ProfileForm` applies. Since the password moved to its own form,
+ * a password key here would point at a control that is not on the page — so the
+ * profile form forces all three back to form-level.
+ */
+const PROFILE_MAP: FieldMap = {
+  ...DEFAULT_FIELD_MAP,
+  passwordTooShort: null,
+  passwordTooLong: null,
   accountNeedsEmail: null,
 };
 
@@ -78,8 +93,8 @@ describe("field attribution", () => {
 });
 
 describe("per-form overrides", () => {
-  it("sends passwordTooShort to newPassword on the profile form", () => {
-    expect(fieldForError("passwordTooShort", PROFILE_MAP)).toBe("newPassword");
+  it("sends passwordTooShort to newPassword on the password form", () => {
+    expect(fieldForError("passwordTooShort", PASSWORD_MAP)).toBe("newPassword");
     // …and still to `password` on the employee form.
     expect(fieldForError("passwordTooShort")).toBe("password");
   });
@@ -90,6 +105,12 @@ describe("per-form overrides", () => {
     expect(fieldForError("accountNeedsEmail")).toBe("email");
   });
 
+  it("keeps password keys off the profile form, which has no password box", () => {
+    for (const key of ["passwordTooShort", "passwordTooLong"] as const) {
+      expect(fieldForError(key, PROFILE_MAP), key).toBeNull();
+    }
+  });
+
   it("does not let an override leak into the default map", () => {
     expect(DEFAULT_FIELD_MAP.passwordTooShort).toBe("password");
     expect(DEFAULT_FIELD_MAP.accountNeedsEmail).toBe("email");
@@ -98,20 +119,28 @@ describe("per-form overrides", () => {
 
 describe("field names match the controls that post them", () => {
   it("uses the same names the server actions read from FormData", () => {
-    // `readDraft`/`updateProfileAction` read these keys; a rename on either side
-    // would break the association silently, so they are asserted together.
+    // `readDraft`, `updateProfileAction` and `changePasswordAction` read these
+    // keys; a rename on either side would break the association silently, so
+    // they are asserted together.
     const posted = [
       "firstName",
       "email",
+      "phone",
+      "birthDate",
       "password",
       "newPassword",
+      "confirmPassword",
       "currentPassword",
       "startDate",
       "startTime",
     ];
     const mapped = new Set(
-      [...ALL_KEYS, ...ALL_KEYS].map((k) => fieldForError(k, PROFILE_MAP)).filter(Boolean),
+      [DEFAULT_FIELD_MAP, PROFILE_MAP, PASSWORD_MAP].flatMap((map) =>
+        ALL_KEYS.map((key) => fieldForError(key, map)).filter(Boolean),
+      ),
     );
+
+    expect(mapped.size).toBeGreaterThan(0);
     for (const name of mapped) {
       expect(posted, `${name} is not a control the actions read`).toContain(name);
     }

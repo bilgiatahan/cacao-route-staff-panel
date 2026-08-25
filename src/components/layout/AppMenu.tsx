@@ -8,8 +8,10 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { useFocusTrap } from "@/components/ui/use-focus-trap";
 import { cn } from "@/lib/utils";
+import type { Locale } from "@/types/domain";
+
+import { LocalePicker, type LocalePickerLabels } from "./LocalePicker";
 import { signOutAction } from "@/server/actions/auth.actions";
-import { toggleLocaleAction } from "@/server/actions/locale.actions";
 
 export interface MenuEntry {
   key: string;
@@ -29,6 +31,8 @@ export interface AppMenuProps {
   labels: AppMenuLabels;
   /** Secondary destinations only — never the primary tabs. */
   entries: MenuEntry[];
+  /** Which language is showing, and what to call each one. */
+  locale: { current: Locale; labels: LocalePickerLabels };
   profile: { name: string; role: string; email: string; initials: string };
   appVersion: string;
 }
@@ -41,7 +45,7 @@ export interface AppMenuProps {
  * repeat Summary — a primary tab — plus five rows marked "soon" that linked
  * nowhere, which made the drawer look full while offering one real destination.
  */
-export function AppMenu({ labels, entries, profile, appVersion }: AppMenuProps) {
+export function AppMenu({ labels, entries, locale, profile, appVersion }: AppMenuProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const panelRef = useRef<HTMLElement>(null);
@@ -142,16 +146,11 @@ export function AppMenu({ labels, entries, profile, appVersion }: AppMenuProps) 
               );
             })}
 
-            <div className="mt-1 border-t border-line pt-2">
-              <form action={toggleLocaleAction}>
-                <button
-                  type="submit"
-                  className="flex min-h-11 w-full items-center gap-3 rounded-md px-4 text-left text-base font-semibold hover:bg-hover"
-                >
-                  <Icon name="globe" />
-                  <span className="flex-1 truncate">{labels.language}</span>
-                </button>
-              </form>
+            <div className="mt-1 border-t border-line px-4 pt-2.5">
+              <p className="pb-1.5 text-2xs font-bold uppercase tracking-[0.08em] text-muted">
+                {labels.language}
+              </p>
+              <LocalePicker current={locale.current} labels={locale.labels} />
             </div>
 
             <div className="mt-1 border-t border-line pt-2">

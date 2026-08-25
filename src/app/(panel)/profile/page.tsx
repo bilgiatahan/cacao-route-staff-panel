@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/layout/PageShell";
+import { PasswordForm } from "@/components/features/profile/PasswordForm";
 import { ProfileForm } from "@/components/features/profile/ProfileForm";
 import { Card } from "@/components/ui/Card";
 import { DetailList, type DetailItem } from "@/components/ui/DetailList";
@@ -7,7 +8,7 @@ import { employeePosition } from "@/lib/employee";
 import { formatFullDate, formatHourlyRate } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { requireCurrentEmployee } from "@/server/auth/session";
-import { updateProfileAction } from "@/server/actions/profile.actions";
+import { changePasswordAction, updateProfileAction } from "@/server/actions/profile.actions";
 
 /**
  * The reference Card-family screen.
@@ -87,6 +88,10 @@ export default async function ProfilePage() {
           }}
           action={updateProfileAction}
         />
+
+        {/* Its own form and its own action: changing a password should not be
+            able to fail a phone number, or vice versa. */}
+        <PasswordForm dict={dict} action={changePasswordAction} />
 
         {showsEmployment && (
           <Card padding="md">

@@ -7,9 +7,11 @@ import { Avatar } from "@/components/ui/Avatar";
 import { CountBadge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { isNavItemActive, navHref } from "@/lib/nav";
+import { LocalePicker, type LocalePickerLabels } from "./LocalePicker";
 import { cn } from "@/lib/utils";
 import { signOutAction } from "@/server/actions/auth.actions";
-import { toggleLocaleAction } from "@/server/actions/locale.actions";
+
+import type { Locale } from "@/types/domain";
 
 import type { NavItem } from "./BottomNav";
 
@@ -21,6 +23,8 @@ export interface SideNavProps {
   brand: { name: string; panel: string };
   profile: { name: string; role: string; email: string; initials: string };
   labels: { navigation: string; language: string; signOut: string; version: string };
+  /** Which language is showing, and what to call each one. */
+  locale: { current: Locale; labels: LocalePickerLabels };
   appVersion: string;
 }
 
@@ -49,6 +53,7 @@ export function SideNav({
   brand,
   profile,
   labels,
+  locale,
   appVersion,
 }: SideNavProps) {
   const pathname = usePathname();
@@ -108,9 +113,16 @@ export function SideNav({
           </div>
         </div>
 
-        <form action={toggleLocaleAction}>
-          <FooterButton icon="globe" label={labels.language} />
-        </form>
+        {/*
+          Stacked while the rail is 72px wide — two flag chips with their codes
+          will not sit side by side in that column — and a row from `xl`, where
+          the sidebar opens and there is width for both.
+        */}
+        <LocalePicker
+          current={locale.current}
+          labels={locale.labels}
+          className="flex-col xl:flex-row"
+        />
 
         {/* Below a divider and in the danger tone, the same distance from the
             primary destinations the drawer keeps it at. */}
@@ -172,7 +184,7 @@ function FooterButton({
   label,
   danger = false,
 }: {
-  icon: "globe" | "signOut";
+  icon: "signOut";
   label: string;
   danger?: boolean;
 }) {

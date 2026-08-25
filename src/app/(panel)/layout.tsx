@@ -56,7 +56,7 @@ export default async function PanelLayout({
       key: "summary",
       href: ROUTES.summary,
       label: dict.nav.summary,
-      icon: "summary",
+      icon: "layoutDashboard",
       badge: 0,
     },
     {
@@ -142,6 +142,13 @@ export default async function PanelLayout({
             signOut: dict.menu.signOut,
             version: dict.menu.version,
           }}
+          locale={{
+            current: locale,
+            labels: {
+              group: dict.menu.language,
+              names: { tr: dict.menu.localeTr, en: dict.menu.localeEn },
+            },
+          }}
           appVersion={APP_VERSION}
         />
       </Suspense>
@@ -156,7 +163,7 @@ export default async function PanelLayout({
         />
         <main
           id="main"
-          className="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-[96rem] lg:bg-fill lg:px-6 xl:px-8"
+          className="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-384 lg:bg-fill lg:px-6 xl:px-8"
         >
           {children}
           <div className="h-7" />

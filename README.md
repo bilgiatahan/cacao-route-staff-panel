@@ -24,13 +24,42 @@ Ayrım önemli: transaction pooler (`6543`) `prisma migrate`'in ürettiği DDL'i
 çalıştıramaz, session pooler (`5432`) ise serverless runtime'ın açtığı çok sayıda
 kısa ömürlü bağlantı için uygun değil.
 
+### Auth değişkenleri
+
+| Değişken          | Ne zaman gerekli                          | Açıklama |
+| ----------------- | ----------------------------------------- | -------- |
+| `AUTH_SECRET`     | **Her zaman** (yukarıdaki `openssl` satırı üretir) | Auth.js oturum imzalama anahtarı. Prodüksiyonda yoksa Auth.js `MissingSecret` atar ve giriş tamamen çalışmaz. |
+| `AUTH_TRUST_HOST` | **Vercel dışındaki her prodüksiyon host'unda** | `true` yaz. |
+
+`AUTH_TRUST_HOST` Auth.js v5'in ters vekil (reverse proxy) arkasında gelen
+`Host` başlığına güvenip güvenmeyeceğini belirler. Vercel'de gerekmez: platform
+`VERCEL=1` verir ve Auth.js bunu zaten güvenilir sayar. **Vercel dışında** —
+kendi Node sunucun, Docker, Fly, Railway, bir nginx arkası — değişken yoksa
+derleme ve sayfalar sorunsuz çalışır ama **her giriş denemesi `UntrustedHost`
+ile başarısız olur**; teşhis edilmesi zor, tam bir kimlik doğrulama kesintisidir.
+
+Uygulama `AUTH_URL` / `NEXTAUTH_URL` kullanmaz; tanımlamaya gerek yok.
+
 Sonra şemayı kur ve demo veriyi yükle:
 
 ```bash
 npm run db:migrate    # tabloları oluşturur
-npm run db:seed       # demo ekip + ±2 hafta vardiya
+
+# db:seed YIKICIDIR ve yalnızca demo içindir: yazmadan önce yedi runtime
+# tablosunun tamamını siler, yerine demo ekibi (Kadıköy adresleri, herkes için
+# tek şifre) yazar. Bu yüzden açık bir onay değişkeni ister ve değişken yoksa
+# veritabanına hiç bağlanmadan durur.
+ALLOW_DATABASE_RESET=YES_I_KNOW_THIS_DELETES_ALL_DATA npm run db:seed
+
 npm run dev           # http://localhost:3000
 ```
+
+> **Bunu asla prodüksiyon veritabanına karşı çalıştırma.** `db:seed` ve
+> `db:reset` yerel geliştirme ve demo içindir; ikisi de mevcut tüm veriyi siler.
+> Gerçek kadroyu yüklemek için `scripts/reset-and-seed-real-roster.ts` var
+> (aynı `ALLOW_DATABASE_RESET` koruması, artı doğrulama ve tek transaction).
+> Hiçbir seed `build`, `postinstall` veya bir deploy adımına bağlı **değildir**
+> ve bağlanmamalıdır.
 
 ### Demo hesapları
 
@@ -142,8 +171,8 @@ npm run typecheck   # tsc --noEmit
 
 npm run db:migrate  # şema değişikliği → yeni migration
 npm run db:deploy   # mevcut migration'ları uygula (prod)
-npm run db:seed     # demo veriyi yaz
-npm run db:reset    # tabloları sıfırla + yeniden seed
+npm run db:seed     # YIKICI · demo veriyi yaz (ALLOW_DATABASE_RESET ister)
+npm run db:reset    # YIKICI · sıfırla + yeniden seed (ALLOW_DATABASE_RESET ister)
 npm run db:studio   # Prisma Studio
 ```
 
@@ -159,7 +188,9 @@ Prisma 7'ye özgü, bilinmesi gerekenler:
   ve **git'e girmez** — `postinstall` ve `npm run build` yeniden üretir.
 - `datasource` bloğunda `url` yazılamaz: migration bağlantısı `prisma.config.ts`'te
   (`DIRECT_URL`), runtime bağlantısı driver adapter'da (`DATABASE_URL`).
-- Seed **otomatik çalışmaz**; `migrate dev` / `migrate reset` tetiklemez.
+- Seed **otomatik çalışmaz**; `migrate dev` / `migrate reset` tetiklemez. Elle
+  çağrıldığında da `ALLOW_DATABASE_RESET=YES_I_KNOW_THIS_DELETES_ALL_DATA`
+  olmadan hiçbir şey yapmaz.
 
 Seed vardiyaları, seed'in **çalıştığı** haftaya göre hesaplanıp kalıcı yazılır.
 Haftalar ilerledikçe demo veri geride kalır; tazelemek için `npm run db:reset`.

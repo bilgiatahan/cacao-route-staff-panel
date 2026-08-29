@@ -54,7 +54,7 @@ export default async function NewEmployeePage({ searchParams }: NewEmployeePageP
             contract: "part",
             birthDate: "",
             hiredAt: "",
-            hourlyRate: 130,
+            hourlyRate: 0,
             leaveBalance: 0,
             phone: "",
             email: "",

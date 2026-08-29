@@ -577,9 +577,6 @@ function buildEmployeeRows(admin: AdminConfig) {
     id: blueprint.id,
     firstName: blueprint.firstName,
     lastName: blueprint.lastName,
-    // Only task rows carry a translated display label, and none of these are.
-    displayNameTr: null,
-    displayNameEn: null,
     // Placeholder titles are English in both columns: the schema needs two
     // values, the deployment is London, and translating fake data adds nothing.
     positionTr: blueprint.position,
@@ -604,8 +601,6 @@ function buildEmployeeRows(admin: AdminConfig) {
     id: ADMIN_DEFAULTS.employeeId,
     firstName: admin.firstName,
     lastName: admin.lastName,
-    displayNameTr: null,
-    displayNameEn: null,
     positionTr: ADMIN_DEFAULTS.position,
     positionEn: ADMIN_DEFAULTS.position,
     hourlyRate: ADMIN_DEFAULTS.hourlyRate,

@@ -6,6 +6,14 @@
  * same fixed ids — so the panel looks exactly as it did before the database
  * existed.
  *
+ * **This script is destructive.** It clears every runtime table before writing,
+ * so it is guarded exactly like `scripts/reset-and-seed-real-roster.ts`: nothing
+ * happens at all unless `ALLOW_DATABASE_RESET` carries the exact opt-in value.
+ * The guard runs before the connection string is even read, so a mistaken
+ * invocation against production credentials cannot delete a row. It is a *demo*
+ * dataset — Kadikoy addresses, one shared password — and must never be written
+ * to a live panel.
+ *
  * Two things to know:
  *
  *  - Shifts are computed from the week the seed *runs* in and then persisted.
@@ -26,6 +34,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { addIsoDays, currentWeekStartIso, weekDates } from "@/lib/date";
 import { DEMO_PASSWORD, EMPLOYEE_BLUEPRINTS } from "@/server/db/seed-data";
+
+/**
+ * Exact opt-in required before a single row is deleted.
+ *
+ * Same variable and same value as `scripts/reset-and-seed-real-roster.ts`, on
+ * purpose: there is one thing an operator has to know to wipe this database,
+ * not two. `npm run db:reset` runs `migrate reset` and then this file, so it
+ * needs the variable too.
+ */
+const RESET_GUARD_ENV = "ALLOW_DATABASE_RESET";
+const RESET_GUARD_VALUE = "YES_I_KNOW_THIS_DELETES_ALL_DATA";
+
+/** Aborts with a readable message rather than a stack trace. */
+class AbortError extends Error {}
 
 /** Weeks generated either side of the current one, so week navigation has data. */
 const SEEDED_WEEK_OFFSETS = [-2, -1, 0, 1, 2];
@@ -287,6 +309,18 @@ function buildUsers(employees: ReturnType<typeof buildEmployees>) {
 }
 
 async function main() {
+  // First statement in the script's only entry point: this returns before a
+  // connection string is resolved, before a client exists and before the
+  // `deleteMany` block below, so an unguarded run cannot reach any data.
+  if (process.env[RESET_GUARD_ENV] !== RESET_GUARD_VALUE) {
+    throw new AbortError(
+      `Refusing to touch the database.\n` +
+        `  This seed DELETES every runtime row and replaces it with the demo\n` +
+        `  roster. Set ${RESET_GUARD_ENV}=${RESET_GUARD_VALUE} to confirm.\n` +
+        `  Nothing was changed.`,
+    );
+  }
+
   const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DIRECT_URL / DATABASE_URL is not set — see .env.example.");
@@ -342,6 +376,10 @@ async function main() {
 // Called rather than top-level-awaited: the package is CommonJS, so tsx compiles
 // this file to CJS where top-level `await` is a syntax error.
 main().catch((error) => {
-  console.error(error);
+  if (error instanceof AbortError) {
+    console.error(`\nAborted: ${error.message}\n`);
+  } else {
+    console.error(error);
+  }
   process.exit(1);
 });

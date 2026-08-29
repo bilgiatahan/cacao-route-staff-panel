@@ -6,6 +6,8 @@ import {
   CalendarClock,
   CalendarDays,
   ChartColumn,
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -70,6 +72,9 @@ const ICONS = {
   plus: Plus,
   chevronRight: ChevronRight,
   chevronLeft: ChevronLeft,
+  // `chevronDown` opens a disclosure, never a fourth direction of travel.
+  chevronDown: ChevronDown,
+  check: Check,
   close: X,
   user: User,
   briefcase: Briefcase,

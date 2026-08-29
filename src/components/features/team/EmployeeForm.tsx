@@ -220,16 +220,21 @@ export function EmployeeForm({
               <Field label={dict.team.wage}>
                 <SoftInput
                   name="hourlyRate"
-                  type="number"
+                  // Not `type="number"` any more. That control fought this field
+                  // twice: any `step` other than "any" turned a real rate like
+                  // 10.63 into a `stepMismatch` the form refused to submit, and
+                  // whether "12,71" is even typeable depends on the *browser's*
+                  // locale, not ours — on an en-GB browser the comma is bad
+                  // input, so the field submitted empty and the wage silently
+                  // became 0. Free text with a decimal keypad accepts every
+                  // rate with either separator; `positiveNumber` in
+                  // `employee.actions.ts` normalises the comma server-side.
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   icon="pay"
                   className="tabular"
                   defaultValue={values.hourlyRate}
-                  min={0}
-                  // Was 5. With `min={0}` that made the valid grid 0, 5, 10, 15
-                  // — so £10.25 and £10.50, the rates this deployment actually
-                  // uses, raised `stepMismatch` and the form would not submit.
-                  // Stepping by 5 made sense in lira and is unusable in pounds.
-                  step={0.25}
                 />
               </Field>
               <Field label={dict.team.leaveBalance}>

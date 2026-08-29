@@ -53,11 +53,11 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel, children }: 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed bottom-0 left-1/2 z-50 w-full max-w-panel -translate-x-1/2 border-t-2 border-ink bg-surface px-4 pb-6 pt-4"
+        className="fixed bottom-0 rounded-t-md left-1/2 z-50 w-full max-w-panel -translate-x-1/2 bg-surface px-4 pb-6 pt-4"
       >
         <div className="mb-3.5 flex items-baseline justify-between gap-2.5">
           <div className="min-w-0">
-            <div id={titleId} className="text-2xl font-extrabold -tracking-[0.01em]">{title}</div>
+            <div id={titleId} className="text-2xl font-extrabold tracking-[-0.01em]">{title}</div>
             {subtitle ? <div className="text-xs text-muted">{subtitle}</div> : null}
           </div>
           <button

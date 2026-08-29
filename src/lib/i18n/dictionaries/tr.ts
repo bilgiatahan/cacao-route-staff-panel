@@ -74,6 +74,13 @@ export const tr = {
     nextWeek: "Sonraki hafta",
     thisWeek: "Bu Hafta",
     thisMonth: "Bu Ay",
+    pickWeek: "Hafta seç",
+    goToThisWeek: "Bu haftaya dön",
+    lastWeek: "Geçen hafta",
+    comingWeek: "Gelecek hafta",
+    // Sayı öne gelir: "3 hafta önce", "3 hafta sonra".
+    weeksAgo: "hafta önce",
+    weeksAhead: "hafta sonra",
   },
 
   units: {

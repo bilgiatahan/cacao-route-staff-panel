@@ -18,8 +18,19 @@ function text(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
+/**
+ * The wage field is a free-text decimal input (see `EmployeeForm`), so the same
+ * rate arrives as "12.71" or "12,71" depending on how the person types it.
+ * `Number("12,71")` is `NaN`, which used to fall through to the fallback and
+ * write a silent 0 into someone's hourly rate.
+ */
 function positiveNumber(formData: FormData, key: string, fallback = 0): number {
-  const value = Number(formData.get(key));
+  const raw = String(formData.get(key) ?? "")
+    .trim()
+    .replace(",", ".");
+  if (!raw) return fallback;
+
+  const value = Number(raw);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 

@@ -48,7 +48,7 @@ export function TableTotal({ label, value }: { label: string; value: ReactNode }
   return (
     <div className="flex items-center justify-between gap-3 bg-brand px-3.5 py-3.5 text-white">
       <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
-      <span className="tabular text-2xl font-extrabold">{value}</span>
+      <span className="tabular text-lg font-extrabold">{value}</span>
     </div>
   );
 }

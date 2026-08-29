@@ -74,9 +74,9 @@ export function LocalePicker({ current, labels, className }: LocalePickerProps) 
                 // without either of them becoming unrecognisable.
                 className={cn(!active && "opacity-70")}
               />
-              <span>{locale}</span>
+              <span className="hidden xl:inline">{locale}</span>
               {/* The code alone is not a language name. */}
-              <span className="sr-only">{labels.names[locale]}</span>
+              <span className="sr-only hidden xl:inline">{labels.names[locale]}</span>
             </button>
           );
         })}

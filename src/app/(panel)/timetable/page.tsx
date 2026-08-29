@@ -1,5 +1,6 @@
 import { PageShell } from "@/components/layout/PageShell";
 import { WeekSwitcher } from "@/components/layout/WeekSwitcher";
+import { buildWeekPicker } from "@/components/layout/week-options";
 import { RosterBoard } from "@/components/features/timetable/RosterBoard";
 import {
   buildDayColumns,
@@ -86,6 +87,10 @@ export default async function TimetablePage({
       day: view === "day" ? String(dayIndex) : undefined,
     });
 
+  // The picker jumps with the same builder the arrows step with, so a jump
+  // keeps the view and the day exactly as a step does.
+  const weekPicker = buildWeekPicker(weekStart, weekHref, dict);
+
   return (
     // The one screen that needs the wide shell: seven day columns do not belong
     // in a 560px column when 960px is available.
@@ -102,6 +107,7 @@ export default async function TimetablePage({
               previousLabel={dict.calendar.previousWeek}
               nextLabel={dict.calendar.nextWeek}
               ariaLabel={dict.calendar.thisWeek}
+              picker={weekPicker}
             />
           }
         />

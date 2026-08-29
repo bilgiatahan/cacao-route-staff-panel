@@ -21,17 +21,10 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex items-end justify-between gap-2.5",
+        "flex items-center justify-between gap-2.5",
         variant === "plain" ? "pb-1 pt-3" : "px-4 pb-3 pt-4",
       )}
     >
-      {/*
-        The base row is untouched. From `lg` the group stops claiming the full
-        width and stacks instead: on a 1216px page `justify-between` threw the
-        subtitle a thousand pixels from the title it modifies, and the action
-        slot lost its right edge to it. Shrinking the group hands that edge back
-        to the outer `justify-between`.
-      */}
       <div className="min-w-0 flex justify-between items-center w-full lg:w-auto lg:flex-col lg:items-start lg:justify-start">
         <h1 className="text-3xl font-bold">{title}</h1>
         {subtitle && (

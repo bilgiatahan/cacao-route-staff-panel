@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { PageShell } from "@/components/layout/PageShell";
 import { WeekSwitcher } from "@/components/layout/WeekSwitcher";
+import { buildWeekPicker } from "@/components/layout/week-options";
 
 import { OnShiftList } from "@/components/features/summary/OnShiftList";
 import { PendingActions } from "@/components/features/summary/PendingActions";
@@ -76,6 +77,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
       previousLabel={dict.calendar.previousWeek}
       nextLabel={dict.calendar.nextWeek}
       ariaLabel={dict.calendar.thisWeek}
+      picker={buildWeekPicker(weekStart, weekHref, dict)}
     />
   );
 

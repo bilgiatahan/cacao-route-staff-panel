@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { WeekPicker } from "@/components/layout/WeekPicker";
+import type { WeekPickerData } from "@/components/layout/week-options";
 import { Icon } from "@/components/ui/Icon";
 
 export interface WeekSwitcherProps {
@@ -12,18 +14,24 @@ export interface WeekSwitcherProps {
   nextLabel: string;
   /** Names the control as a whole for assistive tech. */
   ariaLabel: string;
+  /** Rows, shortcut and strings for the label's picker — `buildWeekPicker`. */
+  picker: WeekPickerData;
 }
 
 /**
- * Previous / current / next week, as links.
+ * Previous / current / next week — the arrows as links, the label as a picker.
  *
  * This used to be a Client Component that read `useSearchParams` and re-derived
  * the label in the browser — necessary when it lived in the panel layout, which
  * cannot see search params. Mounted in the page instead, none of that is needed:
- * the page already knows the week, the view and the day, so it builds both hrefs
- * with `panelHref` and formats the label with `formatWeekLabel`. No client
- * JavaScript, no second copy of the date maths, and the whole thing stays
- * server-rendered and linkable.
+ * the page already knows the week, the view and the day, so it builds every href
+ * with `panelHref` and formats every label with `formatWeekLabel`. No second
+ * copy of the date maths, and the whole thing stays linkable.
+ *
+ * The label is now a button that opens `WeekPicker`, because stepping was the
+ * *only* way to move and distance cost a round trip per week. That picker is the
+ * one piece that needs the browser, so it is the one piece that ships as a
+ * Client Component; this stays a Server Component and the arrows stay links.
  */
 export function WeekSwitcher({
   previousHref,
@@ -32,6 +40,7 @@ export function WeekSwitcher({
   previousLabel,
   nextLabel,
   ariaLabel,
+  picker,
 }: WeekSwitcherProps) {
   return (
     <nav
@@ -45,10 +54,8 @@ export function WeekSwitcher({
       >
         <Icon name="chevronRight" className="h-4 w-4 rotate-180" />
       </Link>
-      {/* The range is the control's current value, so it is announced with it. */}
-      <span className="tabular whitespace-nowrap border-x border-line px-2.5 text-sm font-bold">
-        {label}
-      </span>
+      {/* The range is the control's current value, and the way to change it. */}
+      <WeekPicker label={label} {...picker} />
       <Link
         href={nextHref}
         aria-label={nextLabel}

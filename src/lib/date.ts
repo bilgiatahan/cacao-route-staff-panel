@@ -65,6 +65,18 @@ export function weekDates(weekStart: IsoDate): IsoDate[] {
   return Array.from({ length: DAYS_IN_WEEK }, (_, index) => toIsoDate(addDays(monday, index)));
 }
 
+/**
+ * Whole weeks from `from` to `to`, negative when `to` is the earlier one.
+ *
+ * Both ends are local midnight, so a DST boundary inside the span shifts the
+ * difference by an hour at most; `Math.round` absorbs that, where a floor would
+ * report 13 days as one week instead of two.
+ */
+export function weeksBetween(from: IsoDate, to: IsoDate): number {
+  const ms = fromIsoDate(to).getTime() - fromIsoDate(from).getTime();
+  return Math.round(ms / (86_400_000 * DAYS_IN_WEEK));
+}
+
 /** 0 = Monday … 6 = Sunday. */
 export function weekdayIndex(iso: IsoDate): number {
   const day = fromIsoDate(iso).getDay();

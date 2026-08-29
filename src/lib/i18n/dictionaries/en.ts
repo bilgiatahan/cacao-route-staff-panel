@@ -72,6 +72,13 @@ export const en: Dictionary = {
     nextWeek: "Next week",
     thisWeek: "This Week",
     thisMonth: "This Month",
+    pickWeek: "Pick a week",
+    goToThisWeek: "Go to this week",
+    lastWeek: "Last week",
+    comingWeek: "Next week",
+    // The count leads: "3 weeks ago", "3 weeks ahead".
+    weeksAgo: "weeks ago",
+    weeksAhead: "weeks ahead",
   },
 
   units: {

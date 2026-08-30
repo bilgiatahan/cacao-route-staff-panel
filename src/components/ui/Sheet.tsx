@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import { useFocusTrap } from "@/components/ui/use-focus-trap";
+import { cn } from "@/lib/utils";
 
 export interface SheetProps {
   open: boolean;
@@ -11,13 +12,14 @@ export interface SheetProps {
   subtitle?: ReactNode;
   closeLabel: string;
   children: ReactNode;
+  className?: string; 
 }
 
 /**
  * Bottom sheet used for the shift editor. Locks background scroll and closes
  * on Escape or a click on the scrim.
  */
-export function Sheet({ open, onClose, title, subtitle, closeLabel, children }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle, closeLabel, children, className }: SheetProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +55,7 @@ export function Sheet({ open, onClose, title, subtitle, closeLabel, children }: 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed bottom-0 rounded-t-md left-1/2 z-50 w-full max-w-panel -translate-x-1/2 bg-surface px-4 pb-6 pt-4"
+        className={cn("fixed bottom-0 rounded-t-md left-1/2 z-50 w-full max-w-panel -translate-x-1/2 bg-surface px-4 pb-6 pt-4", className)}
       >
         <div className="mb-3.5 flex items-baseline justify-between gap-2.5">
           <div className="min-w-0">

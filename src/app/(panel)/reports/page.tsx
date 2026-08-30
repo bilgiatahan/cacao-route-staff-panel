@@ -82,7 +82,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             */}
             <form action={ROUTES.reports} className="flex items-center gap-1.5">
               <label className="sr-only" htmlFor="month">
-                {dict.reports.pickMonth}
+                {dict.calendar.pickMonth}
               </label>
               <input
                 id="month"
@@ -96,20 +96,20 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                 className="flex h-11 items-center gap-1.5 rounded-md bg-brand px-3.5 text-base font-bold text-white hover:bg-brand-dark"
               >
                 <Icon name="timetable" className="h-4 w-4" />
-                <span className="hidden sm:inline">{dict.reports.pickMonth}</span>
+                <span className="hidden sm:inline">{dict.calendar.pickMonth}</span>
               </button>
             </form>
 
             <Link
               href={panelHref(ROUTES.reports, { month: previousIsoMonth(month) })}
-              aria-label={dict.reports.previousMonth}
+              aria-label={dict.calendar.previousMonth}
               className="flex size-11 flex-none items-center justify-center rounded-md border border-line bg-surface text-ink hover:bg-hover"
             >
               <Icon name="chevronLeft" className="h-4 w-4" />
             </Link>
             <Link
               href={panelHref(ROUTES.reports, { month: nextIsoMonth(month) })}
-              aria-label={dict.reports.nextMonth}
+              aria-label={dict.calendar.nextMonth}
               className="flex size-11 flex-none items-center justify-center rounded-md border border-line bg-surface text-ink hover:bg-hover"
             >
               <Icon name="chevronRight" className="h-4 w-4" />

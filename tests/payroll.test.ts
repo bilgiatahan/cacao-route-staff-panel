@@ -3,9 +3,15 @@
  *
  * The migration was presentational — StatCard, DetailList and Badge replacing
  * hand-rolled markup — so every assertion here is about the arithmetic and
- * scoping underneath staying byte-identical: weekly hours and pay, the monthly
- * projection, the per-day earning the table renders, and the role scoping that
- * decides who sees whose numbers.
+ * scoping underneath staying byte-identical: weekly hours and pay, the per-day
+ * earning the table renders, and the role scoping that decides who sees whose
+ * numbers.
+ *
+ * The month is the one figure that deliberately did *not* stay identical. It was
+ * `weeklyHours * mondaysInMonth` — a forecast of the displayed week — and became
+ * the actual shifts worked in the selected month once the screen gained a month
+ * switcher. The block below pins the new rule and the boundary behaviour it
+ * shares with `/reports`.
  */
 
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -66,26 +72,89 @@ describe("weekly figures", () => {
   });
 });
 
-describe("monthly projection", () => {
-  it("multiplies the week by the Mondays in the month", async () => {
+describe("the month, over the shifts actually worked", () => {
+  it("is no longer the week multiplied by the Mondays in the month", async () => {
     await createShift(ME, MONDAY, 9 * 60, 17 * 60);
 
     const detail = await getEmployeeDetail(ME, MONDAY);
-    const weeks = mondaysInMonth(MONDAY);
 
-    expect(detail?.weeksInMonth).toBe(weeks);
-    expect(detail?.monthlyHours).toBe(8 * weeks);
-    expect(detail?.monthlyPay).toBe(8 * RATE * weeks);
+    // The old figure was 8h x 5 Mondays = 40h for a single worked day.
+    expect(mondaysInMonth(MONDAY)).toBe(5);
+    expect(detail?.month.hours).toBe(8);
+    expect(detail?.month.pay).toBe(8 * RATE);
   });
 
-  it("projects a long week straight through", async () => {
-    for (const date of WEEK) await createShift(ME, date, 8 * 60, 18 * 60);
+  it("counts only shifts inside the month", async () => {
+    await createShift(ME, "2026-07-31", 9 * 60, 17 * 60); // previous month
+    await createShift(ME, "2026-08-01", 9 * 60, 17 * 60); // in month, boundary week
+    await createShift(ME, "2026-09-01", 9 * 60, 17 * 60); // next month
 
     const detail = await getEmployeeDetail(ME, MONDAY);
-    const weeks = detail!.weeksInMonth;
 
-    expect(detail?.monthlyPay).toBe(detail!.weeklyPay.total * weeks);
-    expect(detail?.monthlyHours).toBe(50 * weeks);
+    expect(detail?.month.month).toBe("2026-08");
+    expect(detail?.month.hours).toBe(8);
+  });
+
+  it("splits a boundary week at the month edge", async () => {
+    // The week of 27 Jul – 2 Aug touches August by two days only.
+    await createShift(ME, "2026-07-30", 9 * 60, 17 * 60);
+    await createShift(ME, "2026-08-01", 9 * 60, 17 * 60);
+
+    const first = (await getEmployeeDetail(ME, MONDAY))!.month.weeks[0];
+
+    expect(first.weekStart).toBe("2026-07-27");
+    expect(first.rangeStart).toBe("2026-08-01");
+    expect(first.rangeEnd).toBe("2026-08-02");
+    expect(first.isPartial).toBe(true);
+    // The 30 July shift is in the same week and not in the month.
+    expect(first.hours).toBe(8);
+  });
+
+  it("buckets each shift into the week that contains it", async () => {
+    await createShift(ME, "2026-08-04", 9 * 60, 17 * 60); // week of 3 Aug, 8h
+    await createShift(ME, "2026-08-12", 9 * 60, 15 * 60); // week of 10 Aug, 6h
+
+    const detail = await getEmployeeDetail(ME, MONDAY);
+    const hoursByWeek = new Map(detail!.month.weeks.map((w) => [w.weekStart, w.hours]));
+
+    expect(hoursByWeek.get("2026-08-03")).toBe(8);
+    expect(hoursByWeek.get("2026-08-10")).toBe(6);
+    expect(hoursByWeek.get("2026-08-17")).toBe(0);
+  });
+
+  it("totals exactly what its own weeks add up to", async () => {
+    for (const date of WEEK) await createShift(ME, date, 8 * 60, 18 * 60); // 5 x 10h
+
+    const detail = await getEmployeeDetail(ME, MONDAY);
+    const summed = detail!.month.weeks.reduce((total, week) => total + week.hours, 0);
+
+    expect(detail?.month.hours).toBe(summed);
+    expect(detail?.month.pay).toBe(summed * RATE);
+    expect(detail?.month.weeksWorked).toBe(1);
+  });
+
+  it("lists every week touching the month, worked or not", async () => {
+    const detail = await getEmployeeDetail(ME, MONDAY);
+
+    // 1 Aug 2026 is a Saturday and 31 Aug a Monday, so six weeks touch it —
+    // one more than the five Mondays the old projection counted.
+    expect(detail?.month.weeks).toHaveLength(6);
+    expect(detail?.month.weeksWorked).toBe(0);
+    expect(detail?.month.hours).toBe(0);
+  });
+
+  it("reads a month the displayed week is not in", async () => {
+    await createShift(ME, "2026-08-04", 9 * 60, 17 * 60); // 8h in August
+    await createShift(ME, "2026-07-15", 9 * 60, 13 * 60); // 4h in July
+
+    const august = await getEmployeeDetail(ME, MONDAY);
+    const july = await getEmployeeDetail(ME, MONDAY, "2026-07");
+
+    expect(august?.month.hours).toBe(8);
+    expect(july?.month.month).toBe("2026-07");
+    expect(july?.month.hours).toBe(4);
+    // Only the month moved: the week is the same one either way.
+    expect(july?.weeklyHours).toBe(8);
   });
 });
 
@@ -183,9 +252,15 @@ describe("formatting the screen relies on", () => {
     expect(formatHoursValue(8)).toBe("8");
   });
 
-  it("has the new empty-earnings copy in both locales", () => {
+  it("has the empty-earnings copy in both locales, per period", () => {
+    // The month needs its own sentence: "no shifts worked this week" under a
+    // heading that says "this month" is the kind of wrong that survives review.
     for (const locale of ["tr", "en"] as const) {
-      expect(getDictionary(locale).team.noEarnings).toBeTruthy();
+      const { team } = getDictionary(locale);
+      expect(team.noEarnings).toBeTruthy();
+      expect(team.noMonthEarnings).toBeTruthy();
+      expect(team.noMonthEarnings).not.toBe(team.noEarnings);
+      expect(team.myMonthlyEarnings).not.toBe(team.myWeeklyEarnings);
     }
   });
 });

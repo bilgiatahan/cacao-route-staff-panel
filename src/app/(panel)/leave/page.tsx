@@ -6,29 +6,24 @@ import { SwapRequestForm } from "@/components/features/leave/SwapRequestForm";
 import { Badge } from "@/components/ui/Badge";
 import { Card, IconTile } from "@/components/ui/Card";
 import { Hint, PageHeader, SectionBlock } from "@/components/ui/Section";
-import { addIsoDays, fromIsoDate, todayIso, weekdayIndex } from "@/lib/date";
+import { addIsoDays, currentWeekStartIso, fromIsoDate, todayIso, weekdayIndex } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
 import { formatShiftSpan } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
-import { resolveWeekStart } from "@/lib/week-params";
 import { requireSessionUser } from "@/server/auth/session";
 import { getLeaveBoard } from "@/server/services/leave.service";
 
-interface LeavePageProps {
-  searchParams: Promise<{ week?: string }>;
-}
+
 
 /** The page owns the tint and the gutter; every block inside is a Card. */
 const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
 
-export default async function LeavePage({ searchParams }: LeavePageProps) {
-  const [{ dict }, user, params] = await Promise.all([
-    getTranslations(),
-    requireSessionUser(),
-    searchParams,
-  ]);
+export default async function LeavePage() {
+  const [{ dict }, user] = await Promise.all([getTranslations(), requireSessionUser()]);
 
-  const weekStart = resolveWeekStart(params.week);
+  // Always the week you are in: this screen has no week switcher, so a `?week=`
+  // would silently change which shifts you can offer for a swap.
+  const weekStart = currentWeekStartIso();
   const board = await getLeaveBoard(user, weekStart);
   const isAdmin = user.role === "admin";
 

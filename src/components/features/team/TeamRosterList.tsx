@@ -3,15 +3,14 @@ import { accentForId, Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { employeeFullName, employeeInitials, employeePosition } from "@/lib/employee";
 import type { Dictionary } from "@/lib/i18n";
-import { panelHref, ROUTES } from "@/lib/routes";
+import { ROUTES } from "@/lib/routes";
 import type { TeamMemberSummary } from "@/server/services/team.service";
-import type { IsoDate, Locale } from "@/types/domain";
+import type { Locale } from "@/types/domain";
 
 export interface TeamRosterListProps {
   members: TeamMemberSummary[];
   dict: Dictionary;
   locale: Locale;
-  weekStart: IsoDate;
 }
 
 /**
@@ -33,7 +32,7 @@ export interface TeamRosterListProps {
  * No column headers: `formatHours` carries its unit and the rate carries
  * "£/h", so every column already states what it is.
  */
-export function TeamRosterList({ members, locale, weekStart }: TeamRosterListProps) {
+export function TeamRosterList({ members, locale }: TeamRosterListProps) {
   return (
     <ul className="flex flex-col gap-2">
       {members.map((member) => {
@@ -43,7 +42,7 @@ export function TeamRosterList({ members, locale, weekStart }: TeamRosterListPro
         return (
           <li key={employee.id}>
             <Card
-              href={panelHref(ROUTES.teamMember(employee.id), { week: weekStart })}
+              href={ROUTES.teamMember(employee.id)}
               padding="sm"
               className="flex items-center gap-2.5 lg:gap-4 lg:px-4"
             >

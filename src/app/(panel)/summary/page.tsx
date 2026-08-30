@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { PageShell } from "@/components/layout/PageShell";
-import { WeekSwitcher } from "@/components/layout/WeekSwitcher";
-import { buildWeekPicker } from "@/components/layout/week-options";
+import { PeriodSwitcher } from "@/components/layout/PeriodSwitcher";
+import { buildWeekPicker } from "@/components/layout/period-options";
 
 import { OnShiftList } from "@/components/features/summary/OnShiftList";
 import { PendingActions } from "@/components/features/summary/PendingActions";
@@ -70,7 +70,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   // The switcher's label already states the range, so the header drops the
   // subtitle that used to repeat it.
   const weekSwitcher = (
-    <WeekSwitcher
+    <PeriodSwitcher
       previousHref={weekHref(-1)}
       nextHref={weekHref(1)}
       label={weekLabel}
@@ -152,7 +152,6 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               employees={summary.roster.employees}
               shifts={summary.roster.shifts}
               dict={dict}
-              weekStart={weekStart}
             />
           </SectionBlock>
           </div>

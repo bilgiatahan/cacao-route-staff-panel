@@ -74,13 +74,25 @@ export const tr = {
     nextWeek: "Sonraki hafta",
     thisWeek: "Bu Hafta",
     thisMonth: "Bu Ay",
-    pickWeek: "Hafta seç",
+
+    pickWeek: "Hafta Seç",
     goToThisWeek: "Bu haftaya dön",
     lastWeek: "Geçen hafta",
     comingWeek: "Gelecek hafta",
     // Sayı öne gelir: "3 hafta önce", "3 hafta sonra".
     weeksAgo: "hafta önce",
     weeksAhead: "hafta sonra",
+
+    // Ay karşılıkları. Rapor ekranı da bunları kullanır — takvim sözcükleri
+    // rapora değil takvime ait.
+    previousMonth: "Önceki ay",
+    nextMonth: "Sonraki ay",
+    pickMonth: "Ay Seç",
+    goToThisMonth: "Bu aya dön",
+    lastMonth: "Geçen ay",
+    comingMonth: "Gelecek ay",
+    monthsAgo: "ay önce",
+    monthsAhead: "ay sonra",
   },
 
   units: {
@@ -225,6 +237,12 @@ export const tr = {
     accountNeedsEmail: "Giriş hesabı için e-posta adresi gerekli.",
     emailTaken: "Bu e-posta başka bir hesapta kullanılıyor.",
     thisWeek: "Bu Hafta",
+    // Dönem seçicisi olan bloklarda başlık dönemi adlandıramaz — hangi hafta
+    // olduğunu switcher söyler, başlık yalnızca hangi birimi okuduğunu söyler.
+    weekSection: "Hafta",
+    monthSection: "Ay",
+    weekHours: "Haftalık Saat",
+    colWeek: "Hafta",
     monthlyHours: "Aylık Saat",
     monthlyPay: "Aylık Kazanç",
     weekPay: "Haftalık Kazanç",
@@ -242,7 +260,9 @@ export const tr = {
     colWorked: "Çalışma Süresi",
     colEarned: "Kazanç",
     myWeeklyEarnings: "Bu Haftaki Kazancım",
+    myMonthlyEarnings: "Bu Ayki Kazancım",
     noEarnings: "Bu hafta çalışılan vardiya yok",
+    noMonthEarnings: "Bu ay çalışılan vardiya yok",
     age: "yaş",
     tenure: "kıdem",
     saved: "Değişiklikler kaydedildi.",
@@ -255,10 +275,6 @@ export const tr = {
   reports: {
     title: "Aylık Maliyet Raporu",
     subtitle: "Gerçekleşen vardiyalara göre personel maliyeti",
-    pickMonth: "Ay Seç",
-    previousMonth: "Önceki ay",
-    nextMonth: "Sonraki ay",
-
     statCost: "Toplam Maliyet",
     statHours: "Toplam Çalışma Saati",
     statRate: "Ort. Saat Ücreti",

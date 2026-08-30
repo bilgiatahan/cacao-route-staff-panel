@@ -100,39 +100,40 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
         exactly the two rows it has today, week above month.
       */}
       <div className="contents lg:flex lg:gap-2">
-      {/* This week leads: it is the pay being earned right now. */}
-      <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
-        <StatCard
-          icon="timetable"
-          accent="green"
-          label={dict.team.thisWeek}
-          value={formatHours(detail.weeklyHours, dict)}
-        />
-        <StatCard
-          icon="wallet"
-          accent="green"
-          label={dict.team.weekPay}
-          value={formatMoney(weeklyTotal)}
-        />
-      </div>
+        {/* This week leads: it is the pay being earned right now. */}
+        <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
+          <StatCard
+            icon="timetable"
+            accent="green"
+            label={dict.team.thisWeek}
+            value={formatHours(detail.weeklyHours, dict)}
+          />
+          <StatCard
+            icon="wallet"
+            accent="green"
+            label={dict.team.weekPay}
+            value={formatMoney(weeklyTotal)}
+          />
+        </div>
 
-      {/* The month is a projection of the week, so it sits one step quieter. */}
-      <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
-        <StatCard
-          icon="clock"
-          accent="green"
-          label={dict.team.monthlyHours}
-          value={formatHours(detail.monthlyHours, dict)}
-          hint={`${detail.weeksInMonth} ${dict.units.weeks}`}
-        />
-        <StatCard
-          icon="wallet"
-          accent="green"
-          label={dict.team.monthlyPay}
-          value={formatMoney(detail.monthlyPay)}
-          hint={`${detail.weeksInMonth} ${dict.units.weeks}`}
-        />
-      </div>
+        {/* The month is what was actually worked in it, not this week projected
+          forward — the hint counts the weeks that carried a shift. */}
+        <div className="grid grid-cols-2 gap-2 lg:min-w-0 lg:flex-1">
+          <StatCard
+            icon="clock"
+            accent="green"
+            label={dict.team.monthlyHours}
+            value={formatHours(detail.month.hours, dict)}
+            hint={`${detail.month.weeksWorked}/${detail.month.weeks.length} ${dict.units.weeks}`}
+          />
+          <StatCard
+            icon="wallet"
+            accent="green"
+            label={dict.team.monthlyPay}
+            value={formatMoney(detail.month.pay)}
+            hint={`${detail.month.weeksWorked}/${detail.month.weeks.length} ${dict.units.weeks}`}
+          />
+        </div>
       </div>
 
       {/*
@@ -141,67 +142,77 @@ export function StaffPayrollCard({ detail, dict }: StaffPayrollCardProps) {
         gets a measure that suits it, and the terms stop being a sparse strip.
       */}
       <div className="contents lg:flex lg:items-start lg:gap-3.5">
-      <SectionBlock
-        className="lg:min-w-0 lg:basis-0 lg:grow-[7]"
-        title={dict.team.myWeeklyEarnings}
-      >
-        {payRows.length === 0 ? (
-          <Card>
-            <EmptyState icon="timetable">{dict.team.noEarnings}</EmptyState>
-          </Card>
-        ) : (
-          <TableCard>
-            {/* `columns` is a layout prop; colours used to be smuggled through
+        <SectionBlock
+          className="lg:min-w-0 lg:basis-0 lg:grow-[7]"
+          title={dict.team.myWeeklyEarnings}
+        >
+          {payRows.length === 0 ? (
+            <Card>
+              <EmptyState icon="timetable">{dict.team.noEarnings}</EmptyState>
+            </Card>
+          ) : (
+            <TableCard>
+              {/* `columns` is a layout prop; colours used to be smuggled through
                 it, which is why the header looked different from every other
                 table in the app. */}
-            <TableHead columns={EARNINGS_COLUMNS}>
-              <span>{dict.team.colDay}</span>
-              <span className="text-center">{dict.team.colTime}</span>
-              <span className="text-center">{dict.team.colWorked}</span>
-              <span className="text-center">{dict.team.colEarned}</span>
-            </TableHead>
+              <TableHead columns={EARNINGS_COLUMNS}>
+                <span>{dict.team.colDay}</span>
+                <span className="text-center">{dict.team.colTime}</span>
+                <span className="text-center">{dict.team.colWorked}</span>
+                <span className="text-center">{dict.team.colEarned}</span>
+              </TableHead>
 
-            <ul>
-              {payRows.map((cell) => {
-                const shift = cell.shift!;
-                const hours = (shift.endMinutes - shift.startMinutes) / 60;
-                const date = fromIsoDate(cell.date);
+              <ul>
+                {payRows.map((cell) => {
+                  const shift = cell.shift!;
+                  const hours = (shift.endMinutes - shift.startMinutes) / 60;
+                  const date = fromIsoDate(cell.date);
 
-                return (
-                  <li key={cell.date} className={cn(EARNINGS_COLUMNS, TABLE_ROW, "py-2.5")}>
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      <Icon name="timetable" className="h-4 w-4 flex-none text-muted" />
-                      <span className="truncate text-sm font-semibold">
-                        {dict.calendar.daysShort[weekdayIndex(cell.date)]} {date.getDate()}
+                  return (
+                    <li
+                      key={cell.date}
+                      className={cn(EARNINGS_COLUMNS, TABLE_ROW, "py-2.5")}
+                    >
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <Icon
+                          name="timetable"
+                          className="h-4 w-4 flex-none text-muted"
+                        />
+                        <span className="truncate text-sm font-semibold">
+                          {dict.calendar.daysShort[weekdayIndex(cell.date)]}{" "}
+                          {date.getDate()}
+                        </span>
                       </span>
-                    </span>
-                    <span className="tabular text-center text-sm text-muted">
-                      {formatShiftSpan(shift, dict)}
-                    </span>
-                    <span className="flex justify-center">
-                      <Badge>{formatHours(hours, dict)}</Badge>
-                    </span>
-                    <span className="tabular text-center text-sm font-bold">
-                      {formatMoney(hours * employee.hourlyRate)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                      <span className="tabular text-center text-sm text-muted">
+                        {formatShiftSpan(shift, dict)}
+                      </span>
+                      <span className="flex justify-center">
+                        <Badge>{formatHours(hours, dict)}</Badge>
+                      </span>
+                      <span className="tabular text-center text-sm font-bold">
+                        {formatMoney(hours * employee.hourlyRate)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
 
-            <TableTotal label={dict.team.weekPay} value={formatMoney(weeklyTotal)} />
-          </TableCard>
-        )}
-      </SectionBlock>
+              <TableTotal
+                label={dict.team.weekPay}
+                value={formatMoney(weeklyTotal)}
+              />
+            </TableCard>
+          )}
+        </SectionBlock>
 
-      <SectionBlock
-        className="lg:min-w-0 lg:basis-0 lg:grow-[5]"
-        title={dict.profile.employment}
-      >
-        <Card padding="md">
-          <DetailList items={terms} />
-        </Card>
-      </SectionBlock>
+        <SectionBlock
+          className="lg:min-w-0 lg:basis-0 lg:grow-[5]"
+          title={dict.profile.employment}
+        >
+          <Card padding="md">
+            <DetailList items={terms} />
+          </Card>
+        </SectionBlock>
       </div>
     </div>
   );

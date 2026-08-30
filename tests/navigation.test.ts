@@ -15,6 +15,7 @@
 
 import { describe, expect, it } from "vitest";
 
+import { navHref } from "@/lib/nav";
 import { ROUTES, PROTECTED_PREFIXES, panelHref } from "@/lib/routes";
 import { getDictionary } from "@/lib/i18n";
 
@@ -107,6 +108,54 @@ describe("URL-driven state survives a tab switch", () => {
     expect(panelHref(ROUTES.leave, { week: "2026-08-03" })).toBe(
       "/leave?week=2026-08-03",
     );
+  });
+
+  it("carries the week to the two screens that show a week switcher", () => {
+    for (const href of [ROUTES.summary, ROUTES.timetable]) {
+      expect(navHref(href, "2026-08-03"), href).toBe(`${href}?week=2026-08-03`);
+    }
+  });
+
+  it("does not push the week onto screens that never read it", () => {
+    // The bug: `?week=2026-08-03` appeared in the address bar of Notifications
+    // and Profile, which have no week — a query string the user copies and
+    // bookmarks, saying nothing about what is on screen.
+    for (const href of [ROUTES.notifications, ROUTES.profile]) {
+      expect(navHref(href, "2026-08-03"), href).toBe(href);
+    }
+  });
+
+  it("does not push a roster week onto the monthly report", () => {
+    // `/reports` reads `?week=` too, but there it selects a week *inside the
+    // month being reported on*. Same name, different question.
+    expect(navHref(ROUTES.reports, "2026-08-03")).toBe(ROUTES.reports);
+  });
+
+  it("does not push the week onto Team or Leave", () => {
+    // Both used to read it and render a different week's figures with nothing
+    // on screen saying so and no control to change it back. The week now
+    // travels only where the user can see and steer it.
+    for (const href of [ROUTES.team, ROUTES.teamNew, ROUTES.teamMember("emp-3"), ROUTES.leave]) {
+      expect(navHref(href, "2026-08-03"), href).toBe(href);
+    }
+  });
+
+  it("carries the week into a nested route of a week-scoped section", () => {
+    // Not a real route today; the rule is the section, not an exact match, so a
+    // future /timetable/… detail page keeps the week without a second edit.
+    expect(navHref(`${ROUTES.timetable}/x`, "2026-08-03")).toBe(
+      "/timetable/x?week=2026-08-03",
+    );
+  });
+
+  it("produces a bare path when there is no week, everywhere", () => {
+    for (const href of [...PRIMARY, ROUTES.notifications, ROUTES.reports]) {
+      expect(navHref(href, null), href).toBe(href);
+    }
+  });
+
+  it("does not mistake a prefix collision for a week-scoped section", () => {
+    expect(navHref("/summary-archive", "2026-08-03")).toBe("/summary-archive");
   });
 
   it("produces a bare path when there is no week", () => {

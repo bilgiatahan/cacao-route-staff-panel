@@ -1,6 +1,6 @@
 import { PageShell } from "@/components/layout/PageShell";
-import { WeekSwitcher } from "@/components/layout/WeekSwitcher";
-import { buildWeekPicker } from "@/components/layout/week-options";
+import { PeriodSwitcher } from "@/components/layout/PeriodSwitcher";
+import { buildWeekPicker } from "@/components/layout/period-options";
 import { RosterBoard } from "@/components/features/timetable/RosterBoard";
 import {
   buildDayColumns,
@@ -100,7 +100,7 @@ export default async function TimetablePage({
           variant="plain"
           title={dict.timetable.title}
           action={
-            <WeekSwitcher
+            <PeriodSwitcher
               previousHref={weekHref(-1)}
               nextHref={weekHref(1)}
               label={formatWeekLabel(weekStart, dict)}

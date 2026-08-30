@@ -14,8 +14,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addIsoMonths,
   currentMonthIso,
   endOfMonthIso,
+  monthsBetween,
   isValidIsoMonth,
   mondaysInMonth,
   monthOfIsoDate,
@@ -159,5 +161,61 @@ describe("mondaysInMonth is a different question", () => {
     // The reason the report may not use it: August 2026 starts on a Saturday, so
     // six Monday–Sunday weeks touch it but only five Mondays fall inside it.
     expect(mondaysInMonth("2026-08-03")).toBe(5);
+  });
+});
+
+/**
+ * The two helpers the month picker steps and measures with.
+ *
+ * Both are anchored on the first of the month and handed to `new Date`, which is
+ * what makes December → January and the twelve-month jump fall out without a
+ * modulo. Rollover in *both* directions is asserted, because a month picker
+ * offers six steps either side of wherever you are.
+ */
+describe("addIsoMonths", () => {
+  it("steps forward and back inside a year", () => {
+    expect(addIsoMonths("2026-08", 1)).toBe("2026-09");
+    expect(addIsoMonths("2026-08", -1)).toBe("2026-07");
+    expect(addIsoMonths("2026-08", 0)).toBe("2026-08");
+  });
+
+  it("rolls the year over in both directions", () => {
+    expect(addIsoMonths("2026-08", 5)).toBe("2027-01");
+    expect(addIsoMonths("2026-01", -1)).toBe("2025-12");
+    expect(addIsoMonths("2026-12", 1)).toBe("2027-01");
+    expect(addIsoMonths("2026-08", -8)).toBe("2025-12");
+  });
+
+  it("survives a full year in one step", () => {
+    expect(addIsoMonths("2026-02", 12)).toBe("2027-02");
+    expect(addIsoMonths("2026-02", -12)).toBe("2025-02");
+  });
+
+  it("never lands on a day that does not exist", () => {
+    // Anchored on the 1st, so a 31-day month stepping into February cannot
+    // normalise forward into March the way `setMonth` on the 31st would.
+    expect(addIsoMonths("2026-01", 1)).toBe("2026-02");
+    expect(addIsoMonths("2026-03", -1)).toBe("2026-02");
+  });
+});
+
+describe("monthsBetween", () => {
+  it("is signed, and zero for the same month", () => {
+    expect(monthsBetween("2026-08", "2026-08")).toBe(0);
+    expect(monthsBetween("2026-08", "2026-11")).toBe(3);
+    expect(monthsBetween("2026-11", "2026-08")).toBe(-3);
+  });
+
+  it("counts across a year boundary", () => {
+    expect(monthsBetween("2025-12", "2026-01")).toBe(1);
+    expect(monthsBetween("2026-01", "2025-12")).toBe(-1);
+    expect(monthsBetween("2025-08", "2026-08")).toBe(12);
+  });
+
+  it("is the exact inverse of addIsoMonths", () => {
+    for (const offset of [-13, -6, -1, 0, 1, 6, 13]) {
+      const target = addIsoMonths("2026-08", offset);
+      expect(monthsBetween("2026-08", target), `${offset}`).toBe(offset);
+    }
   });
 });

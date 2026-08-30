@@ -72,13 +72,25 @@ export const en: Dictionary = {
     nextWeek: "Next week",
     thisWeek: "This Week",
     thisMonth: "This Month",
-    pickWeek: "Pick a week",
+
+    pickWeek: "Pick a Week",
     goToThisWeek: "Go to this week",
     lastWeek: "Last week",
     comingWeek: "Next week",
     // The count leads: "3 weeks ago", "3 weeks ahead".
     weeksAgo: "weeks ago",
     weeksAhead: "weeks ahead",
+
+    // The month equivalents. The report screen uses these too — calendar words
+    // belong to the calendar, not to the report.
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    pickMonth: "Pick Month",
+    goToThisMonth: "Go to this month",
+    lastMonth: "Last month",
+    comingMonth: "Next month",
+    monthsAgo: "months ago",
+    monthsAhead: "months ahead",
   },
 
   units: {
@@ -223,6 +235,12 @@ export const en: Dictionary = {
     accountNeedsEmail: "An email address is required for a sign-in account.",
     emailTaken: "That email is already used by another account.",
     thisWeek: "This week",
+    // In a block with a period switcher the heading cannot name the period —
+    // the switcher says which week; the heading says which unit you are reading.
+    weekSection: "Week",
+    monthSection: "Month",
+    weekHours: "Week Hours",
+    colWeek: "Week",
     monthlyHours: "Monthly Hours",
     monthlyPay: "Monthly Pay",
     weekPay: "Weekly Pay",
@@ -240,7 +258,9 @@ export const en: Dictionary = {
     colWorked: "Worked",
     colEarned: "Earned",
     myWeeklyEarnings: "My Weekly Earnings",
+    myMonthlyEarnings: "My Monthly Earnings",
     noEarnings: "No shifts worked this week",
+    noMonthEarnings: "No shifts worked this month",
     age: "yrs old",
     tenure: "tenure",
     saved: "Changes saved.",
@@ -253,10 +273,6 @@ export const en: Dictionary = {
   reports: {
     title: "Monthly Cost Report",
     subtitle: "Personnel cost from the shifts actually worked",
-    pickMonth: "Pick Month",
-    previousMonth: "Previous month",
-    nextMonth: "Next month",
-
     statCost: "Total Cost",
     statHours: "Total Hours Worked",
     statRate: "Avg. Hourly Cost",

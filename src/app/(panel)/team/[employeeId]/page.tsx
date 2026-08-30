@@ -1,26 +1,28 @@
 import { PageShell } from "@/components/layout/PageShell";
 import { notFound } from "next/navigation";
 
+import { PeriodSwitcher } from "@/components/layout/PeriodSwitcher";
+import { buildMonthPicker, buildWeekPicker } from "@/components/layout/period-options";
 import { EmployeeForm } from "@/components/features/team/EmployeeForm";
+import { EmployeeMonthTable } from "@/components/features/team/EmployeeMonthTable";
 import { WeekShiftList } from "@/components/features/summary/WeekShiftList";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { accentForId, Card, StatCard } from "@/components/ui/Card";
-import { DetailList, type DetailItem } from "@/components/ui/DetailList";
 import { PageHeader, SectionBlock } from "@/components/ui/Section";
-import { todayIso } from "@/lib/date";
+import { addIsoDays, addIsoMonths, todayIso } from "@/lib/date";
 import { employeeFullName, employeeInitials, employeePosition } from "@/lib/employee";
-import { formatHours, formatMoney } from "@/lib/format";
+import { formatHours, formatMoney, formatMonthName, formatWeekLabel } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
-import { resolveWeekStart } from "@/lib/week-params";
+import { resolveMonth, resolveWeekStart } from "@/lib/week-params";
 import { requireAdmin } from "@/server/auth/session";
 import { archiveEmployeeAction, updateEmployeeAction } from "@/server/actions/employee.actions";
 import { getEmployeeDetail } from "@/server/services/team.service";
 
 interface EmployeeDetailPageProps {
   params: Promise<{ employeeId: string }>;
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ week?: string; month?: string }>;
 }
 
 /** The page owns the tint and the gutter; every block inside is a Card. */
@@ -38,6 +40,11 @@ const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
  * What the week and month cost used to be a `SectionHeading` meta string and a
  * loose grey paragraph under the form. They are the same numbers the person
  * sees on their own pay screen, so they are shown the same way.
+ *
+ * The week and the month each carry their own switcher and their own URL param,
+ * and they move independently: reading someone's July while stepping through the
+ * weeks of August is a real question. Both default to the period containing
+ * today, so the page opens on now.
  */
 export default async function EmployeeDetailPage({
   params,
@@ -51,7 +58,8 @@ export default async function EmployeeDetailPage({
   ]);
 
   const weekStart = resolveWeekStart(query.week);
-  const detail = await getEmployeeDetail(routeParams.employeeId, weekStart);
+  const month = resolveMonth(query.month);
+  const detail = await getEmployeeDetail(routeParams.employeeId, weekStart, month);
   if (!detail) notFound();
 
   const { employee } = detail;
@@ -61,21 +69,14 @@ export default async function EmployeeDetailPage({
   // The manager cannot remove their own account from inside the panel.
   const canArchive = employee.id !== admin.employeeId && !employee.isTaskRow;
 
-  // Produced by the roster, not set by anyone — so they read as facts.
-  const monthly: DetailItem[] = [
-    {
-      key: "monthlyHours",
-      icon: "clock",
-      label: dict.team.monthlyHours,
-      value: formatHours(detail.monthlyHours, dict),
-    },
-    {
-      key: "monthlyPay",
-      icon: "wallet",
-      label: dict.team.monthlyPay,
-      value: formatMoney(detail.monthlyPay),
-    },
-  ];
+  // Stepping one period always carries the other, so the switchers never undo
+  // each other's selection. One builder per period feeds both its arrows and its
+  // picker, which is what keeps a jump and a step producing the same URL.
+  const periodHref = (params: { week?: string; month?: string }) =>
+    panelHref(ROUTES.teamMember(employee.id), { week: weekStart, month, ...params });
+  const weekHref = (offset: number) =>
+    periodHref({ week: addIsoDays(weekStart, offset * 7) });
+  const monthHref = (offset: number) => periodHref({ month: addIsoMonths(month, offset) });
 
   return (
     <PageShell width="data">
@@ -86,7 +87,7 @@ export default async function EmployeeDetailPage({
           action={
             // `md`, not `sm`: 44px. `sm` is 40px and is for dense inline
             // controls, which a page-level back affordance is not.
-            <Button href={panelHref(ROUTES.team, { week: weekStart })} variant="outline">
+            <Button href={ROUTES.team} variant="outline">
               {dict.common.back}
             </Button>
           }
@@ -135,14 +136,28 @@ export default async function EmployeeDetailPage({
 
           <div className="contents lg:flex lg:min-w-0 lg:basis-0 lg:grow-5 lg:flex-col lg:gap-3.5">
             {/* One block for the week: what it came to, then the days it came
-                from. Two headings saying "This Week" would be one heading too
-                many. */}
-            <SectionBlock title={dict.team.thisWeek}>
+                from. The heading names the unit and the switcher names the
+                period — neither repeats the other, which is why the heading is
+                no longer "This Week". */}
+            <SectionBlock
+              title={dict.team.weekSection}
+              action={
+                <PeriodSwitcher
+                  previousHref={weekHref(-1)}
+                  nextHref={weekHref(1)}
+                  label={formatWeekLabel(weekStart, dict)}
+                  previousLabel={dict.calendar.previousWeek}
+                  nextLabel={dict.calendar.nextWeek}
+                  ariaLabel={dict.calendar.pickWeek}
+                  picker={buildWeekPicker(weekStart, weekHref, dict)}
+                />
+              }
+            >
               <div className="grid grid-cols-2 gap-2">
                 <StatCard
                   icon="timetable"
                   accent="green"
-                  label={dict.team.thisWeek}
+                  label={dict.team.weekHours}
                   value={formatHours(detail.weeklyHours, dict)}
                 />
                 <StatCard
@@ -162,15 +177,40 @@ export default async function EmployeeDetailPage({
               </Card>
             </SectionBlock>
 
-            {/* The month is a projection of the week, so it sits one step
-                quieter — reference figures, not headline numbers. */}
+            {/* The month is the shifts actually worked in it — not this week
+                multiplied out — so it moves on its own switcher, and the table
+                underneath shows which weeks the total came from. */}
             <SectionBlock
-              title={dict.calendar.thisMonth}
-              meta={`${detail.weeksInMonth} ${dict.units.weeks}`}
+              title={dict.team.monthSection}
+              action={
+                <PeriodSwitcher
+                  previousHref={monthHref(-1)}
+                  nextHref={monthHref(1)}
+                  label={formatMonthName(month, dict)}
+                  previousLabel={dict.calendar.previousMonth}
+                  nextLabel={dict.calendar.nextMonth}
+                  ariaLabel={dict.calendar.pickMonth}
+                  picker={buildMonthPicker(month, monthHref, dict)}
+                />
+              }
             >
-              <Card padding="md">
-                <DetailList items={monthly} />
-              </Card>
+              <div className="grid grid-cols-2 gap-2">
+                <StatCard
+                  icon="clock"
+                  accent="green"
+                  label={dict.team.monthlyHours}
+                  value={formatHours(detail.month.hours, dict)}
+                  hint={`${detail.month.weeksWorked}/${detail.month.weeks.length} ${dict.units.weeks}`}
+                />
+                <StatCard
+                  icon="wallet"
+                  accent="green"
+                  label={dict.team.monthlyPay}
+                  value={formatMoney(detail.month.pay)}
+                  hint={`${detail.month.weeksWorked}/${detail.month.weeks.length} ${dict.units.weeks}`}
+                />
+              </div>
+              <EmployeeMonthTable month={detail.month} dict={dict} today={today} />
             </SectionBlock>
           </div>
         </div>

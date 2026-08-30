@@ -28,12 +28,28 @@ export const shiftRepository = {
     return this.listByDateRange(dates[0], dates[6]);
   },
 
+  /**
+   * One person's shifts over a date range.
+   *
+   * Same string-range trick as `listByDateRange`, narrowed by employee. The
+   * employee detail screen reports a whole calendar month for one person, and
+   * fetching the month for *everyone* to then discard all but one row is the
+   * difference between a few dozen rows and a few thousand.
+   */
+  async listByEmployeeAndDateRange(
+    employeeId: string,
+    start: IsoDate,
+    end: IsoDate,
+  ): Promise<Shift[]> {
+    return prisma.shift.findMany({
+      where: { employeeId, date: { gte: start, lte: end } },
+      orderBy: [{ date: "asc" }, { startMinutes: "asc" }],
+    });
+  },
+
   async listByEmployeeAndWeek(employeeId: string, weekStart: IsoDate): Promise<Shift[]> {
     const dates = weekDates(weekStart);
-    return prisma.shift.findMany({
-      where: { employeeId, date: { gte: dates[0], lte: dates[6] } },
-      orderBy: { date: "asc" },
-    });
+    return this.listByEmployeeAndDateRange(employeeId, dates[0], dates[6]);
   },
 
   async findByEmployeeAndDate(employeeId: string, date: IsoDate): Promise<Shift | null> {

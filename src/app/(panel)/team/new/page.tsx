@@ -4,26 +4,15 @@ import { EmployeeForm } from "@/components/features/team/EmployeeForm";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/Section";
 import { getTranslations } from "@/lib/i18n/server";
-import { panelHref, ROUTES } from "@/lib/routes";
-import { resolveWeekStart } from "@/lib/week-params";
+import { ROUTES } from "@/lib/routes";
 import { requireAdmin } from "@/server/auth/session";
 import { createEmployeeAction } from "@/server/actions/employee.actions";
-
-interface NewEmployeePageProps {
-  searchParams: Promise<{ week?: string }>;
-}
 
 /** The page owns the tint and the gutter; every block inside is a Card. */
 const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
 
-export default async function NewEmployeePage({ searchParams }: NewEmployeePageProps) {
-  const [{ dict }, , query] = await Promise.all([
-    getTranslations(),
-    requireAdmin(),
-    searchParams,
-  ]);
-
-  const weekStart = resolveWeekStart(query.week);
+export default async function NewEmployeePage() {
+  const [{ dict }] = await Promise.all([getTranslations(), requireAdmin()]);
 
   return (
     // A form wants a short line whatever the monitor is: 720px, not 1216.
@@ -38,7 +27,7 @@ export default async function NewEmployeePage({ searchParams }: NewEmployeePageP
           action={
             // `md`, not `sm`: 44px. `sm` is 40px and is for dense inline
             // controls, which a page-level back affordance is not.
-            <Button href={panelHref(ROUTES.team, { week: weekStart })} variant="outline">
+            <Button href={ROUTES.team} variant="outline">
               {dict.common.back}
             </Button>
           }

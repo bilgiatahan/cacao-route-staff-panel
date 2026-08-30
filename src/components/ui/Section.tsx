@@ -40,6 +40,13 @@ export interface SectionHeadingProps {
   title: string;
   meta?: ReactNode;
   /**
+   * A control belonging to this section — the period switcher on the employee
+   * detail screen. `meta` is a value the section reports; this is something the
+   * reader can operate, so it also pulls the row off its baseline: a 44px
+   * control cannot share a baseline with a heading.
+   */
+  action?: ReactNode;
+  /**
    * `rule` is the all-caps label sitting on the 2px ink divider the ruled views
    * use; `plain` is the sentence-case heading the card views use, where the
    * card border already does the dividing; `card` is the compact brand-coloured
@@ -72,6 +79,7 @@ const HEADING_TITLE: Record<
 export function SectionHeading({
   title,
   meta,
+  action,
   variant = "rule",
   icon,
   className,
@@ -80,8 +88,9 @@ export function SectionHeading({
     <div
       className={cn(
         "flex justify-between gap-2 mb-2",
-        // The card variant centres on its glyph; the others sit on a baseline.
-        variant === "card" ? "items-center" : "items-baseline",
+        // The card variant centres on its glyph; the others sit on a baseline —
+        // unless there is a control to sit next to.
+        variant === "card" || action ? "items-center" : "items-baseline",
         HEADING_LAYOUT[variant],
         className,
       )}
@@ -98,8 +107,11 @@ export function SectionHeading({
         )}
         <h2 className={cn("truncate", HEADING_TITLE[variant])}>{title}</h2>
       </div>
-      {meta && (
-        <div className="flex-none text-xs font-semibold text-muted">{meta}</div>
+      {(meta || action) && (
+        <div className="flex flex-none items-center gap-2">
+          {meta && <div className="text-xs font-semibold text-muted">{meta}</div>}
+          {action}
+        </div>
       )}
     </div>
   );
@@ -122,6 +134,8 @@ export interface SectionBlockProps {
   title: string;
   /** Short right-aligned detail — a date, a count. */
   meta?: ReactNode;
+  /** A control scoped to this section, e.g. its period switcher. */
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 }
@@ -132,10 +146,10 @@ export interface SectionBlockProps {
  * This is the outside-a-card counterpart to `SectionHeading variant="card"`:
  * used when the section contains several cards rather than living inside one.
  */
-export function SectionBlock({ title, meta, children, className }: SectionBlockProps) {
+export function SectionBlock({ title, meta, action, children, className }: SectionBlockProps) {
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <SectionHeading variant="plain" title={title} meta={meta} />
+      <SectionHeading variant="plain" title={title} meta={meta} action={action} />
       {children}
     </div>
   );

@@ -162,6 +162,26 @@ export function nextIsoMonth(month: IsoMonth): IsoMonth {
 }
 
 /**
+ * `n` months on from `month`, negative to go back: "2026-08" + 5 → "2027-01".
+ *
+ * Anchored on the first of the month, so `new Date` normalises the year
+ * rollover in both directions and no modulo is needed. Stepping one at a time
+ * through `nextIsoMonth` would be correct too, and would cost a Date allocation
+ * per month for something the constructor already does.
+ */
+export function addIsoMonths(month: IsoMonth, amount: number): IsoMonth {
+  const first = fromIsoDate(startOfMonthIso(month));
+  return toIsoMonth(new Date(first.getFullYear(), first.getMonth() + amount, 1));
+}
+
+/** Whole months from `from` to `to`, negative when `to` is the earlier one. */
+export function monthsBetween(from: IsoMonth, to: IsoMonth): number {
+  const a = fromIsoDate(startOfMonthIso(from));
+  const b = fromIsoDate(startOfMonthIso(to));
+  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+}
+
+/**
  * How many Mondays fall in the month containing `iso`.
  * Used to project a weekly roster onto a month.
  */

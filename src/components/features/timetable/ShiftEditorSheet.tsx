@@ -50,6 +50,7 @@ export function ShiftEditorSheet({ target, labels, onClose }: ShiftEditorSheetPr
       title={target.employeeName}
       subtitle={target.dayLabel}
       closeLabel={labels.close}
+      className="lg:bottom-1/2 lg:translate-y-1/2 lg:rounded-md"
     >
       {/*
         Keyed on the cell so opening a different one remounts the form with

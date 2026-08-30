@@ -6,7 +6,7 @@ import { employeeDisplayName } from "@/lib/employee";
 import { weekdayIndex } from "@/lib/date";
 import { formatDateRange, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
-import { panelHref, ROUTES } from "@/lib/routes";
+import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type { Employee, IsoDate, LeaveRequest, Shift, SwapRequest } from "@/types/domain";
 
@@ -16,7 +16,6 @@ export interface PendingActionsProps {
   employees: Employee[];
   shifts: Shift[];
   dict: Dictionary;
-  weekStart: IsoDate;
 }
 
 interface ActionRow {
@@ -42,7 +41,6 @@ export function PendingActions({
   employees,
   shifts,
   dict,
-  weekStart,
 }: PendingActionsProps) {
   const byId = new Map(employees.map((employee) => [employee.id, employee]));
   const nameOf = (id: string) => {
@@ -88,7 +86,7 @@ export function PendingActions({
       {rows.map((row) => (
         <li key={row.key}>
           <Card
-            href={panelHref(ROUTES.leave, { week: weekStart })}
+            href={ROUTES.leave}
             padding="sm"
             className={cn(
               "flex items-center gap-3 border-l-4",

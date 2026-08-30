@@ -1,14 +1,16 @@
-/** Store opening hour, in minutes from midnight (07:00). */
+/**
+ * Store opening and closing hours, in minutes from midnight.
+ *
+ * The only reader left is the timetable's time scale, which draws an hour of
+ * margin either side. They were also the basis of a coverage-gap metric, removed
+ * because a single pair of hours applied to all seven days could not describe a
+ * real week.
+ */
+/** 07:00 */
 export const OPENING_MINUTES = 7 * 60;
 
-/** Store closing hour, in minutes from midnight (19:00). */
+/** 19:00 */
 export const CLOSING_MINUTES = 19 * 60;
-
-/**
- * A day counts as a coverage gap when nobody clocks in within this grace
- * window after opening, or when the last clock-out lands before closing.
- */
-export const OPENING_GRACE_MINUTES = 60;
 
 export const CURRENCY_SYMBOL = "£";
 

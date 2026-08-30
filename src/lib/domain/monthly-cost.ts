@@ -7,7 +7,6 @@ import {
   startOfMonthIso,
   startOfWeekIso,
 } from "@/lib/date";
-import { analyseWeek, countGapDays } from "@/lib/domain/coverage";
 import { calculateWeeklyPay, shiftHours } from "@/lib/domain/payroll";
 import { employeeFullName, isRosterMember } from "@/lib/employee";
 import type { Employee, IsoDate, IsoMonth, Localized, Shift } from "@/types/domain";
@@ -101,14 +100,6 @@ export interface MonthlyWeekLine extends MonthWeekRange {
   /** `null` for the first week — there is no previous week inside the month. */
   costChange: Delta | null;
   hoursChange: Delta | null;
-  /**
-   * In-month days of this week that opened late or closed early.
-   *
-   * Assessed over `rangeStart`–`rangeEnd` only, so a boundary week is never
-   * marked short for days that belong to another month. Same rule as the
-   * timetable's coverage strip — `analyseWeek` is reused rather than restated.
-   */
-  gapDays: number;
   /** Distinct cost-bearing people who worked inside the month this week. */
   activeStaffCount: number;
 }
@@ -145,14 +136,12 @@ export interface PreviousMonthComparison {
   month: IsoMonth;
   totals: CostTotals;
   activeStaffCount: number;
-  gapDays: number;
 
   costChange: Delta;
   hoursChange: Delta;
   /** `null` when either month had no hours — an undefined rate cannot move. */
   averageHourlyCostChange: Delta | null;
   activeStaffCountChange: Delta;
-  gapDaysChange: Delta;
 }
 
 export interface MonthlyCostReport {
@@ -171,9 +160,6 @@ export interface MonthlyCostReport {
    * was actually spent.
    */
   activeStaffCount: number;
-
-  /** In-month days that opened late or closed early — the sum of `weeks[].gapDays`. */
-  gapDays: number;
 
   /** Monday–Sunday weeks touching the month, including any that are empty. */
   weeksInMonth: number;
@@ -288,13 +274,6 @@ export function monthWeekRanges(monthStart: IsoDate, monthEnd: IsoDate): MonthWe
 
 /* --------------------------------------------------------------- builder --- */
 
-/** Every ISO date from `start` to `end` inclusive. */
-function datesInRange(start: IsoDate, end: IsoDate): IsoDate[] {
-  return Array.from({ length: countDaysInclusive(start, end) }, (_, index) =>
-    addIsoDays(start, index),
-  );
-}
-
 interface Bucket {
   hours: number;
   cost: number;
@@ -373,7 +352,6 @@ export function buildMonthlyCostReport(
   // order, so it agrees to within floating-point precision.
   let monthHours = 0;
   let monthCost = 0;
-  let monthGapDays = 0;
   let weeksWithData = 0;
   let staffWeekSum = 0;
 
@@ -382,19 +360,12 @@ export function buildMonthlyCostReport(
     monthHours += bucket.hours;
     monthCost += bucket.cost;
 
-    // Coverage is judged only on the days this week contributes to the month,
-    // so the 27 July week is not marked short for five days of July.
-    const gapDays = countGapDays(
-      analyseWeek(datesInRange(range.rangeStart, range.rangeEnd), contributing),
-    );
-    monthGapDays += gapDays;
-
     if (bucket.shifts > 0) {
       weeksWithData += 1;
       staffWeekSum += bucket.people.size;
     }
 
-    return { totals: totals(bucket.hours, bucket.cost), gapDays, people: bucket.people.size };
+    return { totals: totals(bucket.hours, bucket.cost), people: bucket.people.size };
   });
 
   const weeks = ranges.map<MonthlyWeekLine>((range, index) => {
@@ -407,7 +378,6 @@ export function buildMonthlyCostReport(
       costChange: previous === null ? null : delta(current.totals.cost, previous.totals.cost),
       hoursChange:
         previous === null ? null : delta(current.totals.hours, previous.totals.hours),
-      gapDays: current.gapDays,
       activeStaffCount: current.people,
     };
   });
@@ -441,7 +411,6 @@ export function buildMonthlyCostReport(
     // Only employees with a bucket have a shift, so this is exactly
     // "eligible people who worked at least once this month".
     activeStaffCount: perEmployee.size,
-    gapDays: monthGapDays,
     weeksInMonth: ranges.length,
     weeksWithData,
     // Partial boundary weeks count towards the average as they are, which keeps
@@ -478,7 +447,6 @@ export function compareWithPreviousMonth(
       month: previous.month,
       totals: previous.totals,
       activeStaffCount: previous.activeStaffCount,
-      gapDays: previous.gapDays,
 
       costChange: delta(current.totals.cost, previous.totals.cost),
       hoursChange: delta(current.totals.hours, previous.totals.hours),
@@ -487,7 +455,6 @@ export function compareWithPreviousMonth(
         previous.totals.averageHourlyCost,
       ),
       activeStaffCountChange: delta(current.activeStaffCount, previous.activeStaffCount),
-      gapDaysChange: delta(current.gapDays, previous.gapDays),
     },
   };
 }

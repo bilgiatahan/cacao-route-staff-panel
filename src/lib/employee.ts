@@ -34,8 +34,8 @@ export function employeePosition(employee: Employee, locale: Locale): string {
  *
  * Admins run the schedule rather than appear on it. Left in, an administrator
  * with no shifts renders as a permanently empty row on the timetable and still
- * counts towards headcount, payroll and coverage — a manager costing the wage
- * bill nothing and showing seven blank days.
+ * counts towards headcount and payroll — a manager costing the wage bill nothing
+ * and showing seven blank days.
  *
  * Task rows ("Temizlik") deliberately stay: they are scheduled work that simply
  * is not a person, and `isTaskRow` already excludes them from headcount and pay.

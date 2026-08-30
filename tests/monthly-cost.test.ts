@@ -703,73 +703,7 @@ describe("the hourly-rate seam", () => {
   });
 });
 
-/* -------------------------------------------------- coverage and headcount -- */
-
-describe("coverage gaps", () => {
-  const A = "emp-a";
-  const B = "emp-b";
-  const roster = [employee(A), employee(B)];
-
-  /** Opening 07:00 (60min grace) to closing 19:00 — a fully covered day. */
-  const covered = (id: string, date: IsoDate) => shift(id, date, 7, 19);
-
-  it("counts a day nobody is scheduled as a gap", () => {
-    const report = buildMonthlyCostReport(AUGUST, roster, [covered(A, "2026-08-03")]);
-
-    // Only 3 August is covered, so the other 30 days of August are all gaps.
-    expect(report.gapDays).toBe(30);
-    expect(report.weeks[1].gapDays).toBe(6);
-  });
-
-  it("judges a boundary week only on its in-month days", () => {
-    // The 27 July week contributes 1–2 August. Covering both leaves it gapless,
-    // even though 27–31 July are empty.
-    const report = buildMonthlyCostReport(AUGUST, roster, [
-      covered(A, "2026-08-01"),
-      covered(A, "2026-08-02"),
-    ]);
-
-    expect(report.weeks[0].daysInMonth).toBe(2);
-    expect(report.weeks[0].gapDays).toBe(0);
-  });
-
-  it("counts the single-day trailing week as at most one gap", () => {
-    const report = buildMonthlyCostReport(AUGUST, roster, []);
-
-    expect(report.weeks[5].daysInMonth).toBe(1);
-    expect(report.weeks[5].gapDays).toBe(1);
-  });
-
-  it("flags a late opening and an early close", () => {
-    const report = buildMonthlyCostReport(AUGUST, roster, [
-      shift(A, "2026-08-03", 9, 19), // opens 09:00 — past the 08:00 grace
-      shift(A, "2026-08-04", 7, 17), // closes 17:00 — before 19:00
-      covered(A, "2026-08-05"),
-    ]);
-
-    expect(report.weeks[1].gapDays).toBe(6);
-    expect(report.gapDays).toBe(30);
-  });
-
-  it("sums to the month total across every week", () => {
-    const report = buildMonthlyCostReport(AUGUST, roster, [covered(A, "2026-08-10")]);
-
-    expect(report.weeks.reduce((sum, week) => sum + week.gapDays, 0)).toBe(report.gapDays);
-    // 31 days in August, one of them covered.
-    expect(report.gapDays).toBe(30);
-  });
-
-  it("ignores an admin's shift when judging cover", () => {
-    // Coverage is assessed over cost-bearing shifts only, the same basis as pay.
-    const withAdmin = buildMonthlyCostReport(
-      AUGUST,
-      [employee(A), employee("emp-boss", { role: "admin" })],
-      [covered("emp-boss", "2026-08-03")],
-    );
-
-    expect(withAdmin.weeks[1].gapDays).toBe(7);
-  });
-});
+/* --------------------------------------------------------------- headcount -- */
 
 describe("weekly headcount", () => {
   const A = "emp-a";
@@ -880,12 +814,9 @@ describe("compareWithPreviousMonth", () => {
     });
   });
 
-  it("compares coverage and headcount too", () => {
+  it("compares headcount too", () => {
     const compared = compareWithPreviousMonth(august, july);
 
-    expect(compared.previousMonth?.gapDaysChange.absolute).toBe(
-      august.gapDays - july.gapDays,
-    );
     expect(compared.previousMonth?.activeStaffCountChange).toEqual({
       absolute: 0,
       percent: 0,

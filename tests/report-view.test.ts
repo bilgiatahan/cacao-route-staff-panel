@@ -319,12 +319,11 @@ describe("resolveSelectedWeekIndex", () => {
 /* ------------------------------------------------------------- stat cards -- */
 
 describe("stat cards", () => {
-  it("emits the five metrics in order", () => {
+  it("emits the four metrics in order", () => {
     expect(buildStatCards(report, dict).map((card) => card.key)).toEqual([
       "cost",
       "hours",
       "rate",
-      "gaps",
       "staff",
     ]);
   });
@@ -360,17 +359,12 @@ describe("stat cards", () => {
   it("does not paint a rising wage bill as good news", () => {
     const cards = buildStatCards(report, dict);
 
-    // Cost, blended rate and uncovered days are all better lower; hours and
-    // headcount are volumes with no verdict attached.
+    // Cost and the blended rate are both better lower; hours and headcount are
+    // volumes with no verdict attached.
     expect(cards[0].sentiment).toBe("lowerIsBetter");
     expect(cards[1].sentiment).toBe("neutral");
     expect(cards[2].sentiment).toBe("lowerIsBetter");
-    expect(cards[3].sentiment).toBe("lowerIsBetter");
-    expect(cards[4].sentiment).toBe("neutral");
-  });
-
-  it("flags a month with uncovered days", () => {
-    expect(buildStatCards(report, dict)[3].highlight).toBe(true);
+    expect(cards[3].sentiment).toBe("neutral");
   });
 
   it("dashes the hourly rate for a month with no hours", () => {
@@ -439,14 +433,6 @@ describe("weekly labels", () => {
     expect(rows[1].rateLabel).toBe("£13.33");
   });
 
-  it("reports each week's uncovered days", () => {
-    const rows = buildWeekRows(report, dict, 0);
-
-    expect(rows.map((row) => row.gapLabel)).toEqual(
-      report.weeks.map((week) => String(week.gapDays)),
-    );
-  });
-
   it("names the selected week and whether it is clipped", () => {
     // A week inside one month names it once; a boundary week names both.
     expect(selectedWeekLabel(report, 2, dict)).toBe("10–16 Aug · W3");
@@ -480,12 +466,11 @@ describe("week against the monthly average", () => {
     expect(cost?.delta).toEqual({ absolute: -80, percent: -50 });
   });
 
-  it("emits the five rows the panel renders", () => {
+  it("emits the four rows the panel renders", () => {
     expect(buildComparisonRows(report, 2, dict).map((row) => row.key)).toEqual([
       "cost",
       "hours",
       "rate",
-      "gaps",
       "staff",
     ]);
   });
@@ -503,13 +488,11 @@ describe("week against the monthly average", () => {
     const rows = buildComparisonRows(empty, 1, dict);
     const by = (key: string) => rows.find((row) => row.key === key);
 
-    // Cost, hours and headcount all averaged zero, so there is no baseline.
+    // Every remaining figure averaged zero over an empty month, so none of them
+    // has a baseline to be a percentage of.
     for (const key of ["cost", "hours", "staff"]) {
       expect(by(key)?.delta?.percent ?? null, key).toBeNull();
     }
-    // Coverage is the exception and legitimately so: a month with no shifts is
-    // uncovered every day, which is a real baseline to measure a week against.
-    expect(by("gaps")?.delta?.percent).toBeCloseTo(((7 - 31 / 6) / (31 / 6)) * 100, 8);
 
     for (const row of rows) {
       expect(Number.isFinite(row.delta?.absolute ?? 0), row.key).toBe(true);

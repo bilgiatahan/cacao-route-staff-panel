@@ -11,10 +11,9 @@ import type { Dictionary } from "@/lib/i18n";
 export interface LoginFormProps {
   dict: Dictionary;
   callbackUrl: string;
-  defaultEmail: string;
 }
 
-export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
+export function LoginForm({ dict, callbackUrl }: LoginFormProps) {
   const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
     signInAction,
     null,
@@ -36,7 +35,6 @@ export function LoginForm({ dict, callbackUrl, defaultEmail }: LoginFormProps) {
           icon="mail"
           autoComplete="username"
           required
-          defaultValue={defaultEmail}
         />
       </Field>
 

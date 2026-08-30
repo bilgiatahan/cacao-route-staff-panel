@@ -94,7 +94,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             action={weekSwitcher}
           />
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             <StatCard
               icon="clock"
               accent="blue"
@@ -110,14 +110,6 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               hint={weekLabel}
             />
             <StatCard
-              icon="calendarCheck"
-              accent="amber"
-              label={dict.summary.statGaps}
-              value={String(summary.gapDays)}
-              hint={summary.gapDays > 0 ? dict.summary.gapDays : dict.summary.noGap}
-              highlight={summary.gapDays > 0}
-            />
-            <StatCard
               icon="inbox"
               accent="violet"
               label={dict.summary.statPending}
@@ -128,10 +120,10 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           </div>
 
           {/*
-            Coverage and the worklist are the two questions a manager opens this
-            page with, so on a desk they sit next to each other rather than one
-            scroll apart. 7/5 because "who is on today" is a list of people and
-            "what needs me" is a short queue.
+            Today's roster and the worklist are the two questions a manager
+            opens this page with, so on a desk they sit next to each other rather
+            than one scroll apart. 7/5 because "who is on today" is a list of
+            people and "what needs me" is a short queue.
           */}
           <div className="contents lg:flex lg:items-start lg:gap-3.5">
           <SectionBlock

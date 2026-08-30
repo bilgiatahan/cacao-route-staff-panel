@@ -158,18 +158,6 @@ export function buildStatCards(
       ),
     },
     {
-      key: "gaps",
-      icon: "calendarCheck",
-      accent: "amber",
-      label: dict.reports.statGaps,
-      value: String(report.gapDays),
-      hint: monthLabel,
-      delta: previous?.gapDaysChange ?? null,
-      sentiment: "lowerIsBetter",
-      comparison: baseline(previous ? String(previous.gapDays) : null),
-      highlight: report.gapDays > 0,
-    },
-    {
       key: "staff",
       icon: "team",
       accent: "rose",
@@ -232,7 +220,6 @@ export function buildWeekRows(
       costLabel: formatMoney(week.totals.cost),
       hoursLabel: formatHours(week.totals.hours, dict),
       rateLabel: rate === null ? dict.common.dash : formatMoney(rate),
-      gapLabel: String(week.gapDays),
       isPartial: week.isPartial,
       isSelected: index === selectedIndex,
       href: weekHref(report.month, week.weekStart),
@@ -240,7 +227,6 @@ export function buildWeekRows(
         `${short} ${range}`,
         `${dict.reports.colCost} ${formatMoney(week.totals.cost)}`,
         `${dict.reports.colHours} ${formatHours(week.totals.hours, dict)}`,
-        `${dict.reports.colGaps} ${week.gapDays}`,
         week.isPartial ? daysInMonthLabel(week.daysInMonth, dict) : "",
       ]
         .filter(Boolean)
@@ -317,14 +303,6 @@ export function buildComparisonRows(
           : `${formatMoney(monthRate)}${dict.units.perHour}`,
       delta:
         weekRate === null || monthRate === null ? null : against(weekRate, monthRate),
-      sentiment: "lowerIsBetter",
-    },
-    {
-      key: "gaps",
-      label: dict.reports.rowGaps,
-      weekValue: String(week.gapDays),
-      monthValue: formatCount(report.gapDays / Math.max(1, report.weeksInMonth)),
-      delta: against(week.gapDays, report.gapDays / Math.max(1, report.weeksInMonth)),
       sentiment: "lowerIsBetter",
     },
     {

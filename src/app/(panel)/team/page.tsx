@@ -5,7 +5,7 @@ import { TeamRosterList } from "@/components/features/team/TeamRosterList";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { PageHeader } from "@/components/ui/Section";
-import { currentWeekStartIso, todayIso } from "@/lib/date";
+import { currentWeekStartIso } from "@/lib/date";
 import { getTranslations } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import { requireSessionUser } from "@/server/auth/session";
@@ -31,7 +31,7 @@ export default async function TeamPage() {
       <PageShell width="data">
         <section className="flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5">
           <PageHeader variant="plain" title={dict.team.titleStaff} />
-          <StaffPayrollCard detail={detail} dict={dict} today={todayIso()} />
+          <StaffPayrollCard detail={detail} dict={dict} />
         </section>
       </PageShell>
     );

@@ -117,7 +117,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {stats.map((stat) => (
             <StatCard
               key={stat.key}
@@ -187,7 +187,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                 cost: dict.reports.colCost,
                 hours: dict.reports.colHours,
                 rate: dict.reports.colRate,
-                gaps: dict.reports.colGaps,
                 partial: dict.reports.partial,
                 total: dict.reports.statCost,
               }}

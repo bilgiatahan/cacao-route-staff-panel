@@ -19,10 +19,9 @@ import type { IsoMonth } from "@/types/domain";
  *   - every shift whose date falls inside the calendar month
  *   - the same for the previous month, which is the comparison baseline
  *
- * Coverage gaps and per-week headcount need no query of their own: both are
- * derived from the shifts already in hand, which is the reason `analyseWeek` is
- * reusable here at all. Pending leave and swaps are deliberately *not* read —
- * this service answers what the month cost, not what needs a decision.
+ * Per-week headcount needs no query of its own: it is derived from the shifts
+ * already in hand. Pending leave and swaps are deliberately *not* read — this
+ * service answers what the month cost, not what needs a decision.
  *
  * The month range is the only filter the database applies to shifts, which is
  * what keeps the month-boundary rule airtight: a week straddling July and August
@@ -32,9 +31,8 @@ import type { IsoMonth } from "@/types/domain";
  * index scan over a few hundred rows.
  *
  * Deliberately not built on `getRosterWeek`: that assembles exactly seven days
- * plus approved leave plus coverage analysis, so a six-week month would cost
- * eighteen queries and compute leave shading and coverage gaps this report does
- * not use. Deliberately not built on `buildPayrollReport` / `weeksInPeriod`
+ * plus approved leave, so a six-week month would cost eighteen queries and
+ * compute leave shading this report does not use. Deliberately not built on `buildPayrollReport` / `weeksInPeriod`
  * either — those multiply one week by the Mondays in the month, which is a
  * forecast. This is the actuals, and the two must not be derived from each other.
  *

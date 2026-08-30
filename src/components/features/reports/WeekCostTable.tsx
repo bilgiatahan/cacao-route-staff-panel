@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  */
 const COLUMNS =
   "grid grid-cols-[38px_1fr_84px_58px] gap-1.5 px-3.5 " +
-  "sm:grid-cols-[44px_1fr_96px_70px_88px_72px] sm:gap-2 sm:px-4";
+  "sm:grid-cols-[44px_1fr_96px_70px_88px] sm:gap-2 sm:px-4";
 
 export interface WeekCostRow {
   key: string;
@@ -20,7 +20,6 @@ export interface WeekCostRow {
   costLabel: string;
   hoursLabel: string;
   rateLabel: string;
-  gapLabel: string;
   isPartial: boolean;
   isSelected: boolean;
   href: string;
@@ -36,7 +35,6 @@ export interface WeekCostTableProps {
     cost: string;
     hours: string;
     rate: string;
-    gaps: string;
     partial: string;
     total: string;
   };
@@ -52,7 +50,6 @@ export function WeekCostTable({ rows, labels, totalLabel }: WeekCostTableProps) 
         <span className="text-right">{labels.cost}</span>
         <span className="text-right">{labels.hours}</span>
         <span className="hidden text-right sm:block">{labels.rate}</span>
-        <span className="hidden text-right sm:block">{labels.gaps}</span>
       </TableHead>
 
       <ul>
@@ -91,9 +88,6 @@ export function WeekCostTable({ rows, labels, totalLabel }: WeekCostTableProps) 
               <span className="tabular text-right text-sm">{row.hoursLabel}</span>
               <span className="tabular hidden text-right text-sm text-muted sm:block">
                 {row.rateLabel}
-              </span>
-              <span className="tabular hidden text-right text-sm sm:block">
-                {row.gapLabel}
               </span>
             </Link>
           </li>

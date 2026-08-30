@@ -1,7 +1,6 @@
 import "server-only";
 
 import { weekDates } from "@/lib/date";
-import { analyseWeek, type DayCoverage } from "@/lib/domain/coverage";
 import { buildScheduleMatrix, type ScheduleRow } from "@/lib/domain/schedule";
 import { isRosterMember } from "@/lib/employee";
 import { employeeRepository } from "@/server/repositories/employee.repository";
@@ -14,7 +13,7 @@ export interface RosterWeek {
   dates: IsoDate[];
   /** Every roster row: rostered people and task rows, never admins. */
   rows: ScheduleRow[];
-  /** Real people only — the basis for headcount, payroll and coverage. */
+  /** Real people only — the basis for headcount and payroll. */
   staffRows: ScheduleRow[];
   /**
    * The full active directory, admins included — a lookup table, not a roster.
@@ -24,7 +23,6 @@ export interface RosterWeek {
   employees: Employee[];
   shifts: Shift[];
   approvedLeave: LeaveRequest[];
-  coverage: DayCoverage[];
 }
 
 /**
@@ -41,8 +39,8 @@ export async function getRosterWeek(weekStart: IsoDate): Promise<RosterWeek> {
   ]);
 
   // `isRosterMember` is applied here and nowhere else: `staffRows`, payroll,
-  // headcount, coverage and every timetable view derive from `rows`, so one
-  // filter keeps all of them agreeing about who is on the schedule.
+  // headcount and every timetable view derive from `rows`, so one filter keeps
+  // all of them agreeing about who is on the schedule.
   const rows = buildScheduleMatrix(
     employees.filter(isRosterMember),
     shifts,
@@ -50,9 +48,6 @@ export async function getRosterWeek(weekStart: IsoDate): Promise<RosterWeek> {
     dates,
   );
   const staffRows = rows.filter((row) => !row.employee.isTaskRow);
-  const staffShifts = shifts.filter((shift) =>
-    staffRows.some((row) => row.employee.id === shift.employeeId),
-  );
 
   return {
     weekStart,
@@ -62,6 +57,5 @@ export async function getRosterWeek(weekStart: IsoDate): Promise<RosterWeek> {
     employees,
     shifts,
     approvedLeave,
-    coverage: analyseWeek(dates, staffShifts),
   };
 }

@@ -113,13 +113,6 @@ describe("admin branch", () => {
     expect(summary.pendingLeave.length + summary.pendingSwaps.length).toBe(2);
   });
 
-  it("counts a coverage gap for a day nobody opens", async () => {
-    // No shifts at all, so every day of the week is a gap.
-    const summary = await getAdminSummary(MONDAY, "week");
-    expect(summary.gapDays).toBe(7);
-    expect(summary.roster.dates).toHaveLength(7);
-  });
-
   it("excludes task rows from headcount", async () => {
     // Two real people, so the assertion is about the task row and not about the
     // admin — who no longer pads the count either way.

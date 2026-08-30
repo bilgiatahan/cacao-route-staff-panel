@@ -1,7 +1,6 @@
 import "server-only";
 
 import { todayIso, weekdayIndex } from "@/lib/date";
-import { countGapDays } from "@/lib/domain/coverage";
 import type { ScheduleCell, ScheduleRow } from "@/lib/domain/schedule";
 import { calculateWeeklyPay } from "@/lib/domain/payroll";
 import type { Period } from "@/lib/week-params";
@@ -23,7 +22,6 @@ export interface AdminSummary {
   period: Period;
   weeksInPeriod: number;
   headcount: number;
-  gapDays: number;
   /** `null` when the visible week does not contain today. */
   today: IsoDate | null;
   onShiftToday: OnShiftToday[];
@@ -79,7 +77,6 @@ export async function getAdminSummary(
     period,
     weeksInPeriod: weeksInPeriod(period, weekStart),
     headcount: roster.staffRows.length,
-    gapDays: countGapDays(roster.coverage),
     today,
     onShiftToday: collectOnShift(roster, today),
     pendingLeave: pending.leave,

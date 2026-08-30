@@ -55,34 +55,6 @@ export default async function LoginPage({
 
   if (session) redirect(ROUTES.summary);
 
-  /*
-    Seed accounts are a development affordance and never a production one. The
-    card below prints a working password in plain text and the email field above
-    pre-fills the administrator's address, so on a deployed panel the sign-in
-    page would hand both halves of an admin credential to anyone who loaded it.
-    One flag gates both, and it is read on the server, so nothing about the demo
-    accounts reaches a production response at all.
-  */
-  const showDemoAccounts = process.env.NODE_ENV !== "production";
-
-  const demoRows: DetailItem[] = showDemoAccounts
-    ? [
-        {
-          key: "admin",
-          icon: "shield",
-          label: dict.auth.demoAdmin,
-          value: emailFor(ADMIN_EMPLOYEE_ID),
-        },
-        {
-          key: "staff",
-          icon: "user",
-          label: dict.auth.demoStaff,
-          value: emailFor(DEMO_STAFF_EMPLOYEE_ID),
-        },
-        { key: "password", icon: "lock", label: dict.auth.password, value: DEMO_PASSWORD },
-      ]
-    : [];
-
   return (
     <div className="flex min-h-dvh justify-center bg-canvas lg:items-center lg:p-8">
       <div className={SHELL}>
@@ -106,32 +78,11 @@ export default async function LoginPage({
         </header>
 
         <main className="flex flex-1 flex-col px-4 pb-8 pt-8 lg:px-6">
-          <h1 className="text-4xl font-bold">{dict.auth.title}</h1>
-          <p className="mb-6 mt-1 text-sm text-muted">{dict.auth.subtitle}</p>
 
           <LoginForm
             dict={dict}
             callbackUrl={params.callbackUrl ?? ROUTES.summary}
-            defaultEmail={showDemoAccounts ? emailFor(ADMIN_EMPLOYEE_ID) : ""}
           />
-
-          {/*
-            Demoted on purpose: a dashed border on the page tint, no elevation,
-            and a small eyebrow rather than a section rule. These are seed
-            accounts, and the previous treatment — a formal definition list
-            under a 2px ink rule — gave them the weight of production records.
-          */}
-          {showDemoAccounts ? (
-            <section className="mt-8">
-              <Card padding="md" className="border-dashed bg-fill">
-                <p className="label-eyebrow flex items-center gap-1.5">
-                  <Icon name="info" className="h-3.5 w-3.5" />
-                  {dict.auth.demoTitle}
-                </p>
-                <DetailList items={demoRows} />
-              </Card>
-            </section>
-          ) : null}
         </main>
       </div>
     </div>

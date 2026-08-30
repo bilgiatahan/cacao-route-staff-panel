@@ -4,7 +4,15 @@ import { tr } from "./dictionaries/tr";
 import type { Dictionary } from "./types";
 
 export const LOCALES: Locale[] = ["tr", "en"];
-export const DEFAULT_LOCALE: Locale = "tr";
+
+/**
+ * The language a visitor with no `cr_locale` cookie gets.
+ *
+ * Deliberately not the same thing as the *reference* dictionary: `tr.ts` still
+ * defines `Dictionary` and every key has to exist there first (see `types.ts`).
+ * This is only what the UI opens in.
+ */
+export const DEFAULT_LOCALE: Locale = "en";
 
 const DICTIONARIES: Record<Locale, Dictionary> = { tr, en };
 

@@ -8,6 +8,8 @@ export const tr = {
     panel: "Vardiya Paneli",
     branch: "Cacao Route · Moda",
     managerTitle: "İşletme Müdürü",
+    /** Browser tab and link previews — `generateMetadata` in the root layout. */
+    description: "Vardiya planlama, izin yönetimi ve bordro paneli.",
   },
 
   auth: {

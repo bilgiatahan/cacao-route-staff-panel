@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 
-import { getLocale } from "@/lib/i18n/server";
+import { getTranslations } from "@/lib/i18n/server";
 
 import "./globals.css";
 
@@ -12,10 +12,18 @@ const archivo = Archivo({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Cacao Route · Vardiya Paneli",
-  description: "Vardiya planlama, izin yönetimi ve bordro paneli.",
-};
+/**
+ * Generated rather than static, so the browser tab is in the same language as
+ * the page under it. A hard-coded Turkish title survived the default flipping to
+ * English and was the one Turkish string an English session could not get rid of.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getTranslations();
+  return {
+    title: `Cacao Route · ${dict.brand.panel}`,
+    description: dict.brand.description,
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -26,7 +34,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const locale = await getLocale();
+  const { locale } = await getTranslations();
 
   return (
     <html lang={locale} className={archivo.variable}>

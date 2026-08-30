@@ -6,6 +6,8 @@ export const en: Dictionary = {
     panel: "Shift Panel",
     branch: "Cacao Route · Moda",
     managerTitle: "Store Manager",
+    /** Browser tab and link previews — `generateMetadata` in the root layout. */
+    description: "Shift planning, leave management and payroll panel.",
   },
 
   auth: {

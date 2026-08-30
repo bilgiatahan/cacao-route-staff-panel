@@ -111,7 +111,7 @@ export default async function EmployeeDetailPage({
         </Card>
 
         <div className="contents lg:flex lg:items-start lg:gap-3.5">
-          <div className="contents lg:block lg:min-w-0 lg:basis-0 lg:grow-[7]">
+          <div className="contents lg:block lg:min-w-0 lg:basis-0 lg:grow-7">
             <EmployeeForm
               dict={dict}
               mode="edit"

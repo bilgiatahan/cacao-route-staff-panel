@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Section";
-import { TABLE_ROW, TableCard, TableHead, TableTotal } from "@/components/ui/TableCard";
+import { TABLE_ROW, TableCard, TableHead } from "@/components/ui/TableCard";
 import type { EmployeeMonth } from "@/lib/domain/employee-month";
 import { formatHours, formatMoney, formatWeekSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
@@ -108,8 +108,6 @@ export function EmployeeMonthTable({ month, dict, today }: EmployeeMonthTablePro
           );
         })}
       </ul>
-
-      <TableTotal label={dict.team.monthlyPay} value={formatMoney(month.pay)} />
     </TableCard>
   );
 }

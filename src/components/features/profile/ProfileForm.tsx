@@ -152,6 +152,7 @@ export function ProfileForm({ dict, values, action }: ProfileFormProps) {
               autoComplete="email"
               inputMode="email"
               defaultValue={values.email}
+              readOnly
               {...inputProps(PERSON_RULES.email)}
               {...fields.controlProps("email")}
             />

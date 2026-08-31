@@ -166,6 +166,19 @@ export const tr = {
     task: "Görev",
     onLeave: "İzinli",
     emptyDay: "Bu gün için vardiya yok",
+
+    // Geçen haftayı kopyalama. Sayaçlar sunucuda yerine konur — {n} yazılacak
+    // vardiya, {m} silinecek olan.
+    copy: "Geçen Haftayı Kopyala",
+    copyShort: "Kopyala",
+    copying: "Kopyalanıyor…",
+    copyTitle: "Geçen haftayı kopyala",
+    copyQuestion: "Geçen haftanın programını bu haftaya kopyalamak istediğinizden emin misiniz?",
+    copyAdds: "Geçen haftanın {n} vardiyası bu haftaya yazılacak.",
+    copyReplaces:
+      "Geçen haftanın {n} vardiyası bu haftaya yazılacak, bu haftadaki {m} vardiya silinecek. Bu işlem geri alınamaz.",
+    copyDone: "Geçen haftanın programı kopyalandı.",
+    copyEmpty: "Geçen hafta boş, kopyalanacak vardiya yok.",
   },
 
   leave: {

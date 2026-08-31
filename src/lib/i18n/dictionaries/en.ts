@@ -164,6 +164,19 @@ export const en: Dictionary = {
     task: "Task",
     onLeave: "On leave",
     emptyDay: "No shifts on this day",
+
+    // Copying last week. The counts are filled in on the server — {n} shifts to
+    // write, {m} to remove.
+    copy: "Copy Last Week",
+    copyShort: "Copy",
+    copying: "Copying…",
+    copyTitle: "Copy last week",
+    copyQuestion: "Are you sure you want to copy last week's roster into this week?",
+    copyAdds: "{n} shifts from last week will be written into this week.",
+    copyReplaces:
+      "{n} shifts from last week will be written into this week, replacing the {m} already here. This cannot be undone.",
+    copyDone: "Last week's roster was copied.",
+    copyEmpty: "Last week is empty — there is nothing to copy.",
   },
 
   leave: {

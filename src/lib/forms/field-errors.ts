@@ -52,6 +52,9 @@ export const FORM_LEVEL_KEYS: readonly ActionErrorKey[] = [
   "valueTooLong",
   // About the account, not about any control on the form.
   "noAccount",
+  // Copying a week is a button, not a form: the state it reports on is last
+  // week's roster, which has no control on this screen at all.
+  "nothingToCopy",
 ];
 
 /** The control an error belongs to, or `null` when it belongs to the form. */

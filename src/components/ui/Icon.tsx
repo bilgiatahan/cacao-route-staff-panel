@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarDays,
   ChartColumn,
+  CopyPlus,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -59,6 +60,7 @@ import { cn } from "@/lib/utils";
 const ICONS = {
   summary: ChartColumn,
   timetable: CalendarDays,
+  copyWeek: CopyPlus,
   // The leave tab and the sign-out row were the same door-and-arrow drawing
   // before Lucide, and still are.
   leave: LogOut,

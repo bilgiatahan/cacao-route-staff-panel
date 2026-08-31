@@ -1,6 +1,6 @@
 import "server-only";
 
-import { weekDates } from "@/lib/date";
+import { addIsoDays, DAYS_IN_WEEK, weekDates } from "@/lib/date";
 import { buildScheduleMatrix, type ScheduleRow } from "@/lib/domain/schedule";
 import { isRosterMember } from "@/lib/employee";
 import { employeeRepository } from "@/server/repositories/employee.repository";
@@ -57,5 +57,40 @@ export async function getRosterWeek(weekStart: IsoDate): Promise<RosterWeek> {
     employees,
     shifts,
     approvedLeave,
+  };
+}
+
+export interface PreviousWeekPreview {
+  /** The Monday the copy would read from. */
+  sourceWeekStart: IsoDate;
+  /** Roster shifts last week — what a copy would write. Zero means nothing to copy. */
+  sourceCount: number;
+  /** Roster shifts this week — what a copy would overwrite. */
+  targetCount: number;
+}
+
+/**
+ * What "copy last week" would actually do to the week already loaded.
+ *
+ * Both numbers are counted over the *roster* rather than over the raw shift
+ * table, because `copyWeek` writes and deletes over the roster too — counting an
+ * archived person's leftover row here would promise a copy that never touches
+ * it. `week.rows` is already `isRosterMember`-filtered, so the set comes free.
+ *
+ * Takes the loaded week instead of a date: the page has just read this week's
+ * shifts and employees, so the only thing left to fetch is last week's shifts.
+ */
+export async function getPreviousWeekPreview(
+  week: RosterWeek,
+): Promise<PreviousWeekPreview> {
+  const sourceWeekStart = addIsoDays(week.weekStart, -DAYS_IN_WEEK);
+  const roster = new Set(week.rows.map((row) => row.employee.id));
+
+  const sourceShifts = await shiftRepository.listByWeek(sourceWeekStart);
+
+  return {
+    sourceWeekStart,
+    sourceCount: sourceShifts.filter((shift) => roster.has(shift.employeeId)).length,
+    targetCount: week.shifts.filter((shift) => roster.has(shift.employeeId)).length,
   };
 }

@@ -12,6 +12,7 @@ export type ActionErrorKey =
   | "invalidCredentials"
   | "invalidRange"
   | "invalidTime"
+  | "nothingToCopy"
   | "nameRequired"
   | "nameTooShort"
   | "passwordTooShort"
@@ -68,6 +69,7 @@ const ERROR_KEYS = {
   invalidCredentials: true,
   invalidRange: true,
   invalidTime: true,
+  nothingToCopy: true,
   nameRequired: true,
   nameTooShort: true,
   passwordTooShort: true,
@@ -110,6 +112,8 @@ export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): str
       return dict.leave.invalidRange;
     case "invalidTime":
       return dict.timetable.editorInvalid;
+    case "nothingToCopy":
+      return dict.timetable.copyEmpty;
     case "nameRequired":
       return dict.team.nameRequired;
     case "nameTooShort":

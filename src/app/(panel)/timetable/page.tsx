@@ -1,6 +1,7 @@
 import { PageShell } from "@/components/layout/PageShell";
 import { PeriodSwitcher } from "@/components/layout/PeriodSwitcher";
 import { buildWeekPicker } from "@/components/layout/period-options";
+import { CopyWeekButton } from "@/components/features/timetable/CopyWeekButton";
 import { RosterBoard } from "@/components/features/timetable/RosterBoard";
 import {
   buildDayColumns,
@@ -14,6 +15,7 @@ import { PageHeader } from "@/components/ui/Section";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { addIsoDays, todayIso, weekdayIndex } from "@/lib/date";
 import { formatWeekLabel } from "@/lib/format";
+import { interpolate } from "@/lib/i18n";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
 import {
@@ -23,7 +25,10 @@ import {
 } from "@/lib/week-params";
 import { actionErrorMessages } from "@/server/actions/action-result";
 import { requireSessionUser } from "@/server/auth/session";
-import { getRosterWeek } from "@/server/services/roster.service";
+import {
+  getPreviousWeekPreview,
+  getRosterWeek,
+} from "@/server/services/roster.service";
 
 interface TimetablePageProps {
   searchParams: Promise<{ week?: string; view?: string; day?: string }>;
@@ -50,6 +55,9 @@ export default async function TimetablePage({
   );
 
   const canEdit = user.role === "admin";
+  // Only an admin can copy a week, so only an admin pays for the extra read of
+  // last week's shifts.
+  const copyPreview = canEdit ? await getPreviousWeekPreview(roster) : null;
   const columns = buildDayColumns(roster.dates, dict, todayInWeek);
   const rows = buildRosterRows(roster.rows, dict);
   const { onShift, off } = buildDayRows(roster.rows, roster.dates[dayIndex], dict);
@@ -112,10 +120,46 @@ export default async function TimetablePage({
           }
         />
 
-        <SegmentedControl
-          ariaLabel={dict.timetable.title}
-          options={viewOptions}
-        />
+        {/*
+          The view switch and the copy control share a row on a desk and stack on
+          a phone, where a 44px button beside a three-way switch would leave both
+          too narrow to hit.
+        */}
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
+          <SegmentedControl
+            ariaLabel={dict.timetable.title}
+            options={viewOptions}
+          />
+
+          {copyPreview ? (
+            <CopyWeekButton
+              weekStart={weekStart}
+              canCopy={copyPreview.sourceCount > 0}
+              labels={{
+                action: dict.timetable.copy,
+                confirm: dict.timetable.copyShort,
+                pending: dict.timetable.copying,
+                title: dict.timetable.copyTitle,
+                // Built here rather than in the client: the counts are server
+                // facts, and the dictionary never crosses the boundary.
+                body: `${dict.timetable.copyQuestion} ${interpolate(
+                  copyPreview.targetCount > 0
+                    ? dict.timetable.copyReplaces
+                    : dict.timetable.copyAdds,
+                  {
+                    n: String(copyPreview.sourceCount),
+                    m: String(copyPreview.targetCount),
+                  },
+                )}`,
+                cancel: dict.common.cancel,
+                close: dict.common.close,
+                done: dict.timetable.copyDone,
+                empty: dict.timetable.copyEmpty,
+                errorMessages: actionErrorMessages(dict),
+              }}
+            />
+          ) : null}
+        </div>
 
         <Card className="overflow-hidden">
           <RosterBoard

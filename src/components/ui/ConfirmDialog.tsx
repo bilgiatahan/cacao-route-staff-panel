@@ -56,7 +56,7 @@ export function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <Sheet open onClose={onCancel} title={labels.title} closeLabel={labels.close}>
+    <Sheet open onClose={onCancel} title={labels.title} closeLabel={labels.close} className="lg:bottom-1/2 lg:translate-y-1/2 lg:rounded-md">
       <p className="mb-3.5 text-base text-muted">{labels.body}</p>
       <div className="flex gap-2">
         <Button

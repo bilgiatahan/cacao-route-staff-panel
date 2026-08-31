@@ -18,6 +18,9 @@ export async function resetDatabase(): Promise<void> {
   await prisma.shift.deleteMany();
   await prisma.user.deleteMany();
   await prisma.employee.deleteMany();
+  // Panel settings are a singleton row, so a test that switches one off would
+  // otherwise leave it off for every test after it.
+  await prisma.appSettings.deleteMany();
 }
 
 export async function createEmployee(

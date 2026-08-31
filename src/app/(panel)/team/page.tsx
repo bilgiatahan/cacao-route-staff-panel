@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { PageShell } from "@/components/layout/PageShell";
 
 import { StaffPayrollCard } from "@/components/features/team/StaffPayrollCard";
@@ -9,6 +11,7 @@ import { currentWeekStartIso, todayIso } from "@/lib/date";
 import { getTranslations } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import { requireSessionUser } from "@/server/auth/session";
+import { canViewPay } from "@/server/services/settings.service";
 import { getEmployeeDetail, getTeamOverview } from "@/server/services/team.service";
 
 export default async function TeamPage() {
@@ -22,6 +25,12 @@ export default async function TeamPage() {
   const weekStart = currentWeekStartIso();
 
   if (user.role !== "admin") {
+    // For staff this route *is* the pay screen — hours, daily earnings, monthly
+    // pay and the wage itself. So when the admin has pay hidden there is nothing
+    // left to render, and the guard has to be here rather than only on the tab:
+    // a Server Component route is reachable by typing the URL.
+    if (!(await canViewPay(user))) redirect(ROUTES.summary);
+
     const detail = await getEmployeeDetail(user.employeeId, weekStart);
     if (!detail) return null;
 

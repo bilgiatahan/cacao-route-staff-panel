@@ -33,6 +33,7 @@ export const en: Dictionary = {
     reports: "Reports",
     pay: "Pay",
     notifications: "Alerts",
+    settings: "Settings",
   },
 
   menu: {
@@ -40,6 +41,7 @@ export const en: Dictionary = {
     open: "Menu",
     profile: "My Profile",
     reports: "Monthly Cost Report",
+    settings: "Settings",
     language: "Dil / Language",
     // Autonyms — a language is named in itself, in either locale.
     localeTr: "Türkçe",
@@ -391,6 +393,17 @@ export const en: Dictionary = {
       title: "Shift swap updated",
       body: "{day} · {status}",
     },
+  },
+  settings: {
+    title: "Settings",
+    subtitle: "Panel-wide settings for the whole team.",
+    visibility: "Visibility",
+    staffCanSeePay: "Staff can see their own pay",
+    staffCanSeePayHint:
+      "When off, staff see neither the earnings card on their summary nor the Pay screen, and the hourly rate is hidden on their profile. Admins always see it.",
+    on: "On",
+    off: "Off",
+    saved: "Settings saved.",
   },
   notFound: {
     title: "Page not found",

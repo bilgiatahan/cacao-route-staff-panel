@@ -219,3 +219,27 @@ model NotificationRead {
   @@index([employeeId])
   @@map("notification_reads")
 }
+
+/// Panel-wide settings, one row.
+///
+/// A singleton rather than a key/value table: there is one set of switches for
+/// the whole café, they are read on nearly every render, and a typed column per
+/// switch keeps the domain type honest — a `settings` table of loose strings
+/// would push parsing and defaulting into every caller.
+///
+/// The row may legitimately not exist (a fresh database, a reseed), so
+/// `settingsRepository.get()` answers with `DEFAULT_APP_SETTINGS` instead of
+/// null and `update()` upserts.
+model AppSettings {
+  /// Always `app` — see `SETTINGS_ID`. The primary key exists to make the
+  /// single row addressable, not to distinguish between rows.
+  id String @id
+
+  /// When off, staff see neither the pay card on their summary nor the payroll
+  /// screen. Admins are unaffected.
+  staffCanSeePay Boolean @default(true) @map("staff_can_see_pay")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}

@@ -10,6 +10,7 @@ import { ROUTES } from "@/lib/routes";
 import { requireCurrentEmployee } from "@/server/auth/session";
 import { notificationRepository } from "@/server/repositories/notification.repository";
 import { getPendingRequests } from "@/server/services/leave.service";
+import { canViewPay } from "@/server/services/settings.service";
 
 /**
  * The app shell: a sticky header, the screen, and the four-tab bar.
@@ -37,20 +38,27 @@ export default async function PanelLayout({
 
   const isAdmin = user.role === "admin";
 
-  const [unreadCount, pending] = await Promise.all([
+  const [unreadCount, pending, showsPay] = await Promise.all([
     notificationRepository.countUnread(user),
     // Same cached read the admin summary uses, so the badge and the page agree
     // and only one pair of queries goes out.
     isAdmin ? getPendingRequests() : Promise.resolve({ leave: [], swaps: [] }),
+    // The pay tab is the payroll screen's only entrance, so the same answer that
+    // guards the screen has to decide whether the tab is drawn at all — a tab
+    // that bounces you back to Summary is worse than no tab.
+    canViewPay(user),
   ]);
 
   const pendingCount = pending.leave.length + pending.swaps.length;
   // The bell's sentence, built once and given to both the header and the rail.
   const unreadLabel = `${unreadCount} ${dict.notifications.unread}`;
 
-  // Summary, Schedule, Leave, Payroll — the employee's four recurring tasks, in
-  // the order they are thought about. Notifications stay in the header bell and
+  // Summary, Schedule, Leave, Payroll — the employee's recurring tasks, in the
+  // order they are thought about. Notifications stay in the header bell and
   // profile stays in the drawer; neither is a primary workflow.
+  //
+  // Payroll is the one that can be absent: with pay hidden, staff drop to three
+  // tabs rather than getting a fourth that leads nowhere.
   const navItems: NavItem[] = [
     {
       key: "summary",
@@ -76,13 +84,20 @@ export default async function PanelLayout({
       badge: pendingCount,
       badgeLabel: `${pendingCount} ${dict.summary.pendingSuffix}`,
     },
-    {
-      key: "team",
-      href: ROUTES.team,
-      label: isAdmin ? dict.nav.team : dict.nav.pay,
-      icon: isAdmin ? "team" : "pay",
-      badge: 0,
-    },
+    // Team for the admin, Pay for everyone else — and for staff only while the
+    // admin has pay visible. The grid tracks `items.length`, so a three-tab bar
+    // lays itself out correctly without anything else changing.
+    ...(showsPay
+      ? [
+          {
+            key: "team",
+            href: ROUTES.team,
+            label: isAdmin ? dict.nav.team : dict.nav.pay,
+            icon: isAdmin ? ("team" as const) : ("pay" as const),
+            badge: 0,
+          },
+        ]
+      : []),
   ];
 
   // Notifications and Profile are the header bell and the drawer's single row.
@@ -99,6 +114,13 @@ export default async function PanelLayout({
             href: ROUTES.reports,
             label: dict.nav.reports,
             icon: "summary" as const,
+            badge: 0,
+          },
+          {
+            key: "settings",
+            href: ROUTES.settings,
+            label: dict.nav.settings,
+            icon: "settings" as const,
             badge: 0,
           },
         ]

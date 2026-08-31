@@ -31,8 +31,12 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
     user.role === "admin" ? dict.brand.managerTitle : employee.position[locale];
 
   // Secondary destinations only, and only ones that exist. The monthly cost
-  // report is admin-only, so it appears here rather than in the tab bar every
-  // barista sees; settings, support and legal get rows when they get pages.
+  // report and the settings screen are both admin-only, so they appear here
+  // rather than in the tab bar every barista sees; support and legal get rows
+  // when they get pages.
+  //
+  // The same two rows `SideNav` lists above its divider — this is the phone's
+  // half of that pair, so a row added to one belongs in the other.
   const menuEntries: MenuEntry[] = [
     ...(user.role === "admin"
       ? [
@@ -41,6 +45,12 @@ export function AppHeader({ dict, user, employee, locale, unreadCount }: AppHead
             label: dict.menu.reports,
             icon: "summary" as const,
             href: ROUTES.reports,
+          },
+          {
+            key: "settings",
+            label: dict.menu.settings,
+            icon: "settings" as const,
+            href: ROUTES.settings,
           },
         ]
       : []),

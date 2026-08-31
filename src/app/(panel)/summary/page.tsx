@@ -22,12 +22,14 @@ import {
 } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { panelHref, ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { resolveWeekStart } from "@/lib/week-params";
 import { requireSessionUser } from "@/server/auth/session";
 import {
   getAdminSummary,
   getStaffSummary,
 } from "@/server/services/summary.service";
+import { canViewPay } from "@/server/services/settings.service";
 import type { Dictionary } from "@/lib/i18n";
 import type { IsoDate } from "@/types/domain";
 
@@ -149,7 +151,10 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     );
   }
 
-  const summary = await getStaffSummary(user.employeeId, weekStart, PERIOD);
+  const [summary, showsPay] = await Promise.all([
+    getStaffSummary(user.employeeId, weekStart, PERIOD),
+    canViewPay(user),
+  ]);
   if (!summary) {
     return (
       <PageShell width="data">
@@ -210,7 +215,14 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             </Card>
           )}
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-0 lg:basis-0 lg:grow-7">
+          {/* Three cards, or two when pay is hidden — and then the row stays two
+              columns rather than leaving a third one standing empty. */}
+          <div
+            className={cn(
+              "grid grid-cols-2 gap-2 lg:min-w-0 lg:basis-0 lg:grow-7",
+              showsPay && "sm:grid-cols-3",
+            )}
+          >
             <StatCard
               icon="clock"
               accent="blue"
@@ -218,13 +230,15 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               value={formatHours(summary.myHours, dict)}
               hint={`${shiftDays} ${dict.summary.shiftsSuffix}`}
             />
-            <StatCard
-              icon="pay"
-              accent="green"
-              label={dict.summary.statMyPay}
-              value={formatMoney(summary.myPay)}
-              hint={formatHourlyRate(summary.employee.hourlyRate, dict)}
-            />
+            {showsPay && (
+              <StatCard
+                icon="pay"
+                accent="green"
+                label={dict.summary.statMyPay}
+                value={formatMoney(summary.myPay)}
+                hint={formatHourlyRate(summary.employee.hourlyRate, dict)}
+              />
+            )}
             <StatCard
               icon="calendarCheck"
               accent="amber"

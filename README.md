@@ -82,6 +82,7 @@ src/
 │  │  ├─ timetable/         # vardiya programı: tablo / kişi / gün görünümleri
 │  │  ├─ leave/             # izin talepleri + vardiya değişimi
 │  │  ├─ team/              # ekip listesi, kişi detayı, yeni kişi
+│  │  ├─ settings/          # yönetici ayarları (ücret görünürlüğü)
 │  │  └─ notifications/
 │  ├─ login/
 │  ├─ api/auth/[...nextauth]/
@@ -145,6 +146,7 @@ paketine hiç girmez.
 | Kapsama boşluğu   | `lib/domain/coverage.ts` | Açılış 07:00 (60 dk tolerans), kapanış 19:00 |
 | Aylık projeksiyon | `lib/date.ts`            | Haftalık program × aydaki pazartesi sayısı   |
 | İzin gösterimi    | `lib/domain/schedule.ts` | **Onaylanmış** izin talebinden türetilir     |
+| Ücret görünürlüğü | `server/services/settings.service.ts` | Yönetici daima görür; personel yalnızca ayar açıkken |
 
 Son satır prototipteki bir tutarsızlığı kapatır: orada takvimdeki izin renklendirmesi
 (`leaveDays`) ile izin talepleri birbirinden bağımsızdı. Artık bir talebi onaylamak
@@ -157,6 +159,9 @@ programı doğrudan değiştirir.
 - **Gerçek kimlik doğrulama.** Rol, oturumdaki kullanıcıdan gelir; demo rol switch'i yok.
 - **Vardiya değişimi onaylanınca vardiya gerçekten taşınır.**
 - **Kişi silme soft delete'tir** — geçmiş bordro ve vardiya kayıtları korunur.
+- **Ücret görünürlüğü yönetici ayarıdır.** `/settings` içindeki anahtar kapalıyken
+  personel özetteki kazanç kartını, Bordro sekmesini ve profildeki saat ücretini
+  görmez; tek karar noktası `canViewPay`.
 - **Bildirimler kişiye özeldir** (`audience` + okundu kayıtları), okundu bilgisi
   kullanıcı bazlı — DB'de `notification_reads` join tablosu.
 

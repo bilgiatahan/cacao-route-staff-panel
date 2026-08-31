@@ -11,6 +11,7 @@ export const ROUTES = {
   notifications: "/notifications",
   profile: "/profile",
   reports: "/reports",
+  settings: "/settings",
 } as const;
 
 /** Every path that requires an authenticated session. */
@@ -22,6 +23,7 @@ export const PROTECTED_PREFIXES = [
   ROUTES.notifications,
   ROUTES.profile,
   ROUTES.reports,
+  ROUTES.settings,
 ];
 
 export type PanelSearchParams = {

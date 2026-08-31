@@ -114,3 +114,19 @@ export interface SessionUser {
   role: UserRole;
   fullName: string;
 }
+
+/**
+ * Panel-wide settings the admin controls, one set for the whole café.
+ *
+ * Deliberately not per-employee: "can staff see what they earn" is a policy of
+ * the business, not a property of a person, and a per-person switch would make
+ * two baristas standing next to each other see different screens with no way
+ * for either of them to know why.
+ */
+export interface AppSettings {
+  /**
+   * When false, staff see neither the pay card on their summary nor the payroll
+   * screen. An admin always sees pay — they are the ones setting it.
+   */
+  staffCanSeePay: boolean;
+}

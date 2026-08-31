@@ -35,6 +35,7 @@ export const tr = {
     reports: "Rapor",
     pay: "Bordro",
     notifications: "Bildirim",
+    settings: "Ayarlar",
   },
 
   menu: {
@@ -42,6 +43,7 @@ export const tr = {
     open: "Menü",
     profile: "Profilim",
     reports: "Aylık Maliyet Raporu",
+    settings: "Ayarlar",
     language: "Dil / Language",
     // Autonyms — a language is named in itself, in either locale.
     localeTr: "Türkçe",
@@ -393,6 +395,17 @@ export const tr = {
       title: "Vardiya değişimi güncellendi",
       body: "{day} · {status}",
     },
+  },
+  settings: {
+    title: "Ayarlar",
+    subtitle: "Panelin ekip genelinde geçerli ayarları.",
+    visibility: "Görünürlük",
+    staffCanSeePay: "Personel kendi ücretini görsün",
+    staffCanSeePayHint:
+      "Kapalıyken personel özet sayfasındaki kazanç kartını ve Bordro sayfasını göremez; profildeki saat ücreti de gizlenir. Yöneticiler her durumda görür.",
+    on: "Açık",
+    off: "Kapalı",
+    saved: "Ayarlar kaydedildi.",
   },
   notFound: {
     title: "Sayfa bulunamadı",

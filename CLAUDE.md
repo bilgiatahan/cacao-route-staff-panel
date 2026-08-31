@@ -160,6 +160,12 @@ Hepsi saf fonksiyonlarda, tek yerde. UI'da yeniden hesaplama:
 - Tarih/saat → `lib/date.ts`, `lib/format.ts`. `IsoDate` string, saat = gece
   yarısından itibaren **dakika**. Ad-hoc `new Date()` aritmetiği yapma.
 - Görev satırları (`isTaskRow`) headcount, bordro ve izinden **hariç**.
+- Ücret görünürlüğü → `server/services/settings.service.ts`'ta `canViewPay(user)`.
+  Admin daima `true`; personel için `AppSettings.staffCanSeePay` belirler. Tek karar
+  noktası, dört çağıran: iki nav (layout), özetteki kazanç kartı, `/team`'in staff
+  dalı ve profildeki saat ücreti satırı. Paranın göründüğü yeni bir yüzey eklersen
+  kendi koşulunu yazma, bunu sor. Ayar tek satırlık bir singleton (`app_settings`);
+  satır yoksa `DEFAULT_APP_SETTINGS` (= görünür) geçerlidir.
 - Admin **roster satırı almaz** → `isRosterMember` (`lib/employee.ts`), tek uygulama
   yeri `getRosterWeek`. `rows`/`staffRows`/bordro/kapsama hepsi oradan türediği için
   filtre bir kez yazılır. `RosterWeek.employees` ve `leave.service`'teki `byId`

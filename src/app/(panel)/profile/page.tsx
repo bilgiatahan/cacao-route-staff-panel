@@ -9,6 +9,7 @@ import { formatFullDate, formatHourlyRate } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { requireCurrentEmployee } from "@/server/auth/session";
 import { changePasswordAction, updateProfileAction } from "@/server/actions/profile.actions";
+import { canViewPay } from "@/server/services/settings.service";
 
 /**
  * The reference Card-family screen.
@@ -36,6 +37,11 @@ export default async function ProfilePage() {
   // leave balance would be figures about nobody.
   const showsEmployment = user.role !== "admin";
 
+  // The hourly rate is pay. Hiding the earnings card and the payroll screen
+  // while leaving the rate on Profile would hide the total and publish the thing
+  // it is calculated from, which is not hiding it at all.
+  const showsWage = await canViewPay(user);
+
   // Everything the person cannot set for themselves — shown so the page still
   // answers "what am I on?", but read-only because it is the manager's call.
   const workRows: DetailItem[] = [
@@ -57,12 +63,16 @@ export default async function ProfilePage() {
       label: dict.team.hired,
       value: employee.hiredAt ? formatFullDate(employee.hiredAt, dict) : dict.common.dash,
     },
-    {
-      key: "wage",
-      icon: "pay",
-      label: dict.team.wage,
-      value: formatHourlyRate(employee.hourlyRate, dict),
-    },
+    ...(showsWage
+      ? [
+          {
+            key: "wage",
+            icon: "pay" as const,
+            label: dict.team.wage,
+            value: formatHourlyRate(employee.hourlyRate, dict),
+          },
+        ]
+      : []),
     {
       key: "leave",
       icon: "hourglass",

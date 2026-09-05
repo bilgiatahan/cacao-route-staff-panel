@@ -93,6 +93,7 @@ export default async function LeavePage() {
                 dict={dict}
                 defaultStart={addIsoDays(today, 7)}
                 defaultEnd={addIsoDays(today, 8)}
+                minDate={today}
               />
             </div>
           </div>

@@ -161,3 +161,22 @@ export function isPlausibleBirthDate(iso: IsoDate, reference: Date = new Date())
   // ISO dates compare lexicographically, which for `YYYY-MM-DD` is chronologically.
   return iso >= min && iso <= max;
 }
+
+/**
+ * Holds a date field at or after `floor`. Both are `YYYY-MM-DD`, where
+ * lexicographic order is chronological order.
+ *
+ * `min` on a native date input only greys the calendar out: the segments can
+ * still be typed into, and the value that lands there is simply invalid. A form
+ * pulls the value back to the floor with this as soon as a complete date is
+ * entered, so an earlier date cannot be left in the field by picker or by
+ * keyboard — and the action checks the same bound again, because neither of
+ * those runs for a plain POST.
+ *
+ * An empty value is left alone: a date input reads as `""` while it is being
+ * filled in and when it is cleared, and snapping that to a date would make the
+ * field impossible to clear. `required` is what stops an empty submit.
+ */
+export function notBefore(value: string, floor: string): string {
+  return value !== "" && value < floor ? floor : value;
+}

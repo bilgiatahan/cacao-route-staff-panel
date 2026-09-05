@@ -204,6 +204,7 @@ export const en: Dictionary = {
     balanceHint: "For reference. Your manager reviews every request.",
     note: "Note",
     invalidRange: "End date cannot be before the start date.",
+    pastStart: "Leave cannot be requested for a date in the past.",
     types: {
       annual: "Annual",
       sick: "Sick",

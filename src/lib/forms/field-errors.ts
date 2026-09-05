@@ -30,6 +30,7 @@ export const DEFAULT_FIELD_MAP: FieldMap = {
   currentPasswordRequired: "currentPassword",
   wrongPassword: "currentPassword",
   invalidRange: "startDate",
+  startDateInPast: "startDate",
   invalidTime: "startTime",
 };
 

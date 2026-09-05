@@ -22,6 +22,7 @@ import {
   isValidEmail,
   MAX_AGE_YEARS,
   MIN_AGE_YEARS,
+  notBefore,
   PASSWORD_RULE,
   passwordByteLength,
   PERSON_RULES,
@@ -260,6 +261,43 @@ describe("every error key has a sentence of its own", () => {
     ] as const) {
       expect(ALL_ERROR_KEYS, key).toContain(key);
       expect(actionErrorMessage(key, dict), key).toBeTruthy();
+    }
+  });
+});
+
+describe("notBefore, the floor a date field is held at", () => {
+  const TODAY = "2026-09-05";
+
+  it("pulls an earlier date up to the floor", () => {
+    // What a typed date does: `min` greys the picker but never the keyboard.
+    expect(notBefore("2026-09-04", TODAY)).toBe(TODAY);
+    expect(notBefore("2019-01-01", TODAY)).toBe(TODAY);
+  });
+
+  it("leaves the floor itself and everything after it alone", () => {
+    expect(notBefore(TODAY, TODAY)).toBe(TODAY);
+    expect(notBefore("2026-09-06", TODAY)).toBe("2026-09-06");
+    expect(notBefore("2027-01-01", TODAY)).toBe("2027-01-01");
+  });
+
+  it("leaves an empty value empty", () => {
+    // A date input reads as "" mid-edit and when cleared; filling that in would
+    // make the field impossible to clear.
+    expect(notBefore("", TODAY)).toBe("");
+  });
+
+  it("compares as dates, not as numbers", () => {
+    // Lexicographic order over `YYYY-MM-DD` is chronological order, which is why
+    // no parsing is needed — and why the padding matters.
+    expect(notBefore("2026-10-01", "2026-09-30")).toBe("2026-10-01");
+    expect(notBefore("2026-09-09", "2026-09-10")).toBe("2026-09-10");
+  });
+
+  it("agrees with the bound the action enforces", () => {
+    // The action refuses `startDate < today`; anything this returns must pass it.
+    for (const value of ["", "2019-01-01", TODAY, "2030-06-06"]) {
+      const held = notBefore(value, TODAY);
+      expect(held === "" || held >= TODAY, value).toBe(true);
     }
   });
 });

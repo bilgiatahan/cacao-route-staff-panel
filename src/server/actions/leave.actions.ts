@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 
-import { isValidIsoDate } from "@/lib/date";
+import { isValidIsoDate, todayIso } from "@/lib/date";
 import { assertAdmin, assertAuthenticated } from "@/server/auth/session";
 import { employeeRepository } from "@/server/repositories/employee.repository";
 import { leaveRepository } from "@/server/repositories/leave.repository";
@@ -32,6 +32,11 @@ export async function createLeaveRequestAction(
       return actionError("invalidRange");
     }
     if (endDate < startDate) return actionError("invalidRange");
+
+    // Leave is asked for, not recorded after the fact: the form's picker starts
+    // at today, and this is the same rule where it can be enforced. Checked
+    // after the range so a backwards range still reports the range.
+    if (startDate < todayIso()) return actionError("startDateInPast");
 
     const request = await leaveRepository.create({
       employeeId: viewer.employeeId,

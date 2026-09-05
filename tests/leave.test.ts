@@ -41,6 +41,7 @@ const { createSwapRequestAction, decideSwapAction } = await import(
   "@/server/actions/swap.actions"
 );
 const { getDictionary } = await import("@/lib/i18n");
+const { fieldForError } = await import("@/lib/forms/field-errors");
 const { addIsoDays, todayIso } = await import("@/lib/date");
 const { prisma } = await import("@/server/db/client");
 const {
@@ -60,6 +61,9 @@ const TUESDAY = "2026-08-04";
  */
 const TODAY = todayIso();
 const TOMORROW = addIsoDays(TODAY, 1);
+/** The form's own defaults: a week out, two days long. */
+const NEXT_WEEK = addIsoDays(TODAY, 7);
+const NEXT_WEEK_END = addIsoDays(TODAY, 8);
 const NEXT_MONTH = addIsoDays(TODAY, 35);
 const YESTERDAY = addIsoDays(TODAY, -1);
 
@@ -218,7 +222,7 @@ describe("creating a leave request", () => {
   it("succeeds for a valid range", async () => {
     const result = await createLeaveRequestAction(
       null,
-      form({ type: "sick", startDate: MONDAY, endDate: TUESDAY, note: "flu" }),
+      form({ type: "sick", startDate: NEXT_WEEK, endDate: NEXT_WEEK_END, note: "flu" }),
     );
 
     expect(result).toEqual({ ok: true });
@@ -232,7 +236,7 @@ describe("creating a leave request", () => {
     expect(
       await createLeaveRequestAction(
         null,
-        form({ type: "annual", startDate: TUESDAY, endDate: MONDAY }),
+        form({ type: "annual", startDate: NEXT_WEEK_END, endDate: NEXT_WEEK }),
       ),
     ).toEqual({ ok: false, error: "invalidRange" });
   });
@@ -241,7 +245,7 @@ describe("creating a leave request", () => {
     expect(
       await createLeaveRequestAction(
         null,
-        form({ type: "annual", startDate: "nope", endDate: TUESDAY }),
+        form({ type: "annual", startDate: "nope", endDate: NEXT_WEEK }),
       ),
     ).toEqual({ ok: false, error: "invalidRange" });
   });
@@ -253,7 +257,7 @@ describe("creating a leave request", () => {
     expect(
       await createLeaveRequestAction(
         null,
-        form({ type: "annual", startDate: MONDAY, endDate: TUESDAY }),
+        form({ type: "annual", startDate: NEXT_WEEK, endDate: NEXT_WEEK_END }),
       ),
     ).toEqual({ ok: true });
   });
@@ -261,11 +265,53 @@ describe("creating a leave request", () => {
   it("always files against the session, never the form", async () => {
     await createLeaveRequestAction(
       null,
-      form({ employeeId: MATE_ID, type: "annual", startDate: MONDAY, endDate: MONDAY }),
+      form({ employeeId: MATE_ID, type: "annual", startDate: NEXT_WEEK, endDate: NEXT_WEEK }),
     );
 
     const row = await prisma.leaveRequest.findFirst();
     expect(row?.employeeId).toBe(STAFF_ID);
+  });
+});
+
+describe("leave cannot start in the past", () => {
+  it("refuses yesterday and writes nothing", async () => {
+    expect(
+      await createLeaveRequestAction(
+        null,
+        form({ type: "annual", startDate: YESTERDAY, endDate: NEXT_WEEK }),
+      ),
+    ).toEqual({ ok: false, error: "startDateInPast" });
+    expect(await prisma.leaveRequest.count()).toBe(0);
+  });
+
+  it("accepts today", async () => {
+    // Sick leave is filed the morning it starts, so today is inside the rule.
+    expect(
+      await createLeaveRequestAction(
+        null,
+        form({ type: "sick", startDate: TODAY, endDate: TODAY }),
+      ),
+    ).toEqual({ ok: true });
+  });
+
+  it("reports a backwards range as a range, not as a past date", async () => {
+    // Both dates are behind us here; the order is the more useful complaint.
+    expect(
+      await createLeaveRequestAction(
+        null,
+        form({ type: "annual", startDate: YESTERDAY, endDate: addIsoDays(TODAY, -3) }),
+      ),
+    ).toEqual({ ok: false, error: "invalidRange" });
+  });
+
+  it("puts the message on the start date control", () => {
+    expect(fieldForError("startDateInPast")).toBe("startDate");
+  });
+
+  it("explains itself in both locales", () => {
+    for (const locale of ["tr", "en"] as const) {
+      expect(getDictionary(locale).leave.pastStart).toBeTruthy();
+    }
   });
 });
 

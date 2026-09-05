@@ -15,6 +15,7 @@ export type ActionErrorKey =
   | "nothingToCopy"
   | "weekStarted"
   | "shiftPassed"
+  | "startDateInPast"
   | "nameRequired"
   | "nameTooShort"
   | "passwordTooShort"
@@ -74,6 +75,7 @@ const ERROR_KEYS = {
   nothingToCopy: true,
   weekStarted: true,
   shiftPassed: true,
+  startDateInPast: true,
   nameRequired: true,
   nameTooShort: true,
   passwordTooShort: true,
@@ -122,6 +124,8 @@ export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): str
       return dict.timetable.copyPast;
     case "shiftPassed":
       return dict.leave.swapPast;
+    case "startDateInPast":
+      return dict.leave.pastStart;
     case "nameRequired":
       return dict.team.nameRequired;
     case "nameTooShort":

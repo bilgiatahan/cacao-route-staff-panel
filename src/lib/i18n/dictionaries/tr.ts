@@ -206,6 +206,7 @@ export const tr = {
     balanceHint: "Bilgi amaçlı. Her talebi yöneticin değerlendirir.",
     note: "Not",
     invalidRange: "Bitiş tarihi başlangıçtan önce olamaz.",
+    pastStart: "Geçmiş bir tarih için izin talep edilemez.",
     types: {
       annual: "Yıllık",
       sick: "Hastalık",

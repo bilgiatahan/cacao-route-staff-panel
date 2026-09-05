@@ -8,10 +8,11 @@
  * Both are properties of a real `BEGIN`/`ROLLBACK`, so these run against a real
  * Postgres like `swap-approval` does.
  *
- * The rest pins the rules the action is responsible for: an empty source week
- * must not be read as "clear this week", the copy must land on the matching
- * weekday, and people who are not on the roster must be left alone in both
- * directions — neither copied forward nor deleted.
+ * The rest pins the rules the action is responsible for: a week that has already
+ * begun cannot be refilled, an empty source week must not be read as "clear this
+ * week", the copy must land on the matching weekday, and people who are not on
+ * the roster must be left alone in both directions — neither copied forward nor
+ * deleted.
  */
 
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -45,14 +46,21 @@ const { prisma } = await import("@/server/db/client");
 const { createEmployee, createShift, resetDatabase, shiftOwnerOn } = await import(
   "./support/fixtures"
 );
+const { addIsoDays, startOfWeekIso, todayIso } = await import("@/lib/date");
 
-/** `MONDAY` from the fixtures is the source week; the copy lands a week later. */
-const LAST_MONDAY = "2026-08-03";
-const LAST_WEDNESDAY = "2026-08-05";
-const LAST_SUNDAY = "2026-08-09";
-const THIS_MONDAY = "2026-08-10";
-const THIS_WEDNESDAY = "2026-08-12";
-const THIS_SUNDAY = "2026-08-16";
+/**
+ * Relative to today rather than fixed, because the action now refuses a week
+ * that has already begun: next week is the nearest week a copy can land in, and
+ * a hard-coded date would quietly stop being one.
+ */
+const CURRENT_MONDAY = startOfWeekIso(todayIso());
+const THIS_MONDAY = addIsoDays(CURRENT_MONDAY, 7);
+const THIS_WEDNESDAY = addIsoDays(THIS_MONDAY, 2);
+const THIS_SUNDAY = addIsoDays(THIS_MONDAY, 6);
+/** The week the copy reads from — the one currently being worked. */
+const LAST_MONDAY = CURRENT_MONDAY;
+const LAST_WEDNESDAY = addIsoDays(LAST_MONDAY, 2);
+const LAST_SUNDAY = addIsoDays(LAST_MONDAY, 6);
 
 const ALEX = "emp-alex";
 const SAM = "emp-sam";
@@ -190,6 +198,44 @@ describe("people who are not on the roster", () => {
     await copyPreviousWeekAction(THIS_MONDAY);
 
     expect(await shiftOwnerOn(THIS_WEDNESDAY, "emp-gone")).not.toBeNull();
+  });
+});
+
+describe("a week that has already begun", () => {
+  it("refuses to refill the week in progress", async () => {
+    await createShift(ALEX, addIsoDays(CURRENT_MONDAY, -7));
+
+    const result = await copyPreviousWeekAction(CURRENT_MONDAY);
+
+    expect(result).toEqual({ ok: false, error: "weekStarted" });
+    // Those are shifts people are working; nothing may be written over them.
+    expect(await shiftOwnerOn(CURRENT_MONDAY, ALEX)).toBeNull();
+  });
+
+  it("refuses a week in the past", async () => {
+    const pastMonday = addIsoDays(CURRENT_MONDAY, -14);
+    await createShift(ALEX, addIsoDays(pastMonday, -7));
+    await createShift(SAM, addIsoDays(pastMonday, 2));
+
+    const result = await copyPreviousWeekAction(pastMonday);
+
+    expect(result).toEqual({ ok: false, error: "weekStarted" });
+    expect(await prisma.shift.count()).toBe(2);
+  });
+
+  it("refuses a mid-week date inside the week in progress", async () => {
+    await createShift(ALEX, addIsoDays(CURRENT_MONDAY, -7));
+
+    // The guard runs on the normalised Monday, so any day of it is refused.
+    const result = await copyPreviousWeekAction(addIsoDays(CURRENT_MONDAY, 3));
+
+    expect(result).toEqual({ ok: false, error: "weekStarted" });
+  });
+
+  it("still allows the week after the one in progress", async () => {
+    await createShift(ALEX, LAST_MONDAY, 8 * 60, 16 * 60);
+
+    expect(await copyPreviousWeekAction(THIS_MONDAY)).toEqual({ ok: true });
   });
 });
 

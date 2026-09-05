@@ -55,6 +55,11 @@ export const FORM_LEVEL_KEYS: readonly ActionErrorKey[] = [
   // Copying a week is a button, not a form: the state it reports on is last
   // week's roster, which has no control on this screen at all.
   "nothingToCopy",
+  // Likewise about which week is open, which is URL state rather than a field.
+  "weekStarted",
+  // The swap form's two controls are selects filled from the server, so a stale
+  // option is about the request, not about something the reader typed.
+  "shiftPassed",
 ];
 
 /** The control an error belongs to, or `null` when it belongs to the form. */

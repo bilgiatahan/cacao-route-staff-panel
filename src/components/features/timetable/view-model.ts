@@ -4,6 +4,7 @@ import { employeeDisplayName } from "@/lib/employee";
 import type { ScheduleRow } from "@/lib/domain/schedule";
 import {
   formatHours,
+  formatNumericDate,
   formatShiftSpan,
   formatShiftSpanCompact,
   minutesToTime,
@@ -57,6 +58,8 @@ export interface DayColumnView {
   index: number;
   shortLabel: string;
   dayOfMonth: string;
+  /** "03/08/26" — the grid header, where the month is worth having. */
+  dateLabel: string;
   isToday: boolean;
 }
 
@@ -90,6 +93,7 @@ export function buildDayColumns(
     index,
     shortLabel: dict.calendar.daysShort[index],
     dayOfMonth: String(fromIsoDate(date).getDate()),
+    dateLabel: formatNumericDate(date),
     isToday: date === today,
   }));
 }
@@ -128,6 +132,54 @@ export function buildRosterRows(rows: ScheduleRow[], dict: Dictionary): RosterRo
       };
     }),
   }));
+}
+
+export interface RosterTotalsView {
+  /** Row header, e.g. "Toplam". */
+  label: string;
+  /** The week's total across every counted row. */
+  totalLabel: string;
+  /** One entry per day column, in column order. */
+  days: { date: IsoDate; label: string; ariaLabel: string; isEmpty: boolean }[];
+}
+
+/**
+ * Column and week totals for the foot of the grid. Task rows are excluded, the
+ * same way they are left out of headcount and payroll — a task carries no hours
+ * anyone is paid for.
+ */
+export function buildRosterTotals(
+  rows: ScheduleRow[],
+  dates: IsoDate[],
+  dict: Dictionary,
+): RosterTotalsView {
+  const counted = rows.filter((row) => !row.employee.isTaskRow);
+
+  const days = dates.map((date) => {
+    const minutes = counted.reduce((sum, row) => {
+      const shift = row.cells.find((cell) => cell.date === date)?.shift;
+      return shift ? sum + (shift.endMinutes - shift.startMinutes) : sum;
+    }, 0);
+
+    const hoursLabel = formatHours(minutes / 60, dict);
+    return {
+      date,
+      // An empty column reads as an empty cell does; the figure stays in the
+      // accessible name, so nothing is lost by not printing "0h" seven times.
+      label: minutes === 0 ? "–" : hoursLabel,
+      ariaLabel: `${dict.timetable.total} · ${date} · ${hoursLabel}`,
+      isEmpty: minutes === 0,
+    };
+  });
+
+  return {
+    label: dict.timetable.total,
+    totalLabel: formatHours(
+      counted.reduce((sum, row) => sum + row.hours, 0),
+      dict,
+    ),
+    days,
+  };
 }
 
 export function buildDayRows(

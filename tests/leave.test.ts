@@ -41,6 +41,7 @@ const { createSwapRequestAction, decideSwapAction } = await import(
   "@/server/actions/swap.actions"
 );
 const { getDictionary } = await import("@/lib/i18n");
+const { addIsoDays, todayIso } = await import("@/lib/date");
 const { prisma } = await import("@/server/db/client");
 const {
   MONDAY,
@@ -51,6 +52,16 @@ const {
 } = await import("./support/fixtures");
 
 const TUESDAY = "2026-08-04";
+
+/**
+ * Swaps are offered and accepted only for shifts still ahead, so the dates the
+ * swap tests use are relative to today. `MONDAY` stays fixed — leave requests
+ * carry no such rule.
+ */
+const TODAY = todayIso();
+const TOMORROW = addIsoDays(TODAY, 1);
+const NEXT_MONTH = addIsoDays(TODAY, 35);
+const YESTERDAY = addIsoDays(TODAY, -1);
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();
@@ -98,7 +109,7 @@ describe("the board splits by role", () => {
     await createLeave("leave-staff", STAFF_ID);
     await createLeave("leave-mate", MATE_ID, "approved");
 
-    const board = await getLeaveBoard(ADMIN, MONDAY);
+    const board = await getLeaveBoard(ADMIN);
 
     expect(board.viewerRole).toBe("admin");
     expect(board.leaveRows).toHaveLength(2);
@@ -112,7 +123,7 @@ describe("the board splits by role", () => {
     await createLeave("leave-staff", STAFF_ID);
     await createLeave("leave-mate", MATE_ID);
 
-    const board = await getLeaveBoard(STAFF, MONDAY);
+    const board = await getLeaveBoard(STAFF);
 
     expect(board.viewerRole).toBe("staff");
     expect(board.leaveRows.map((r) => r.request.id)).toEqual(["leave-staff"]);
@@ -124,14 +135,14 @@ describe("the board splits by role", () => {
     await createLeave("leave-2", MATE_ID);
     await createLeave("leave-3", MATE_ID, "rejected");
 
-    expect((await getLeaveBoard(ADMIN, MONDAY)).pendingLeaveCount).toBe(2);
-    expect((await getLeaveBoard(STAFF, MONDAY)).pendingLeaveCount).toBe(1);
+    expect((await getLeaveBoard(ADMIN)).pendingLeaveCount).toBe(2);
+    expect((await getLeaveBoard(STAFF)).pendingLeaveCount).toBe(1);
   });
 });
 
 describe("leave balance", () => {
   it("reports the employee's stored value untouched", async () => {
-    expect((await getLeaveBoard(STAFF, MONDAY)).leaveBalance).toBe(14);
+    expect((await getLeaveBoard(STAFF)).leaveBalance).toBe(14);
   });
 
   it("is not decremented by requesting or approving leave", async () => {
@@ -139,22 +150,57 @@ describe("leave balance", () => {
     await createLeave("leave-1", STAFF_ID);
     await decideLeaveAction("leave-1", "approved");
 
-    expect((await getLeaveBoard(STAFF, MONDAY)).leaveBalance).toBe(14);
+    expect((await getLeaveBoard(STAFF)).leaveBalance).toBe(14);
   });
 });
 
 describe("swap options offered to staff", () => {
-  it("offers only shifts the person actually holds this week", async () => {
-    await createShift(STAFF_ID, MONDAY);
-    await createShift(MATE_ID, TUESDAY);
+  it("offers only shifts the person actually holds", async () => {
+    await createShift(STAFF_ID, TOMORROW);
+    await createShift(MATE_ID, TOMORROW);
 
-    const board = await getLeaveBoard(STAFF, MONDAY);
+    const board = await getLeaveBoard(STAFF);
 
-    expect(board.mySwapOptions.map((o) => o.date)).toEqual([MONDAY]);
+    expect(board.mySwapOptions.map((o) => o.date)).toEqual([TOMORROW]);
+  });
+
+  it("reaches past the current week, as far as the roster is written", async () => {
+    await createShift(STAFF_ID, TOMORROW);
+    await createShift(STAFF_ID, NEXT_MONTH);
+
+    const board = await getLeaveBoard(STAFF);
+
+    // The screen has no week switcher; every shift still to be worked is here.
+    expect(board.mySwapOptions.map((o) => o.date)).toEqual([TOMORROW, NEXT_MONTH]);
+  });
+
+  it("drops today and everything before it", async () => {
+    await createShift(STAFF_ID, YESTERDAY);
+    await createShift(STAFF_ID, TODAY);
+    await createShift(STAFF_ID, TOMORROW);
+
+    const board = await getLeaveBoard(STAFF);
+
+    // Today's shift is already under way; yesterday's has been worked.
+    expect(board.mySwapOptions.map((o) => o.date)).toEqual([TOMORROW]);
+  });
+
+  it("carries the real times, not just the date", async () => {
+    await createShift(STAFF_ID, TOMORROW, 11 * 60, 19 * 60);
+
+    const [option] = (await getLeaveBoard(STAFF)).mySwapOptions;
+
+    expect(option.shift).toMatchObject({ startMinutes: 11 * 60, endMinutes: 19 * 60 });
+  });
+
+  it("offers an admin nothing — they hold no roster row", async () => {
+    await createShift(ADMIN_ID, TOMORROW);
+
+    expect((await getLeaveBoard(ADMIN)).mySwapOptions).toEqual([]);
   });
 
   it("offers colleagues but never the viewer", async () => {
-    const board = await getLeaveBoard(STAFF, MONDAY);
+    const board = await getLeaveBoard(STAFF);
     const ids = board.colleagues.map((c) => c.id);
     expect(ids).not.toContain(STAFF_ID);
     expect(ids).toContain(MATE_ID);
@@ -163,7 +209,7 @@ describe("swap options offered to staff", () => {
   it("never offers the admin as a swap target", async () => {
     // An admin has no roster row, so a shift handed to one would vanish from
     // the timetable rather than change hands.
-    const board = await getLeaveBoard(STAFF, MONDAY);
+    const board = await getLeaveBoard(STAFF);
     expect(board.colleagues.map((c) => c.id)).not.toContain(ADMIN_ID);
   });
 });
@@ -251,38 +297,94 @@ describe("admin decisions", () => {
   });
 });
 
-describe("swap rules are unchanged", () => {
+describe("swap rules", () => {
   it("creates a swap only for a shift the requester holds", async () => {
-    await createShift(STAFF_ID, MONDAY);
+    await createShift(STAFF_ID, TOMORROW);
 
     expect(
-      await createSwapRequestAction(null, form({ date: MONDAY, targetId: MATE_ID })),
+      await createSwapRequestAction(null, form({ date: TOMORROW, targetId: MATE_ID })),
     ).toEqual({ ok: true });
   });
 
   it("refuses when the requester has no shift that day", async () => {
     expect(
-      await createSwapRequestAction(null, form({ date: MONDAY, targetId: MATE_ID })),
+      await createSwapRequestAction(null, form({ date: TOMORROW, targetId: MATE_ID })),
     ).toEqual({ ok: false, error: "notFound" });
   });
 
   it("refuses a swap with yourself", async () => {
-    await createShift(STAFF_ID, MONDAY);
+    await createShift(STAFF_ID, TOMORROW);
     expect(
-      await createSwapRequestAction(null, form({ date: MONDAY, targetId: STAFF_ID })),
+      await createSwapRequestAction(null, form({ date: TOMORROW, targetId: STAFF_ID })),
     ).toEqual({ ok: false, error: "notFound" });
   });
 
+  it("accepts a shift well past the current week", async () => {
+    await createShift(STAFF_ID, NEXT_MONTH);
+
+    expect(
+      await createSwapRequestAction(null, form({ date: NEXT_MONTH, targetId: MATE_ID })),
+    ).toEqual({ ok: true });
+  });
+
+  it("refuses today's shift and writes nothing", async () => {
+    // The select never offers it, but a page left open overnight would.
+    await createShift(STAFF_ID, TODAY);
+
+    expect(
+      await createSwapRequestAction(null, form({ date: TODAY, targetId: MATE_ID })),
+    ).toEqual({ ok: false, error: "shiftPassed" });
+    expect(await prisma.swapRequest.count()).toBe(0);
+  });
+
+  it("refuses a shift already worked", async () => {
+    await createShift(STAFF_ID, YESTERDAY);
+
+    expect(
+      await createSwapRequestAction(null, form({ date: YESTERDAY, targetId: MATE_ID })),
+    ).toEqual({ ok: false, error: "shiftPassed" });
+  });
+
   it("moves the shift on approval", async () => {
-    await createShift(STAFF_ID, MONDAY);
-    await createPendingSwap("swap-1", STAFF_ID, MATE_ID, MONDAY);
+    await createShift(STAFF_ID, TOMORROW);
+    await createPendingSwap("swap-1", STAFF_ID, MATE_ID, TOMORROW);
 
     expect(await decideSwapAction("swap-1", "approved")).toEqual({ ok: true });
     expect(
       await prisma.shift.findUnique({
-        where: { employeeId_date: { employeeId: MATE_ID, date: MONDAY } },
+        where: { employeeId_date: { employeeId: MATE_ID, date: TOMORROW } },
       }),
     ).not.toBeNull();
+  });
+});
+
+describe("the swap list resolves its own shifts", () => {
+  it("shows the times of a request weeks out, not a dash", async () => {
+    // The lookup used to run over one loaded week, so anything outside it lost
+    // its hours on the way to the admin deciding it.
+    await createShift(STAFF_ID, NEXT_MONTH, 12 * 60, 20 * 60);
+    await createPendingSwap("swap-far", STAFF_ID, MATE_ID, NEXT_MONTH);
+
+    const [row] = (await getLeaveBoard(ADMIN)).swapRows;
+
+    expect(row.shift).toMatchObject({ startMinutes: 12 * 60, endMinutes: 20 * 60 });
+  });
+
+  it("leaves the shift null once it is gone", async () => {
+    await createPendingSwap("swap-gone", STAFF_ID, MATE_ID, NEXT_MONTH);
+
+    const [row] = (await getLeaveBoard(ADMIN)).swapRows;
+
+    expect(row.shift).toBeNull();
+  });
+
+  it("never pairs a request with someone else's shift on that day", async () => {
+    await createShift(MATE_ID, NEXT_MONTH);
+    await createPendingSwap("swap-1", STAFF_ID, MATE_ID, NEXT_MONTH);
+
+    const [row] = (await getLeaveBoard(ADMIN)).swapRows;
+
+    expect(row.shift).toBeNull();
   });
 });
 
@@ -303,6 +405,13 @@ describe("status labels the badges render", () => {
     for (const locale of ["tr", "en"] as const) {
       expect(getDictionary(locale).leave.balanceHint).toBeTruthy();
       expect(getDictionary(locale).leave.note).toBeTruthy();
+    }
+  });
+
+  it("explains a stale swap option in both locales", () => {
+    for (const locale of ["tr", "en"] as const) {
+      expect(getDictionary(locale).leave.swapPast).toBeTruthy();
+      expect(getDictionary(locale).leave.swapNoShift).toBeTruthy();
     }
   });
 });

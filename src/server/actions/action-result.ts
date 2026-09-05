@@ -13,6 +13,8 @@ export type ActionErrorKey =
   | "invalidRange"
   | "invalidTime"
   | "nothingToCopy"
+  | "weekStarted"
+  | "shiftPassed"
   | "nameRequired"
   | "nameTooShort"
   | "passwordTooShort"
@@ -70,6 +72,8 @@ const ERROR_KEYS = {
   invalidRange: true,
   invalidTime: true,
   nothingToCopy: true,
+  weekStarted: true,
+  shiftPassed: true,
   nameRequired: true,
   nameTooShort: true,
   passwordTooShort: true,
@@ -114,6 +118,10 @@ export function actionErrorMessage(error: ActionErrorKey, dict: Dictionary): str
       return dict.timetable.editorInvalid;
     case "nothingToCopy":
       return dict.timetable.copyEmpty;
+    case "weekStarted":
+      return dict.timetable.copyPast;
+    case "shiftPassed":
+      return dict.leave.swapPast;
     case "nameRequired":
       return dict.team.nameRequired;
     case "nameTooShort":

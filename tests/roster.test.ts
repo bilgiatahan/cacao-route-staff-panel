@@ -19,7 +19,7 @@ const { resolveWeekStart, resolveRosterView, resolveDayIndex } = await import(
   "@/lib/week-params"
 );
 const { addIsoDays, startOfWeekIso, weekDates, weekdayIndex } = await import("@/lib/date");
-const { formatWeekLabel } = await import("@/lib/format");
+const { formatNumericDate, formatWeekLabel } = await import("@/lib/format");
 const { panelHref, ROUTES } = await import("@/lib/routes");
 const { getDictionary } = await import("@/lib/i18n");
 const { prisma } = await import("@/server/db/client");
@@ -184,6 +184,17 @@ describe("roster data behind the three views", () => {
     expect(off).toHaveLength(2);
   });
 
+  it("heads each column with a day-first numeric date", async () => {
+    const roster = await getRosterWeek(MONDAY);
+    const columns = buildDayColumns(roster.dates, getDictionary("en"), null);
+
+    // The bare day number could not say which month a week straddles.
+    expect(columns[0].dateLabel).toBe("03/08/26");
+    expect(columns[6].dateLabel).toBe("09/08/26");
+    // The day tabs still use the short form; only the grid header changed.
+    expect(columns[0].dayOfMonth).toBe("3");
+  });
+
   it("prints the same hour ticks regardless of data", () => {
     expect(buildHourTicks()).toEqual(["07:00", "10:00", "13:00", "16:00", "19:00"]);
   });
@@ -203,5 +214,22 @@ describe("off-day state stays accessible", () => {
     expect(worked.stateLabel).toBe("09:00–17:00");
     expect(idle.stateLabel).toBe(dict.timetable.legendOff);
     expect(idle.primary).toBe("–");
+  });
+});
+
+describe("the numeric date format", () => {
+  it("zero-pads both the day and the month", () => {
+    expect(formatNumericDate("2026-01-05")).toBe("05/01/26");
+  });
+
+  it("keeps the last two digits of the year across a rollover", () => {
+    expect(formatNumericDate("2025-12-31")).toBe("31/12/25");
+    expect(formatNumericDate("2026-01-01")).toBe("01/01/26");
+  });
+
+  it("reads the date as written, with no timezone shift", () => {
+    // `lib/date` is local-midnight string arithmetic; the first of the month
+    // must not come back as the last of the previous one.
+    expect(formatNumericDate("2026-08-01")).toBe("01/08/26");
   });
 });

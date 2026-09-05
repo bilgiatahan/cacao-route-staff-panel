@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { employeeRepository } from "@/server/repositories/employee.repository";
 import { leaveRepository } from "@/server/repositories/leave.repository";
+import { shiftRepository } from "@/server/repositories/shift.repository";
 import { swapRepository } from "@/server/repositories/swap.repository";
 import type {
   Employee,
@@ -14,9 +15,8 @@ import type {
   SwapRequest,
 } from "@/types/domain";
 
+import { addIsoDays, todayIso } from "@/lib/date";
 import { isRosterMember } from "@/lib/employee";
-
-import { getRosterWeek } from "./roster.service";
 
 export interface LeaveRow {
   request: LeaveRequest;
@@ -67,7 +67,10 @@ export interface LeaveBoard {
   leaveRows: LeaveRow[];
   swapRows: SwapRow[];
   pendingLeaveCount: number;
-  /** Staff only: this week's own shifts, offered as swap candidates. */
+  /**
+   * Staff only: every shift the viewer has yet to work, offered as swap
+   * candidates. Not bounded by a week — the screen has no week to be on.
+   */
   mySwapOptions: SwapOption[];
   /** Staff only: colleagues who can be asked to take a shift. */
   colleagues: Employee[];
@@ -78,18 +81,24 @@ export interface LeaveBoard {
  * Admins see the whole board; staff see only their own requests and the swaps
  * they are part of. The filtering lives here rather than in the page so the
  * rule is enforced in one place.
+ *
+ * Nothing here is scoped to a week: the swap options run from tomorrow to the
+ * end of the written roster, and the histories are whole. The screen has no week
+ * switcher because there is no week to switch.
  */
-export async function getLeaveBoard(
-  viewer: SessionUser,
-  weekStart: IsoDate,
-): Promise<LeaveBoard> {
+export async function getLeaveBoard(viewer: SessionUser): Promise<LeaveBoard> {
   const isAdmin = viewer.role === "admin";
+  // Tomorrow onwards. A shift today has already started as far as the roster is
+  // concerned, so it is not something to hand over.
+  const swappableFrom = addIsoDays(todayIso(), 1);
 
-  const [employees, allLeave, allSwaps, roster] = await Promise.all([
+  const [employees, allLeave, allSwaps, myShifts] = await Promise.all([
     employeeRepository.listStaff(),
     isAdmin ? leaveRepository.list() : leaveRepository.listByEmployee(viewer.employeeId),
     isAdmin ? swapRepository.list() : swapRepository.listForEmployee(viewer.employeeId),
-    getRosterWeek(weekStart),
+    // An admin holds no roster row, so there is nothing of theirs to offer and
+    // no reason to read it.
+    isAdmin ? [] : shiftRepository.listByEmployeeFrom(viewer.employeeId, swappableFrom),
   ]);
 
   const byId = new Map(employees.map((employee) => [employee.id, employee]));
@@ -100,21 +109,29 @@ export async function getLeaveBoard(
     actionable: isAdmin && request.status === "pending",
   }));
 
+  // The shift each request is about, fetched by its own (person, date) pair.
+  // These used to be looked up in one loaded week, which was already wrong for a
+  // request from last month and would now be wrong for most of them.
+  const swapShifts = await shiftRepository.listForEmployeeDates(
+    allSwaps.map((request) => ({ employeeId: request.requesterId, date: request.date })),
+  );
+  const shiftKey = (employeeId: string, date: IsoDate) => `${employeeId}\u0000${date}`;
+  const shiftByPair = new Map(
+    swapShifts.map((shift) => [shiftKey(shift.employeeId, shift.date), shift]),
+  );
+
   const swapRows: SwapRow[] = allSwaps.map((request) => ({
     request,
     requester: byId.get(request.requesterId) ?? null,
     target: byId.get(request.targetId) ?? null,
-    shift:
-      roster.shifts.find(
-        (shift) => shift.employeeId === request.requesterId && shift.date === request.date,
-      ) ?? null,
+    shift: shiftByPair.get(shiftKey(request.requesterId, request.date)) ?? null,
     actionable: isAdmin && request.status === "pending",
   }));
 
-  const myRow = roster.staffRows.find((row) => row.employee.id === viewer.employeeId);
-  const mySwapOptions: SwapOption[] = (myRow?.cells ?? []).flatMap((cell) =>
-    cell.shift ? [{ date: cell.date, shift: cell.shift }] : [],
-  );
+  const mySwapOptions: SwapOption[] = myShifts.map((shift) => ({
+    date: shift.date,
+    shift,
+  }));
 
   const pendingLeaveCount = leaveRows.filter(
     (row) => row.request.status === "pending",
@@ -132,6 +149,9 @@ export async function getLeaveBoard(
     colleagues: employees.filter(
       (employee) => employee.id !== viewer.employeeId && isRosterMember(employee),
     ),
-    leaveBalance: myRow?.employee.leaveBalance ?? 0,
+    // The viewer's own stored balance. Only the staff view renders it; an admin
+    // reading their own row here would be reading a number their screen has no
+    // card for.
+    leaveBalance: byId.get(viewer.employeeId)?.leaveBalance ?? 0,
   };
 }

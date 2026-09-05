@@ -166,6 +166,7 @@ export const en: Dictionary = {
     task: "Task",
     onLeave: "On leave",
     emptyDay: "No shifts on this day",
+    total: "Total",
 
     // Copying last week. The counts are filled in on the server — {n} shifts to
     // write, {m} to remove.
@@ -179,6 +180,7 @@ export const en: Dictionary = {
       "{n} shifts from last week will be written into this week, replacing the {m} already here. This cannot be undone.",
     copyDone: "Last week's roster was copied.",
     copyEmpty: "Last week is empty — there is nothing to copy.",
+    copyPast: "A week that has already begun cannot be copied into.",
   },
 
   leave: {
@@ -196,7 +198,8 @@ export const en: Dictionary = {
     swapsEmpty: "No swap requests",
     newSwap: "Request a swap",
     askSwap: "Create Request",
-    swapNoShift: "You have no shift to swap this week",
+    swapNoShift: "You have no upcoming shift to swap",
+    swapPast: "Today's and earlier shifts cannot be swapped.",
     balance: "Annual leave left",
     balanceHint: "For reference. Your manager reviews every request.",
     note: "Note",

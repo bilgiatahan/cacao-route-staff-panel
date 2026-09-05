@@ -2,7 +2,13 @@
 
 import { refresh } from "next/cache";
 
-import { addIsoDays, DAYS_IN_WEEK, isValidIsoDate, startOfWeekIso } from "@/lib/date";
+import {
+  addIsoDays,
+  DAYS_IN_WEEK,
+  isValidIsoDate,
+  startOfWeekIso,
+  todayIso,
+} from "@/lib/date";
 import { isRosterMember } from "@/lib/employee";
 import { timeToMinutes } from "@/lib/format";
 import { assertAdmin } from "@/server/auth/session";
@@ -95,6 +101,13 @@ export async function copyPreviousWeekAction(weekStart: string): Promise<ActionR
     // Normalised the way the page normalises `?week=`, so a mid-week date can
     // never copy into a window straddling two weeks.
     const target = startOfWeekIso(weekStart);
+
+    // A week that has already begun holds shifts people have worked; refilling
+    // it from last week would overwrite the record of what happened. The button
+    // is disabled for those weeks, but a Server Function can be posted to
+    // directly, so the rule lives here too.
+    if (target <= startOfWeekIso(todayIso())) return actionError("weekStarted");
+
     const source = addIsoDays(target, -DAYS_IN_WEEK);
 
     const employees = await employeeRepository.list();

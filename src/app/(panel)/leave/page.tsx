@@ -6,9 +6,9 @@ import { SwapRequestForm } from "@/components/features/leave/SwapRequestForm";
 import { Badge } from "@/components/ui/Badge";
 import { Card, IconTile } from "@/components/ui/Card";
 import { Hint, PageHeader, SectionBlock } from "@/components/ui/Section";
-import { addIsoDays, currentWeekStartIso, fromIsoDate, todayIso, weekdayIndex } from "@/lib/date";
+import { addIsoDays, todayIso, weekdayIndex } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
-import { formatShiftSpan } from "@/lib/format";
+import { formatDayMonth, formatShiftSpan } from "@/lib/format";
 import { getTranslations } from "@/lib/i18n/server";
 import { requireSessionUser } from "@/server/auth/session";
 import { getLeaveBoard } from "@/server/services/leave.service";
@@ -21,20 +21,23 @@ const PAGE = "flex flex-1 flex-col gap-3.5 bg-fill px-4 pb-6 pt-3.5";
 export default async function LeavePage() {
   const [{ dict }, user] = await Promise.all([getTranslations(), requireSessionUser()]);
 
-  // Always the week you are in: this screen has no week switcher, so a `?week=`
-  // would silently change which shifts you can offer for a swap.
-  const weekStart = currentWeekStartIso();
-  const board = await getLeaveBoard(user, weekStart);
+  // No week enters here: the board runs from tomorrow to the end of the written
+  // roster, so there is nothing a `?week=` could scope.
+  const board = await getLeaveBoard(user);
   const isAdmin = user.role === "admin";
 
   const today = todayIso();
 
   const shiftOptions = board.mySwapOptions.map((option) => {
-    const date = fromIsoDate(option.date);
     const dayName = dict.calendar.daysShort[weekdayIndex(option.date)];
+    // The month is part of the label now that the list is not one week long: two
+    // "Mon 7"s a month apart would be the same option to read.
     return {
       value: option.date,
-      label: `${dayName} ${date.getDate()} · ${formatShiftSpan(option.shift, dict)}`,
+      label: `${dayName} ${formatDayMonth(option.date, dict)} · ${formatShiftSpan(
+        option.shift,
+        dict,
+      )}`,
     };
   });
 

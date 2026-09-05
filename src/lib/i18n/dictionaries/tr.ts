@@ -168,6 +168,7 @@ export const tr = {
     task: "Görev",
     onLeave: "İzinli",
     emptyDay: "Bu gün için vardiya yok",
+    total: "Toplam",
 
     // Geçen haftayı kopyalama. Sayaçlar sunucuda yerine konur — {n} yazılacak
     // vardiya, {m} silinecek olan.
@@ -181,6 +182,7 @@ export const tr = {
       "Geçen haftanın {n} vardiyası bu haftaya yazılacak, bu haftadaki {m} vardiya silinecek. Bu işlem geri alınamaz.",
     copyDone: "Geçen haftanın programı kopyalandı.",
     copyEmpty: "Geçen hafta boş, kopyalanacak vardiya yok.",
+    copyPast: "Başlamış bir haftaya kopyalanamaz.",
   },
 
   leave: {
@@ -198,7 +200,8 @@ export const tr = {
     swapsEmpty: "Değişim talebi yok",
     newSwap: "Değişim İste",
     askSwap: "Talep Oluştur",
-    swapNoShift: "Bu hafta değiştirebileceğin vardiya yok",
+    swapNoShift: "Değiştirebileceğin yaklaşan vardiya yok",
+    swapPast: "Bugünkü ve geçmiş vardiyalar değiştirilemez.",
     balance: "Kalan yıllık izin",
     balanceHint: "Bilgi amaçlı. Her talebi yöneticin değerlendirir.",
     note: "Not",

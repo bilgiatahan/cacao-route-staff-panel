@@ -59,6 +59,45 @@ export const shiftRepository = {
     return this.listByEmployeeAndDateRange(employeeId, dates[0], dates[6]);
   },
 
+  /**
+   * One person's shifts from `start` onward, with no upper bound.
+   *
+   * The swap form offers every shift you have yet to work, not the ones in the
+   * week you happen to be looking at, so there is no end date to pass: the roster
+   * only extends as far as it has been written, and that *is* the horizon.
+   */
+  async listByEmployeeFrom(employeeId: string, start: IsoDate): Promise<Shift[]> {
+    return prisma.shift.findMany({
+      where: { employeeId, date: { gte: start } },
+      orderBy: [{ date: "asc" }, { startMinutes: "asc" }],
+    });
+  },
+
+  /**
+   * The shifts behind a set of (employee, date) pairs, in one query.
+   *
+   * The swap list needs the shift each request is about, and since a request can
+   * name any future day those dates are scattered. A date range would have to
+   * span the oldest request to the newest and pull every employee's roster in
+   * between to use a handful of rows; the pairs are exactly the rows wanted.
+   */
+  async listForEmployeeDates(
+    pairs: { employeeId: string; date: IsoDate }[],
+  ): Promise<Shift[]> {
+    const seen = new Set<string>();
+    const unique = pairs.filter(({ employeeId, date }) => {
+      const key = `${employeeId}\u0000${date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (unique.length === 0) return [];
+
+    return prisma.shift.findMany({
+      where: { OR: unique.map(({ employeeId, date }) => ({ employeeId, date })) },
+    });
+  },
+
   async findByEmployeeAndDate(employeeId: string, date: IsoDate): Promise<Shift | null> {
     return prisma.shift.findUnique({ where: { employeeId_date: { employeeId, date } } });
   },

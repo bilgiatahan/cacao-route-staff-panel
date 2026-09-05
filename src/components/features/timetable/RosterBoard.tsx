@@ -19,6 +19,7 @@ import type {
   DayRowView,
   RosterCellView,
   RosterRowView,
+  RosterTotalsView,
 } from "./view-model";
 
 export interface RosterBoardProps {
@@ -26,6 +27,8 @@ export interface RosterBoardProps {
   canEdit: boolean;
   rows: RosterRowView[];
   columns: DayColumnView[];
+  /** Grid view only: the column and week hour totals printed under the rows. */
+  totals: RosterTotalsView;
   /** Day view only. */
   selectedDay: { index: number; label: string } | null;
   dayRows: DayRowView[];
@@ -59,6 +62,7 @@ export function RosterBoard({
   canEdit,
   rows,
   columns,
+  totals,
   selectedDay,
   dayRows,
   dayOff,
@@ -90,6 +94,7 @@ export function RosterBoard({
         <GridView
           rows={rows}
           columns={columns}
+          totals={totals}
           canEdit={canEdit}
           staffColumn={labels.staffColumn}
           onOpen={openCell}
@@ -133,12 +138,14 @@ const GRID_TEMPLATE = "grid grid-cols-[96px_repeat(7,minmax(52px,1fr))]";
 function GridView({
   rows,
   columns,
+  totals,
   canEdit,
   staffColumn,
   onOpen,
 }: {
   rows: RosterRowView[];
   columns: DayColumnView[];
+  totals: RosterTotalsView;
   canEdit: boolean;
   /** Names the grid and its first column; the prop existed but was never used. */
   staffColumn: string;
@@ -157,7 +164,7 @@ function GridView({
       <div
         role="grid"
         aria-label={staffColumn}
-        aria-rowcount={rows.length + 1}
+        aria-rowcount={rows.length + 2}
         aria-colcount={columns.length + 1}
         className="min-w-117.5"
       >
@@ -181,7 +188,7 @@ function GridView({
               <div className="text-2xs font-extrabold tracking-[0.06em]">
                 {column.shortLabel}
               </div>
-              <div className="tabular text-nano text-muted">{column.dayOfMonth}</div>
+              <div className="tabular text-nano text-muted">{column.dateLabel}</div>
             </div>
           ))}
         </div>
@@ -263,6 +270,40 @@ function GridView({
             })}
           </div>
         ))}
+
+        {/*
+          The totals close the table rather than float above it: you read the
+          week down the columns and meet the sum where the columns end.
+        */}
+        <div
+          role="row"
+          className={cn(GRID_TEMPLATE, "items-stretch bg-surface-alt border-t border-line-strong")}
+        >
+          <div
+            role="rowheader"
+            className="sticky left-0 z-1 min-w-0 border-r border-line bg-surface-alt px-2.5 py-1.5"
+          >
+            <div className="truncate text-2xs font-bold tracking-[0.06em] text-muted">
+              {totals.label}
+            </div>
+            <div className="tabular text-sm font-bold text-ink">{totals.totalLabel}</div>
+          </div>
+
+          {totals.days.map((day) => (
+            <div
+              key={day.date}
+              role="gridcell"
+              // The dash is a shape; the hours are what gets read out.
+              aria-label={day.ariaLabel}
+              className={cn(
+                "tabular flex min-h-11 items-center justify-center border-r border-line text-xs font-bold",
+                day.isEmpty ? "text-muted" : "text-ink",
+              )}
+            >
+              {day.label}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

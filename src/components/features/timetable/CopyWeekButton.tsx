@@ -26,16 +26,21 @@ export interface CopyWeekLabels {
   cancel: string;
   close: string;
   done: string;
-  /** Why the button is dead when last week has nothing in it. */
-  empty: string;
   errorMessages: Record<ActionErrorKey, string>;
 }
 
 export interface CopyWeekButtonProps {
   /** The Monday being written into; the action derives the source from it. */
   weekStart: string;
-  /** False when last week is empty — the control is shown, but inert. */
-  canCopy: boolean;
+  /**
+   * Why the copy is unavailable, or `null` when it is available. The control is
+   * shown either way; a string makes it inert and is printed beside it.
+   *
+   * The reason is picked on the server rather than derived from a flag here: the
+   * two cases — a week that has already begun, and an empty week to copy from —
+   * are both server facts, and this component has no business ranking them.
+   */
+  disabledReason: string | null;
   labels: CopyWeekLabels;
 }
 
@@ -47,17 +52,22 @@ export interface CopyWeekButtonProps {
  * Cancel. The dialog's body carries the real numbers rather than a vague
  * warning: an admin about to lose five shifts should be told it is five.
  *
- * When last week is empty the button stays on screen and goes disabled with the
- * reason next to it. Hiding it instead would leave an admin looking for a
- * feature that was there last week, and a disabled control with no explanation
- * is the same dead end one step later.
+ * When the copy cannot run — the open week has already begun, or last week is
+ * empty — the button stays on screen and goes disabled with the reason next to
+ * it. Hiding it instead would leave an admin looking for a feature that was
+ * there last week, and a disabled control with no explanation is the same dead
+ * end one step later.
  *
  * Success is reported by a toast rather than by closing something: the grid
  * behind does change, but a week that was already full changes in a way that is
  * easy to miss, and "nothing visibly happened" is exactly what a failed write
  * looks like.
  */
-export function CopyWeekButton({ weekStart, canCopy, labels }: CopyWeekButtonProps) {
+export function CopyWeekButton({
+  weekStart,
+  disabledReason,
+  labels,
+}: CopyWeekButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { run, pending, error } = useActionFeedback(labels.errorMessages, () => {
@@ -75,16 +85,16 @@ export function CopyWeekButton({ weekStart, canCopy, labels }: CopyWeekButtonPro
 
   return (
     <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center lg:gap-2.5">
-      {canCopy ? null : (
+      {disabledReason ? (
         // Sits before the button on a phone so it is read on the way to the
         // control, and to its left on a desk where the row reads across.
-        <p className="text-xs text-muted lg:max-w-56 lg:text-right">{labels.empty}</p>
-      )}
+        <p className="text-xs text-muted lg:max-w-56 lg:text-right">{disabledReason}</p>
+      ) : null}
 
       <Button
         variant="outline"
         size="md"
-        disabled={!canCopy}
+        disabled={disabledReason !== null}
         loading={pending}
         loadingLabel={labels.pending}
         onClick={() => setOpen(true)}

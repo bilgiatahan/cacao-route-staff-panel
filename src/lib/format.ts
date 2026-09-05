@@ -56,6 +56,20 @@ export function formatHourlyRate(hourlyRate: number, dict: Dictionary): string {
   return `${formatMoney(hourlyRate)}${dict.units.perHour}`;
 }
 
+/**
+ * "2026-08-03" → "03/08/26".
+ *
+ * Day-first in both locales: en-GB writes the date the same way tr does, so the
+ * numeric form needs no dictionary. Zero-padded so a column of dates lines up
+ * under `tabular`.
+ */
+export function formatNumericDate(iso: IsoDate): string {
+  const date = fromIsoDate(iso);
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  return `${day}/${month}/${`${date.getFullYear()}`.slice(-2)}`;
+}
+
 /** "2026-08-03" → "3 Ağu" */
 export function formatDayMonth(iso: IsoDate, dict: Dictionary): string {
   const date = fromIsoDate(iso);

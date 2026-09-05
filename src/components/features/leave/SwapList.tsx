@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Section";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { fromIsoDate, weekdayIndex } from "@/lib/date";
+import { weekdayIndex } from "@/lib/date";
 import { employeeDisplayName } from "@/lib/employee";
-import { formatShiftSpan } from "@/lib/format";
+import { formatDayMonth, formatShiftSpan } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { actionErrorMessages } from "@/server/actions/action-result";
@@ -39,7 +39,6 @@ export function SwapList({ rows, dict }: SwapListProps) {
   return (
     <ul className="flex flex-col gap-2">
       {rows.map(({ request, requester, target, shift, actionable }) => {
-        const date = fromIsoDate(request.date);
         const dayName = dict.calendar.daysLong[weekdayIndex(request.date)];
         const isPending = request.status === "pending";
 
@@ -56,7 +55,10 @@ export function SwapList({ rows, dict }: SwapListProps) {
                     {target ? employeeDisplayName(target) : dict.common.dash}
                   </div>
                   <div className="tabular text-sm text-muted">
-                    {dayName} {date.getDate()} · {formatShiftSpan(shift, dict)}
+                    {/* With the month: a swap can now be filed for any day the
+                        roster reaches, not just one week. */}
+                    {dayName} {formatDayMonth(request.date, dict)} ·{" "}
+                    {formatShiftSpan(shift, dict)}
                   </div>
                 </div>
                 <StatusBadge

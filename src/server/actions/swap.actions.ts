@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 
-import { isValidIsoDate } from "@/lib/date";
+import { isValidIsoDate, todayIso } from "@/lib/date";
 import { assertAdmin, assertAuthenticated } from "@/server/auth/session";
 import { employeeRepository } from "@/server/repositories/employee.repository";
 import { shiftRepository } from "@/server/repositories/shift.repository";
@@ -22,6 +22,11 @@ export async function createSwapRequestAction(
     const targetId = String(formData.get("targetId") ?? "");
     if (!isValidIsoDate(date) || !targetId) return actionError("notFound");
     if (targetId === viewer.employeeId) return actionError("notFound");
+
+    // Only a shift still ahead of you can be handed over. The select offers
+    // nothing else, but a Server Function can be posted to directly — and a page
+    // left open overnight would otherwise submit yesterday's option.
+    if (date <= todayIso()) return actionError("shiftPassed");
 
     // Only a shift you actually hold can be offered.
     const shift = await shiftRepository.findByEmployeeAndDate(viewer.employeeId, date);

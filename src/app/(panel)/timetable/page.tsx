@@ -8,12 +8,13 @@ import {
   buildDayRows,
   buildHourTicks,
   buildRosterRows,
+  buildRosterTotals,
 } from "@/components/features/timetable/view-model";
 import { Card } from "@/components/ui/Card";
 import { Legend } from "@/components/ui/Legend";
 import { PageHeader } from "@/components/ui/Section";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { addIsoDays, todayIso, weekdayIndex } from "@/lib/date";
+import { addIsoDays, startOfWeekIso, todayIso, weekdayIndex } from "@/lib/date";
 import { formatWeekLabel } from "@/lib/format";
 import { interpolate } from "@/lib/i18n";
 import { getTranslations } from "@/lib/i18n/server";
@@ -55,11 +56,24 @@ export default async function TimetablePage({
   );
 
   const canEdit = user.role === "admin";
-  // Only an admin can copy a week, so only an admin pays for the extra read of
-  // last week's shifts.
-  const copyPreview = canEdit ? await getPreviousWeekPreview(roster) : null;
+  // A week that has already begun cannot be refilled from last week — those
+  // shifts have been worked. Copying is forward-looking only, and the action
+  // enforces the same rule.
+  const weekHasStarted = weekStart <= startOfWeekIso(today);
+  // Only an admin can copy a week, and only into a week that has not started —
+  // so only that case pays for the extra read of last week's shifts.
+  const copyPreview =
+    canEdit && !weekHasStarted ? await getPreviousWeekPreview(roster) : null;
+  // The two reasons the control can be inert, in the order they apply: a started
+  // week rules the copy out before the source week is even looked at.
+  const copyDisabledReason = weekHasStarted
+    ? dict.timetable.copyPast
+    : copyPreview && copyPreview.sourceCount > 0
+      ? null
+      : dict.timetable.copyEmpty;
   const columns = buildDayColumns(roster.dates, dict, todayInWeek);
   const rows = buildRosterRows(roster.rows, dict);
+  const totals = buildRosterTotals(roster.rows, roster.dates, dict);
   const { onShift, off } = buildDayRows(roster.rows, roster.dates[dayIndex], dict);
 
   const viewOptions = (["grid", "person", "day"] as const).map((key) => ({
@@ -131,30 +145,33 @@ export default async function TimetablePage({
             options={viewOptions}
           />
 
-          {copyPreview ? (
+          {canEdit ? (
             <CopyWeekButton
               weekStart={weekStart}
-              canCopy={copyPreview.sourceCount > 0}
+              disabledReason={copyDisabledReason}
               labels={{
                 action: dict.timetable.copy,
                 confirm: dict.timetable.copyShort,
                 pending: dict.timetable.copying,
                 title: dict.timetable.copyTitle,
                 // Built here rather than in the client: the counts are server
-                // facts, and the dictionary never crosses the boundary.
-                body: `${dict.timetable.copyQuestion} ${interpolate(
-                  copyPreview.targetCount > 0
-                    ? dict.timetable.copyReplaces
-                    : dict.timetable.copyAdds,
-                  {
-                    n: String(copyPreview.sourceCount),
-                    m: String(copyPreview.targetCount),
-                  },
-                )}`,
+                // facts, and the dictionary never crosses the boundary. Without
+                // a preview the button is disabled, so the dialog it belongs to
+                // never opens and there is no question to ask.
+                body: copyPreview
+                  ? `${dict.timetable.copyQuestion} ${interpolate(
+                      copyPreview.targetCount > 0
+                        ? dict.timetable.copyReplaces
+                        : dict.timetable.copyAdds,
+                      {
+                        n: String(copyPreview.sourceCount),
+                        m: String(copyPreview.targetCount),
+                      },
+                    )}`
+                  : "",
                 cancel: dict.common.cancel,
                 close: dict.common.close,
                 done: dict.timetable.copyDone,
-                empty: dict.timetable.copyEmpty,
                 errorMessages: actionErrorMessages(dict),
               }}
             />
@@ -167,6 +184,7 @@ export default async function TimetablePage({
             canEdit={canEdit}
             rows={rows}
             columns={columns}
+            totals={totals}
             selectedDay={{
               index: dayIndex,
               label: dict.calendar.daysLong[dayIndex],
